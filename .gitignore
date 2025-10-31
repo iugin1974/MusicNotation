@@ -1,0 +1,14 @@
+# Directory di build
+/bin/
+target/
+
+# File di configurazione di Eclipse che possono cambiare da macchina a macchina
+.classpath
+.project
+.settings/
+
+# File generati da IDE o sistema operativo
+*.log
+*.tmp
+*.swp
+.DS_Store
