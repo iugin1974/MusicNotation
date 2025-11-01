@@ -32,13 +32,13 @@ public class GUI extends JFrame {
 
 	private final int DISTANCE_BETWEEN_STAVES = 50;
 	private ScoreWriter controller;
-	private ArrayList<GraphicalStaff> staffList;
 	private Font musicFont;
 	private int mouseX, mouseY;
 	private boolean insertNote = false;
 	private GraphicalNote notePointer = null;
 	private MainPanel mainPanel;
 	private ButtonGroup group;
+	private ArrayList<GraphicalStaff> staffList;
 
 	private void initFont() {
 		try (InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
@@ -82,7 +82,6 @@ public class GUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				controller.addStaff();
-				mainPanel.repaint();
 			}
 		});
 		JMenuItem itemInsertNote = new JMenuItem("Insert Note");
@@ -128,14 +127,6 @@ public class GUI extends JFrame {
 		return p;
 	}
 
-	public ArrayList<GraphicalStaff> getStaffList() {
-		return staffList;
-	}
-
-	public GraphicalStaff getStaff(int i) {
-		return staffList.get(i);
-	}
-
 	private int calculateNextY() {
 		int yPos = 0;
 		for (GraphicalStaff s : staffList) {
@@ -143,18 +134,16 @@ public class GUI extends JFrame {
 		}
 		return yPos;
 	}
-
-	public GraphicalStaff addStaff() {
-		if (staffList == null)
-			staffList = new ArrayList<>();
-		int y = calculateNextY();
-		GraphicalStaff s = new GraphicalStaff(0, y, this.getWidth(), 5, 10, controller);
-		staffList.add(s);
-		return s;
+	
+	public GraphicalStaff getStaff(int i) {
+		return staffList.get(i);
 	}
-
-	private void drawNote() {
-
+	
+	public void addStaff(int id) {
+		if (staffList == null) staffList = new ArrayList<>();
+		int yPos = calculateNextY();
+		GraphicalStaff gs = new GraphicalStaff(id, 0, yPos, mainPanel.getWidth(), 5, 10, controller);
+		staffList.add(gs);
 	}
 
 	public void repaintPanel() {
@@ -176,14 +165,22 @@ public class GUI extends JFrame {
 			setFocusable(true);
 		}
 
+		private void drawStaves(Graphics g) {
+			for (GraphicalStaff gs : staffList) {
+				gs.draw(g);
+			}
+		}
+		
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setFont(musicFont);
-			if (staffList != null) {
-				for (int i = 0; i < staffList.size(); i++) {
-					staffList.get(i).draw(g);
+			if (staffList == null) return;
+			drawStaves(g);
+			for (ArrayList<GraphicalObject> staff : controller.getStaffList()) {
+				for (GraphicalObject gr : staff) {
+					gr.draw(g);
 				}
-			}
+				}
 			if (insertNote && mouseX > 0 && mouseY > 0) {
 				notePointer.draw(g);
 			}
@@ -233,8 +230,8 @@ public class GUI extends JFrame {
 					}
 				}
 				snapY = nearest;
-			}
 			controller.mouseDragged(mouseX, snapY);
+		}
 		}
 
 		@Override

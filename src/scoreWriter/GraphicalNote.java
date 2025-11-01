@@ -82,8 +82,8 @@ public class GraphicalNote extends Note implements GraphicalObject, Movable {
 		return null; // durata non riconosciuta
 	}
 
-	void draw(Graphics g) {
-		
+	@Override
+	public void draw(Graphics g) {		
 		String glyph = getNoteGlyph();
         FontMetrics fm = g.getFontMetrics();
         int width = fm.stringWidth(glyph);

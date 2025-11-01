@@ -1,5 +1,7 @@
 package scoreWriter;
 
+import java.awt.Graphics;
+
 public interface GraphicalObject {
 
 	public int getX();
@@ -9,4 +11,5 @@ public interface GraphicalObject {
 	public boolean isSelected();
 	public void select(boolean select);
 	public boolean contains(int x, int y);
+	public void draw(Graphics g);
 }

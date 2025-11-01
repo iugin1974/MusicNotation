@@ -7,29 +7,31 @@ import java.util.ArrayList;
 import musicInterface.MusicObject;
 
 class GraphicalStaff implements GraphicalObject {
+	private int id = 0;
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
 	private final int MAX_ADDED_LINES = 2; // i tagli addizionali
 	private ScoreWriter controller;
 
-	GraphicalStaff(int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
+	GraphicalStaff(int id, int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.lineNumber = lineNumber;
 		this.distanceBetweenLines = distanceBetweenLines;
 		this.controller = controller;
+		this.id = id;
 	}
 
 	public void setX(int x) {
 		this.x = x;
 	}
-	
+
 	public void setY(int y) {
 		this.y = y;
 	}
-	
+
 	public int getX() {
 		return x;
 	}
@@ -76,7 +78,7 @@ class GraphicalStaff implements GraphicalObject {
 		return y + (l * distanceBetweenLines);
 	}
 
-		/**
+	/**
 	 * @param space
 	 * @return la posizione verticale dello centro dello spazio <i>space</i>
 	 **/
@@ -111,8 +113,9 @@ class GraphicalStaff implements GraphicalObject {
 	}
 
 	/**
-	 * Indica la posizione della nota nel pentagramma, dove 0 è il 
-	 * do centrale in chiave di violino, 1 il re e così via
+	 * Indica la posizione della nota nel pentagramma, dove 0 è il do centrale in
+	 * chiave di violino, 1 il re e così via
+	 * 
 	 * @param y
 	 */
 	public int getPosInStaff(GraphicalNote n) {
@@ -120,8 +123,17 @@ class GraphicalStaff implements GraphicalObject {
 		// 14 è il do centrale nell'arraylist
 		return -(snapPoints.indexOf(n.getY()) - 14);
 	}
-	
-	void draw(Graphics g) {
+
+	private void drawNote(GraphicalNote note, Graphics g) {
+		if (note.getY() > getLineY(3))
+			note.setStemDirection(GraphicalNote.STEM_UP);
+		else
+			note.setStemDirection(GraphicalNote.STEM_DOWN);
+		note.draw(g);
+	}
+
+	@Override
+	public void draw(Graphics g) {
 		if (selected) {
 			g.setColor(Color.RED);
 		} else {
@@ -132,14 +144,16 @@ class GraphicalStaff implements GraphicalObject {
 			g.drawLine(x, yPos, x + width, yPos);
 		}
 
-		for (ArrayList<MusicObject> staff : controller.getStaffList()) {
-			for (int i = 0; i < staff.size(); i++) {
-				MusicObject musicObject = staff.get(i);
-				if (musicObject instanceof GraphicalNote) {
-					GraphicalNote note = (GraphicalNote)musicObject;
-					note.draw(g);
-				}
+		ArrayList<GraphicalObject> objects = controller.getStaff(id);
+		for (GraphicalObject object : objects) {
+			if (object instanceof GraphicalNote) {
+				GraphicalNote note = (GraphicalNote) object;
+				drawNote(note, g);
 			}
 		}
+	}
+
+	public int getId() {
+		return id;
 	}
 }
