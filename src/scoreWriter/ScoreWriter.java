@@ -3,6 +3,9 @@ package scoreWriter;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
 import javax.swing.SwingUtilities;
 
 import musicInterface.MusicObject;
@@ -42,7 +45,7 @@ public class ScoreWriter {
 		return false;
 	}
 
-	boolean selectObject(int x, int y, ArrayList<ArrayList<GraphicalObject>> staffList) {
+	private boolean selectObject(int x, int y, ArrayList<ArrayList<GraphicalObject>> staffList) {
 		boolean selected = false;
 		for (int j = 0; j < staffList.size(); j++) {
 			ArrayList<GraphicalObject> objects = staffList.get(j);
@@ -51,6 +54,7 @@ public class ScoreWriter {
 				if (!selected && obj.contains(x, y)) {
 					obj.select(true);
 					selected = true;
+					break;
 				} else {
 					obj.select(false);
 				}
@@ -84,32 +88,43 @@ public class ScoreWriter {
 		new ScoreWriter().go();
 	}
 
-	// TODO -> le note vengono solo inserite nello staff 0
-	public void insertNote(GraphicalNote pointerNote) {
-		int x = pointerNote.getX();
-		int y = pointerNote.getY();
-		int d = pointerNote.getDuration();
-		int staffNumber = checkInWichStaffIsNote(x, y);
+	private void insertNote(GraphicalNote n, int staffNumber) {
+		int midi = calculateMidiNumber(staffNumber, n);
+		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
+		n.setMidiNumber(midi);
+		staffList.get(staffNumber).add(newNote);
+		System.out.println("Staff " + staffNumber + " has now " + staffList.get(staffNumber).size() + " Notes.");
+	}
+	
+	private void insertBar(GraphicalBar bar, int staffNumber) {
+		GraphicalBar b = (GraphicalBar)bar.cloneObject();
+		int firstLine = gui.getStaff(staffNumber).getLineY(1);
+		b.setY(firstLine);
+		staffList.get(staffNumber).add(b);
+	}
+	
+	
+	public void insertObject(Pointer pointer, GraphicalObject object) {
+		int x = pointer.getX();
+		int y = pointer.getY();
+		int staffNumber = checkInWichStaffIsPoint(x, y);
 		if (staffNumber == -1)
 			return;
-		GraphicalNote n = new GraphicalNote(0);
-		n.setX(x);
-		n.setY(y);
-		n.setDuration(d);
-		n.select(false);
-		// if (y > gs.getLineY(3))
-		// n.setStemDirection(GraphicalNote.STEM_UP);
-		// else
-		// n.setStemDirection(GraphicalNote.STEM_DOWN);
-		// int midi = calculateMidiNumber(gs, n);
-		// n.setMidiNumber(midi);
-		staffList.get(staffNumber).add(n);
-		System.out.println("Staff " + staffNumber + " has now " + staffList.get(staffNumber).size() + " Notes.");
+		object.setX(x);
+		object.setY(y);
+		object.select(false);
+		if (object instanceof GraphicalNote) insertNote((GraphicalNote)object, staffNumber);
+		else if (object instanceof GraphicalBar) insertBar((GraphicalBar)object, staffNumber);
+		sortObjectsInStaff(staffNumber);
 		gui.repaintPanel();
 	}
 
-	private int calculateMidiNumber(GraphicalStaff gs, GraphicalNote n) {
+	private void sortObjectsInStaff(int staffNumber) {
+		Collections.sort(staffList.get(staffNumber), new CompareFirstName());
+	}
 
+	private int calculateMidiNumber(int staffNumber, GraphicalNote n) {
+		GraphicalStaff gs = gui.getStaff(staffNumber);
 		int position = gs.getPosInStaff(n);
 		int baseMidi = 60; // C4 (do centrale)
 		int[] scale = { 0, 2, 4, 5, 7, 9, 11 }; // C D E F G A B
@@ -127,7 +142,7 @@ public class ScoreWriter {
 	 * @return il numero dello staff in cui si trova il punto passato come argomento
 	 *         oppure -1
 	 */
-	private int checkInWichStaffIsNote(int x, int y) {
+	private int checkInWichStaffIsPoint(int x, int y) {
 
 		for (int i = 0; i < getStaffNumber(); i++) {
 			GraphicalStaff gs = gui.getStaff(i);
@@ -164,9 +179,17 @@ public class ScoreWriter {
 		GraphicalObject o = getSelectedObject();
 		if (o == null)
 			return;
-		if (o instanceof Movable) {
-			((Movable) o).moveTo(x, y);
-			gui.repaintPanel();
+		o.moveTo(x, y);
+		gui.repaintPanel();
+	}
+
+	public void mouseReleased(int x, int y) {
+		GraphicalObject o = getSelectedObject();
+		if (o instanceof GraphicalNote note) {
+			int sn = checkInWichStaffIsPoint(x, y);
+			int midi = calculateMidiNumber(sn, note);
+			note.setMidiNumber(midi);
+			sortObjectsInStaff(sn);
 		}
 	}
 
@@ -180,5 +203,22 @@ public class ScoreWriter {
 		}
 		return null;
 	}
-	
+
+	public void export() {
+		Exporter x = new Exporter();
+		x.setStaffs(staffList);
+		x.parse();
+	}
+
+	class CompareFirstName implements java.util.Comparator<GraphicalObject> {
+		@Override
+		public int compare(GraphicalObject o1, GraphicalObject o2) {
+			if (o1.getX() > o2.getX())
+				return 1;
+			if (o1.getX() < o2.getX())
+				return -1;
+			return 0;
+		}
+	}
+
 }

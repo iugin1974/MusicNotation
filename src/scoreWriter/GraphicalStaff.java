@@ -2,6 +2,7 @@ package scoreWriter;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import musicInterface.MusicObject;
@@ -13,6 +14,7 @@ class GraphicalStaff implements GraphicalObject {
 	private int lineNumber = 5;
 	private final int MAX_ADDED_LINES = 2; // i tagli addizionali
 	private ScoreWriter controller;
+	private final GraphicalHelper helper = new GraphicalHelper();
 
 	GraphicalStaff(int id, int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
 		this.x = x;
@@ -22,22 +24,6 @@ class GraphicalStaff implements GraphicalObject {
 		this.distanceBetweenLines = distanceBetweenLines;
 		this.controller = controller;
 		this.id = id;
-	}
-
-	public void setX(int x) {
-		this.x = x;
-	}
-
-	public void setY(int y) {
-		this.y = y;
-	}
-
-	public int getX() {
-		return x;
-	}
-
-	public int getY() {
-		return y;
 	}
 
 	public int getX2() {
@@ -86,19 +72,6 @@ class GraphicalStaff implements GraphicalObject {
 		// inverte la numerazione delle linee (la 5 viene considerata la 0)
 		int l = lineNumber - space - 1;
 		return y + (l * distanceBetweenLines) + (distanceBetweenLines / 2);
-	}
-
-	public boolean contains(int px, int py) {
-		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_ADDED_LINES)
-				&& py <= (y + (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_ADDED_LINES));
-	}
-
-	public void select(boolean s) {
-		selected = s;
-	}
-
-	public boolean isSelected() {
-		return selected;
 	}
 
 	public ArrayList<Integer> getSnapPoints() {
@@ -156,4 +129,75 @@ class GraphicalStaff implements GraphicalObject {
 	public int getId() {
 		return id;
 	}
+
+	@Override
+	public void setXY(int x, int y) {
+		helper.setXY(x, y);
+	}
+
+	@Override
+	public int getX() {
+		return helper.getX();
+	}
+
+	@Override
+	public void setX(int x) {
+		helper.setX(x);;
+	}
+
+	@Override
+	public int getY() {
+		return helper.getY();
+	}
+
+	@Override
+	public void setY(int y) {
+		helper.setY(y);
+	}
+
+	@Override
+	public boolean isSelected() {
+		return helper.isSelected();
+	}
+
+	@Override
+	public void select(boolean selected) {
+		helper.select(selected);
+	}
+
+	@Override
+	public boolean contains(int px, int py) {
+		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_ADDED_LINES)
+				&& py <= (y + (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_ADDED_LINES));
+	}
+
+	@Override
+	public void moveTo(int x, int y) {
+		helper.moveTo(x, y);
+		
+	}
+
+	@Override
+	public void moveBy(int dx, int dy) {
+		 helper.moveBy(dx, dy);
+	}
+
+	@Override
+	public GraphicalObject cloneObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setBounds(Rectangle bounds) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Rectangle getBounds() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }

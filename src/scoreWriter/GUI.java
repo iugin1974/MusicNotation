@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -17,6 +18,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -35,10 +37,13 @@ public class GUI extends JFrame {
 	private Font musicFont;
 	private int mouseX, mouseY;
 	private boolean insertNote = false;
-	private GraphicalNote notePointer = null;
+	private boolean insertBar = false;
+	private Pointer pointer = null;
 	private MainPanel mainPanel;
-	private ButtonGroup group;
 	private ArrayList<GraphicalStaff> staffList;
+	private ButtonGroup groupButtonsNotes;
+	private ButtonGroup groupButtonsBars;
+	private GraphicalObject objectToInsert;
 
 	private void initFont() {
 		try (InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
@@ -61,8 +66,9 @@ public class GUI extends JFrame {
 		mainPanel = new MainPanel();
 		mainPanel.setBackground(Color.WHITE);
 		add(mainPanel, BorderLayout.CENTER);
-
-		add(noteToolbar(), BorderLayout.NORTH);
+		
+		
+		add(mainToolbar(), BorderLayout.NORTH);
 
 		// Barra menu
 		JMenuBar menuBar = new JMenuBar();
@@ -92,6 +98,15 @@ public class GUI extends JFrame {
 				insertNote = true;
 			}
 		});
+		
+		salva.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				controller.export();
+				
+			}
+		});
 		modificaMenu.add(addStaffMenu);
 		modificaMenu.add(itemInsertNote);
 
@@ -102,30 +117,121 @@ public class GUI extends JFrame {
 
 	}
 
+	private JPanel mainToolbar() {
+	    JPanel mainPanel = new JPanel();
+	    mainPanel.setLayout(new BorderLayout());
+	    mainPanel.setBackground(Color.LIGHT_GRAY);
+
+	    // Pannello orizzontale per i pulsanti
+	    JPanel toolbarPanel = new JPanel();
+	    toolbarPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+	    toolbarPanel.setBackground(Color.LIGHT_GRAY);
+
+	    // Aggiungi le toolbar specifiche
+	    toolbarPanel.add(noteToolbar());
+	    toolbarPanel.add(barlineToolbar());
+	    // Potrai aggiungere altre toolbar qui in futuro:
+	    // toolbarPanel.add(clefToolbar());
+	    // toolbarPanel.add(keySignatureToolbar());
+	    // toolbarPanel.add(timeSignatureToolbar());
+	    // ecc.
+
+	    // Inserisci la toolbar nella parte alta del main panel
+	    mainPanel.add(toolbarPanel, BorderLayout.NORTH);
+
+	    return mainPanel;
+	}
+
+
+	
 	private JPanel noteToolbar() {
 		JPanel p = new JPanel();
 		p.setLayout(new FlowLayout(FlowLayout.LEFT));
 		setBackground(Color.LIGHT_GRAY);
 
-		String[] iconNames = { "nota_1.png", "nota_2.png", "nota_4.png", "nota_8.png", "nota_16.png", "nota_32.png",
-				"nota_64.png" };
+		MusicalSymbol[] notes = {
+		        SymbolRegistry.WHOLE_NOTE,
+		        SymbolRegistry.HALF_NOTE,
+		        SymbolRegistry.QUARTER_NOTE,
+		        SymbolRegistry.EIGHTH_NOTE,
+		        SymbolRegistry.SIXTEENTH_NOTE,
+		        SymbolRegistry.THIRTY_SECOND_NOTE,
+		        SymbolRegistry.SIXTY_FOURTH_NOTE
+		    };
 
-		group = new ButtonGroup();
-		for (int i = 0; i < iconNames.length; i++) {
+		groupButtonsNotes = new ButtonGroup();
+		
+		 for (MusicalSymbol noteSymbol : notes) {
 			JToggleButton button = new JToggleButton();
-			button.setIcon(new ImageIcon(getClass().getResource("/icons/" + iconNames[i])));
-			button.setActionCommand(String.valueOf(i));
-			button.addActionListener(e -> {
-				int index = Integer.parseInt(e.getActionCommand());
-				insertNote = true;
-				notePointer = new GraphicalNote(0); // crea la nota con MIDI = 0
-				notePointer.setDuration(index);
+			button.setIcon(new ImageIcon(getClass().getResource(noteSymbol.getIconPath())));
+			button.setBorder(BorderFactory.createEmptyBorder());
+			button.setMargin(new Insets(0, 0, 0, 0));
+			button.setContentAreaFilled(false);
+			button.setFocusPainted(false);
+			button.addChangeListener(e -> {
+			    if (button.isSelected()) {
+			        button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+			    } else {
+			        button.setBorder(BorderFactory.createEmptyBorder());
+			    }
 			});
-			group.add(button);
+			button.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsNotes);
+	            objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
+	            insertNote = true;
+	            pointer = new Pointer(noteSymbol, this); // pointer riceve il simbolo da mostrare
+	        });
+			groupButtonsNotes.add(button);
 			p.add(button);
 		}
 		return p;
 	}
+	
+	private JPanel barlineToolbar() {
+	    JPanel p = new JPanel();
+	    p.setLayout(new FlowLayout(FlowLayout.LEFT));
+	    p.setBackground(Color.LIGHT_GRAY);
+
+	    MusicalSymbol[] barlines = {
+	        SymbolRegistry.SINGLE_BARLINE,
+	        SymbolRegistry.DOUBLE_BARLINE,
+	        SymbolRegistry.FINAL_BARLINE,
+	        SymbolRegistry.REPEAT_START_BARLINE,
+	        SymbolRegistry.REPEAT_END_BARLINE
+	    };
+
+	    groupButtonsBars = new ButtonGroup();
+
+	    for (MusicalSymbol barlineSymbol : barlines) {
+	        JToggleButton button = new JToggleButton();
+	        button.setIcon(new ImageIcon(getClass().getResource(barlineSymbol.getIconPath())));
+	        button.setBorder(BorderFactory.createEmptyBorder());
+	        button.setMargin(new Insets(0, 0, 0, 0));
+	        button.setContentAreaFilled(false);
+	        button.setFocusPainted(false);
+
+	        button.addChangeListener(e -> {
+	            if (button.isSelected()) {
+	                button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+	            } else {
+	                button.setBorder(BorderFactory.createEmptyBorder());
+	            }
+	        });
+
+	        button.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsBars);
+	            objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
+	            insertBar = true;
+	            pointer = new Pointer(barlineSymbol, this); // passa direttamente il simbolo
+	        });
+
+	        groupButtonsBars.add(button);
+	        p.add(button);
+	    }
+
+	    return p;
+	}
+
 
 	private int calculateNextY() {
 		int yPos = 0;
@@ -182,15 +288,18 @@ public class GUI extends JFrame {
 				}
 				}
 			if (insertNote && mouseX > 0 && mouseY > 0) {
-				notePointer.draw(g);
+				pointer.draw(g);
+			} else if (insertBar && mouseX > 0 && mouseY > 0) {
+				pointer.draw(g);
 			}
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if (insertNote) {
-				controller.insertNote(notePointer); // TODO scegli lo staff
-			} else {
+			if (insertNote || insertBar) {
+				controller.insertObject(pointer, objectToInsert); // TODO scegli lo staff
+			} 
+			else {
 				controller.mouseClicked(e.getX(), e.getY());
 			}
 			repaint();
@@ -203,6 +312,7 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			controller.mouseReleased(e.getX(), e.getY());
 		}
 
 		@Override
@@ -245,7 +355,18 @@ public class GUI extends JFrame {
 					return;
 				int snapY = mouseY;
 				snapY = getSnapY(staffList.get(staffN), mouseY);
-				notePointer.setXY(mouseX, snapY);
+				pointer.moveTo(mouseX, snapY);
+				repaint();
+			} else if (insertBar && staffList != null) {
+				mouseX = e.getX();
+				mouseY = e.getY();
+				// in quale Staff è il puntatore?
+				int staffN = getPointedStaffIndex(mouseX, mouseY);
+				if (staffN == -1)
+					return;
+				int snapY = mouseY;
+				snapY = getSnapY(staffList.get(staffN), mouseY);
+				pointer.moveTo(mouseX, snapY);
 				repaint();
 			}
 		}
@@ -276,9 +397,31 @@ public class GUI extends JFrame {
 		return nearest;
 	}
 
+	private void removeOtherSelections(ButtonGroup clickedGroup) {
+	    if (clickedGroup != groupButtonsNotes) {
+	        groupButtonsNotes.clearSelection();
+	        insertBar = false;
+	    }
+	    if (clickedGroup != groupButtonsBars) {
+	        groupButtonsBars.clearSelection();
+	        insertNote = false;
+	    }
+	}
+
+
 	public void exitInsertMode() {
 		insertNote = false;
-		group.clearSelection();
+		insertBar = false;
+		groupButtonsNotes.clearSelection();
+		pointer = null;
 		repaint();
+	}
+
+	public GraphicalObject getObjectToInsert() {
+		return objectToInsert;
+	}
+
+	public void setObjectToInsert(GraphicalObject objectToInsert) {
+		this.objectToInsert = objectToInsert;
 	}
 }

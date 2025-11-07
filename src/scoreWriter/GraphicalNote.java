@@ -12,14 +12,23 @@ import java.io.InputStream;
 
 import musicEvent.Note;
 
-public class GraphicalNote extends Note implements GraphicalObject, Movable {
+public class GraphicalNote extends Note implements GraphicalObject {
 
-	private int x, y;
+	private MusicalSymbol symbol;
+
+
+	public GraphicalNote(MusicalSymbol symbol) {
+		super(0); // crea una nota con midi 0
+		this.symbol = symbol;
+		setup();
+	}
+
 	public static final int STEM_UP = 1;
 	public static final int STEM_DOWN = -1;
 	private int stemDirection = STEM_UP;
-	private boolean selected = false;
 	private Rectangle bounds;
+	private final GraphicalHelper helper = new GraphicalHelper();
+
 
 	private void setup() {
 		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
@@ -33,25 +42,7 @@ public class GraphicalNote extends Note implements GraphicalObject, Movable {
 		ge.registerFont(font);
 	}
 
-	public GraphicalNote(int midi) {
-		super(midi);
-		setup();
-	}
 
-	public GraphicalNote(int midi, int alteration) {
-		super(midi, alteration);
-		setup();
-	}
-
-	public GraphicalNote(int midi, int alteration, int duration) {
-		super(midi, alteration, duration);
-		setup();
-	}
-
-	public GraphicalNote(int midi, int alteration, int duration, int dots) {
-		super(midi, alteration, duration, dots);
-		setup();
-	}
 
 	public void setMidiNumber(int midi) {
 		this.midiNumber = midi;
@@ -61,90 +52,97 @@ public class GraphicalNote extends Note implements GraphicalObject, Movable {
 		stemDirection = direction;
 	}
 
-	private String getNoteGlyph() {
-		boolean up = true;
-		if (stemDirection == STEM_DOWN)
-			up = false;
-		if (duration == 0)
-			return "\uE1D2"; // semibreve
-		if (duration == 1)
-			return up ? "\uE1D3" : "\uE1D4"; // minima
-		if (duration == 2)
-			return up ? "\uE1D5" : "\uE1D6"; // semiminima
-		if (duration == 3)
-			return up ? "\uE1D7" : "\uE1D8"; // croma
-		if (duration == 4)
-			return up ? "\uE1D9" : "\uE1DA"; // semicroma
-		if (duration == 5)
-			return up ? "\uE1DB" : "\uE1DC"; // biscroma
-		if (duration == 6)
-			return up ? "\uE1DD" : "\uE1DE"; // semibiscroma
-		return null; // durata non riconosciuta
-	}
-
 	@Override
 	public void draw(Graphics g) {		
-		String glyph = getNoteGlyph();
+		String glyph = symbol.getGlyphUp();
         FontMetrics fm = g.getFontMetrics();
         int width = fm.stringWidth(glyph);
         int ascent = fm.getAscent();
         int descent = fm.getDescent();
         int height = ascent + descent;
 
-        bounds = new Rectangle(x, y - ascent, width, height);
-        if (selected) {
+        Rectangle bounds = new Rectangle(helper.getX(), helper.getY() - ascent, width, height);
+        helper.setBounds(bounds);
+        if (helper.isSelected()) {
 			g.setColor(Color.RED);
 		} else {
 			g.setColor(Color.BLACK);
 		}
-        g.drawString(glyph, x, y);
+        g.drawString(glyph, helper.getX(), helper.getY());
 	}
 
+	@Override
 	public void setXY(int x, int y) {
-		this.x = x;
-		this.y = y;
+		helper.setXY(x, y);
 	}
 
+	@Override
 	public int getX() {
-		return x;
+		return helper.getX();
 	}
 
+	@Override
 	public void setX(int x) {
-		this.x = x;
+		helper.setX(x);;
 	}
 
+	@Override
 	public int getY() {
-		return y;
+		return helper.getY();
 	}
 
+	@Override
 	public void setY(int y) {
-		this.y = y;
+		helper.setY(y);
 	}
 
 	@Override
 	public boolean isSelected() {
-		return selected;
+		return helper.isSelected();
 	}
 
 	@Override
 	public void select(boolean selected) {
-		this.selected = selected;
+		helper.select(selected);
 	}
 
 	@Override
 	public boolean contains(int x, int y) {
-        return bounds != null && bounds.contains(x, y);
+        return helper.contains(x, y);
     }
 
 	@Override
 	public void moveTo(int x, int y) {
-		this.x = x;
-		this.y = y;
+		helper.moveTo(x, y);
 		
 	}
 
 	@Override
 	public void moveBy(int dx, int dy) {
-		 moveTo(this.x + dx, this.y + dy);
+		 helper.moveBy(dx, dy);
+	}
+
+	@Override
+	public GraphicalObject cloneObject() {
+		GraphicalNote n = new GraphicalNote(symbol);
+		n.setMidiNumber(getMidiNumber());
+		n.setX(getX());
+		n.setY(getY());
+		n.setDuration(getDuration());
+		n.setDots(getDots());
+		setBounds(getBounds());
+		return n;
+	}
+
+
+
+	@Override
+	public void setBounds(Rectangle bounds) {
+	helper.setBounds(bounds);
+	}
+
+	@Override
+	public Rectangle getBounds() {
+		return helper.getBounds();
 	}
 }
