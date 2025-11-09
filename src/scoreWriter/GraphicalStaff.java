@@ -200,4 +200,9 @@ class GraphicalStaff implements GraphicalObject {
 		return null;
 	}
 	
+	@Override
+	public MusicalSymbol getSymbol() {
+		return null;
+	}
+	
 }

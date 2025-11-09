@@ -5,22 +5,19 @@ public class MusicalSymbol {
     private final String iconPath;
     private final String glyphUp;
     private final String glyphDown;
-    private final boolean hasStem;
-    private final boolean isRest;
-    private final boolean isBarline;
     private int duration;
-
+    private Type type;
+    public enum Type { NOTE, REST, BARLINE, CLEF };
+    
     public MusicalSymbol(String name, String iconPath,
                          String glyphUp, String glyphDown,
-                         boolean hasStem, boolean isRest, boolean isBarline,
+                         Type type,
                          int duration) {
         this.name = name;
         this.iconPath = iconPath;
         this.glyphUp = glyphUp;
         this.glyphDown = glyphDown;
-        this.hasStem = hasStem;
-        this.isRest = isRest;
-        this.isBarline = isBarline;
+        this.type = type;
         this.duration = duration;
     }
 
@@ -28,8 +25,6 @@ public class MusicalSymbol {
     public String getIconPath() { return iconPath; }
     public String getGlyphUp() { return glyphUp; }
     public String getGlyphDown() { return glyphDown; }
-    public boolean hasStem() { return hasStem; }
-    public boolean isRest() { return isRest; }
-    public boolean isBarline() { return isBarline; }
+    public Type getType() { return type; }
     public int getDuration() { return duration; }
 }

@@ -19,4 +19,6 @@ public interface GraphicalObject {
 	public Rectangle getBounds();
 	public void draw(Graphics g);
 	public GraphicalObject cloneObject();
+	public MusicalSymbol getSymbol();
+	public String toString();
 }

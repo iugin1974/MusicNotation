@@ -13,9 +13,8 @@ public class Exporter {
 	public void parse() {
 		ArrayList<GraphicalObject> staff = staffList.get(0);
 		for (GraphicalObject go : staff) {
-			if (go instanceof GraphicalNote) parseNote((GraphicalNote) go);
+			System.out.println(go.toString());
 		}
-		System.out.println();
 	}
 
 	private void parseNote(GraphicalNote go) {

@@ -12,35 +12,56 @@ public class SymbolLibrary {
 		REPEAT_END // fine ripetizione
 	}
 
+	public enum ClefType {
+		TREBLE, BASS, TREBLE_8
+
+	}
+
 	public static String getNoteGlyph(int stem, int duration) {
-	    switch (stem) {
-	        case STEM_UP:
-	            switch (duration) {
-	                case 0: return "\uE1D2";
-	                case 1: return "\uE1D3";
-	                case 2: return "\uE1D5";
-	                case 3: return "\uE1D7";
-	                case 4: return "\uE1D9";
-	                case 5: return "\uE1DB";
-	                case 6: return "\uE1DD";
-	                default: return "";
-	            }
+		switch (stem) {
+		case STEM_UP:
+			switch (duration) {
+			case 0:
+				return "\uE1D2";
+			case 1:
+				return "\uE1D3";
+			case 2:
+				return "\uE1D5";
+			case 3:
+				return "\uE1D7";
+			case 4:
+				return "\uE1D9";
+			case 5:
+				return "\uE1DB";
+			case 6:
+				return "\uE1DD";
+			default:
+				return "";
+			}
 
-	        case STEM_DOWN:
-	            switch (duration) {
-	                case 0: return "\uE1D2";
-	                case 1: return "\uE1D4";
-	                case 2: return "\uE1D6";
-	                case 3: return "\uE1D8";
-	                case 4: return "\uE1DA";
-	                case 5: return "\uE1DC";
-	                case 6: return "\uE1DE";
-	                default: return "";
-	            }
+		case STEM_DOWN:
+			switch (duration) {
+			case 0:
+				return "\uE1D2";
+			case 1:
+				return "\uE1D4";
+			case 2:
+				return "\uE1D6";
+			case 3:
+				return "\uE1D8";
+			case 4:
+				return "\uE1DA";
+			case 5:
+				return "\uE1DC";
+			case 6:
+				return "\uE1DE";
+			default:
+				return "";
+			}
 
-	        default:
-	            return "";
-	    }
+		default:
+			return "";
+		}
 	}
 
 	public static String getRestGlyph(int duration) {
@@ -70,6 +91,14 @@ public class SymbolLibrary {
 		case FINAL -> "\uE032";
 		case REPEAT_START -> "\uE040";
 		case REPEAT_END -> "\uE041";
+		};
+	}
+
+	public static String getClefGlyph(ClefType type) {
+		return switch (type) {
+		case TREBLE -> "\uE050";
+		case BASS -> "\uE062";
+		case TREBLE_8 -> "\uE052";
 		};
 	}
 }

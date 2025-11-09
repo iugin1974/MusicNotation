@@ -95,15 +95,26 @@ public class ScoreWriter {
 		staffList.get(staffNumber).add(newNote);
 		System.out.println("Staff " + staffNumber + " has now " + staffList.get(staffNumber).size() + " Notes.");
 	}
-	
+
 	private void insertBar(GraphicalBar bar, int staffNumber) {
-		GraphicalBar b = (GraphicalBar)bar.cloneObject();
+		GraphicalBar b = (GraphicalBar) bar.cloneObject();
 		int firstLine = gui.getStaff(staffNumber).getLineY(1);
 		b.setY(firstLine);
 		staffList.get(staffNumber).add(b);
 	}
-	
-	
+
+	private void insertClef(GraphicalClef clef, int staffNumber) {
+		GraphicalClef c = (GraphicalClef) clef.cloneObject();
+		int firstLine = 0;
+		if (clef.getSymbol().equals(SymbolRegistry.CLEf_TREBLE)
+				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
+			firstLine = gui.getStaff(staffNumber).getLineY(2);
+		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
+			firstLine = gui.getStaff(staffNumber).getLineY(4);
+			c.setY(firstLine);
+		staffList.get(staffNumber).add(c);
+	}
+
 	public void insertObject(Pointer pointer, GraphicalObject object) {
 		int x = pointer.getX();
 		int y = pointer.getY();
@@ -113,8 +124,12 @@ public class ScoreWriter {
 		object.setX(x);
 		object.setY(y);
 		object.select(false);
-		if (object instanceof GraphicalNote) insertNote((GraphicalNote)object, staffNumber);
-		else if (object instanceof GraphicalBar) insertBar((GraphicalBar)object, staffNumber);
+		if (object instanceof GraphicalNote)
+			insertNote((GraphicalNote) object, staffNumber);
+		else if (object instanceof GraphicalBar)
+			insertBar((GraphicalBar) object, staffNumber);
+		else if (object instanceof GraphicalClef)
+			insertClef((GraphicalClef) object, staffNumber);
 		sortObjectsInStaff(staffNumber);
 		gui.repaintPanel();
 	}

@@ -36,13 +36,13 @@ public class GUI extends JFrame {
 	private ScoreWriter controller;
 	private Font musicFont;
 	private int mouseX, mouseY;
-	private boolean insertNote = false;
-	private boolean insertBar = false;
+	private boolean insertMode = false;
 	private Pointer pointer = null;
 	private MainPanel mainPanel;
 	private ArrayList<GraphicalStaff> staffList;
 	private ButtonGroup groupButtonsNotes;
 	private ButtonGroup groupButtonsBars;
+	private ButtonGroup groupButtonsClef;
 	private GraphicalObject objectToInsert;
 
 	private void initFont() {
@@ -95,7 +95,7 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				insertNote = true;
+				insertMode = true;
 			}
 		});
 		
@@ -130,6 +130,7 @@ public class GUI extends JFrame {
 	    // Aggiungi le toolbar specifiche
 	    toolbarPanel.add(noteToolbar());
 	    toolbarPanel.add(barlineToolbar());
+	    toolbarPanel.add(clefToolbar());
 	    // Potrai aggiungere altre toolbar qui in futuro:
 	    // toolbarPanel.add(clefToolbar());
 	    // toolbarPanel.add(keySignatureToolbar());
@@ -178,10 +179,49 @@ public class GUI extends JFrame {
 			button.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsNotes);
 	            objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
-	            insertNote = true;
+	            insertMode = true;
 	            pointer = new Pointer(noteSymbol, this); // pointer riceve il simbolo da mostrare
 	        });
 			groupButtonsNotes.add(button);
+			p.add(button);
+		}
+		return p;
+	}
+	
+	private JPanel clefToolbar() {
+		JPanel p = new JPanel();
+		p.setLayout(new FlowLayout(FlowLayout.LEFT));
+		setBackground(Color.LIGHT_GRAY);
+
+		MusicalSymbol[] clefs = {
+		        SymbolRegistry.CLEf_TREBLE,
+		        SymbolRegistry.CLEF_BASS,
+		        SymbolRegistry.CLEF_TREBLE_8
+		    };
+
+		groupButtonsClef = new ButtonGroup();
+		
+		 for (MusicalSymbol clefSymbol : clefs) {
+			JToggleButton button = new JToggleButton();
+			button.setIcon(new ImageIcon(getClass().getResource(clefSymbol.getIconPath())));
+			button.setBorder(BorderFactory.createEmptyBorder());
+			button.setMargin(new Insets(0, 0, 0, 0));
+			button.setContentAreaFilled(false);
+			button.setFocusPainted(false);
+			button.addChangeListener(e -> {
+			    if (button.isSelected()) {
+			        button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+			    } else {
+			        button.setBorder(BorderFactory.createEmptyBorder());
+			    }
+			});
+			button.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsNotes);
+	            objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
+	            insertMode = true;
+	            pointer = new Pointer(clefSymbol, this); // pointer riceve il simbolo da mostrare
+	        });
+			groupButtonsClef.add(button);
 			p.add(button);
 		}
 		return p;
@@ -221,7 +261,7 @@ public class GUI extends JFrame {
 	        button.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsBars);
 	            objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
-	            insertBar = true;
+	            insertMode = true;
 	            pointer = new Pointer(barlineSymbol, this); // passa direttamente il simbolo
 	        });
 
@@ -287,16 +327,14 @@ public class GUI extends JFrame {
 					gr.draw(g);
 				}
 				}
-			if (insertNote && mouseX > 0 && mouseY > 0) {
-				pointer.draw(g);
-			} else if (insertBar && mouseX > 0 && mouseY > 0) {
+			if (insertMode && mouseX > 0 && mouseY > 0) {
 				pointer.draw(g);
 			}
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if (insertNote || insertBar) {
+			if (insertMode) {
 				controller.insertObject(pointer, objectToInsert); // TODO scegli lo staff
 			} 
 			else {
@@ -346,7 +384,7 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			if (insertNote && staffList != null) {
+			if (staffList != null && pointer != null) {
 				mouseX = e.getX();
 				mouseY = e.getY();
 				// in quale Staff è il puntatore?
@@ -357,18 +395,7 @@ public class GUI extends JFrame {
 				snapY = getSnapY(staffList.get(staffN), mouseY);
 				pointer.moveTo(mouseX, snapY);
 				repaint();
-			} else if (insertBar && staffList != null) {
-				mouseX = e.getX();
-				mouseY = e.getY();
-				// in quale Staff è il puntatore?
-				int staffN = getPointedStaffIndex(mouseX, mouseY);
-				if (staffN == -1)
-					return;
-				int snapY = mouseY;
-				snapY = getSnapY(staffList.get(staffN), mouseY);
-				pointer.moveTo(mouseX, snapY);
-				repaint();
-			}
+			} 
 		}
 	}
 
@@ -400,19 +427,23 @@ public class GUI extends JFrame {
 	private void removeOtherSelections(ButtonGroup clickedGroup) {
 	    if (clickedGroup != groupButtonsNotes) {
 	        groupButtonsNotes.clearSelection();
-	        insertBar = false;
+	        insertMode = false;
+	        // TODO
 	    }
 	    if (clickedGroup != groupButtonsBars) {
 	        groupButtonsBars.clearSelection();
-	        insertNote = false;
+	        insertMode = false;
+	        // TODO
+	        
 	    }
 	}
 
 
 	public void exitInsertMode() {
-		insertNote = false;
-		insertBar = false;
+		insertMode = false;
 		groupButtonsNotes.clearSelection();
+		groupButtonsBars.clearSelection();
+		groupButtonsClef.clearSelection();
 		pointer = null;
 		repaint();
 	}

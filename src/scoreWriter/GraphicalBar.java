@@ -9,24 +9,15 @@ public class GraphicalBar implements GraphicalObject {
 
 	private final GraphicalHelper helper = new GraphicalHelper();
 
-	public static enum TypeList {
-		SINGLE, DOUBLE, REPEAT_BEGIN, REPEAT_END, END;
-	}
-
-	private TypeList type;
-	private MusicalSymbol barlineSymbol;
+	private MusicalSymbol symbol;
 
 	GraphicalBar(MusicalSymbol barlineSymbol) {
-		this.barlineSymbol = barlineSymbol;
-	}
-
-	public TypeList getType() {
-		return type;
+		this.symbol = barlineSymbol;
 	}
 
 	@Override
 	public void draw(Graphics g) {
-		String glyph = barlineSymbol.getGlyphUp();
+		String glyph = symbol.getGlyphUp();
 		FontMetrics fm = g.getFontMetrics();
 		int width = fm.stringWidth(glyph);
 		int ascent = fm.getAscent();
@@ -43,7 +34,6 @@ public class GraphicalBar implements GraphicalObject {
 		g.drawString(glyph, helper.getX(), helper.getY());
 	}
 
-		
 	@Override
 	public void setXY(int x, int y) {
 		helper.setXY(x, y);
@@ -56,7 +46,8 @@ public class GraphicalBar implements GraphicalObject {
 
 	@Override
 	public void setX(int x) {
-		helper.setX(x);;
+		helper.setX(x);
+		;
 	}
 
 	@Override
@@ -81,36 +72,46 @@ public class GraphicalBar implements GraphicalObject {
 
 	@Override
 	public boolean contains(int x, int y) {
-        return helper.contains(x, y);
-    }
+		return helper.contains(x, y);
+	}
 
 	@Override
 	public void moveTo(int x, int y) {
 		helper.moveTo(x, y);
-		
+
 	}
 
 	@Override
 	public void moveBy(int dx, int dy) {
-		 helper.moveBy(dx, dy);
+		helper.moveBy(dx, dy);
 	}
 
 	@Override
 	public void setBounds(Rectangle bounds) {
-	helper.setBounds(bounds);
+		helper.setBounds(bounds);
 	}
 
 	@Override
 	public Rectangle getBounds() {
 		return helper.getBounds();
 	}
-	
+
 	@Override
 	public GraphicalObject cloneObject() {
-	GraphicalBar bar = new GraphicalBar(barlineSymbol);
-	bar.setX(getX());
-	bar.setY(getY());
-	bar.setBounds(getBounds());
+		GraphicalBar bar = new GraphicalBar(symbol);
+		bar.setX(getX());
+		bar.setY(getY());
+		bar.setBounds(getBounds());
 		return bar;
+	}
+	
+	@Override
+	public MusicalSymbol getSymbol() {
+		return symbol;
+	}
+	
+	@Override
+	public String toString() {
+		return symbol.getName();
 	}
 }
