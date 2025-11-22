@@ -1,35 +1,27 @@
 package scoreWriter;
 
-import java.util.ArrayList;
+import scoreWriter.MusicalSymbol.Type;
 
 public class Test {
 
-	static int lineNumber = 5;
-	static int distanza = 10;
-	static int y = 50;
 
+	// String name, String iconPath, String glyph, Type type, int midiOffset
 	public static void main(String[] args) {
-		ArrayList<Integer> l = getSnapPoints();
-		for (Integer i : l)
-		System.out.println(i);
-
+		GraphicalNote n = new GraphicalNote(null);
+		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_BASS);
+		int midi = calculateMidiNumber(n, c);
+		System.out.println(midi);
 	}
 
-	static public int getLineY(int line) {
-		// inverte la numerazione delle linee (la 5 viene considerata la 0)
-		int l = lineNumber - line;
-		return y + (l * distanza);
-	}
+	private static int calculateMidiNumber(GraphicalNote n, GraphicalClef c) {
+	    int[] scale = {0, 2, 4, 5, 7, 9, 11}; // C D E F G A B
+	    int position = 0;
 
-	static public ArrayList<Integer> getSnapPoints() {
-		ArrayList<Integer> snapPoints = new ArrayList<>();
-		// da due tagli sotto a due tagli sopra
-		int bottomLine = getLineY(0) + (distanza * 2);
-		int topLine = getLineY(lineNumber) - (distanza * 2);
-		System.out.println(bottomLine+" "+topLine);
-		for (int i = topLine; i <= bottomLine; i += distanza / 2) {
-			snapPoints.add(i);
-		}
-		return snapPoints;
+	    // degree con supporto per numeri negativi
+	    int degree = Math.floorMod(position, 7);      // 0..6
+	    int octaveShift = Math.floorDiv(position, 7); // può essere negativo
+
+	    return c.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getAlteration();
 	}
+	
 }

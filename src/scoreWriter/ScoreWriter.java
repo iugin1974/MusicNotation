@@ -39,7 +39,7 @@ public class ScoreWriter {
 	 * 
 	 * @param args
 	 */
-	boolean mouseClicked(int x, int y) {
+	public boolean selectObjectAtPos(int x, int y) {
 		if (staffList != null)
 			return selectObject(x, y, staffList);
 		return false;
@@ -89,11 +89,8 @@ public class ScoreWriter {
 	}
 
 	private void insertNote(GraphicalNote n, int staffNumber) {
-		int midi = calculateMidiNumber(staffNumber, n);
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
-		n.setMidiNumber(midi);
 		staffList.get(staffNumber).add(newNote);
-		System.out.println("Staff " + staffNumber + " has now " + staffList.get(staffNumber).size() + " Notes.");
 	}
 
 	private void insertBar(GraphicalBar bar, int staffNumber) {
@@ -106,7 +103,7 @@ public class ScoreWriter {
 	private void insertClef(GraphicalClef clef, int staffNumber) {
 		GraphicalClef c = (GraphicalClef) clef.cloneObject();
 		int firstLine = 0;
-		if (clef.getSymbol().equals(SymbolRegistry.CLEf_TREBLE)
+		if (clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE)
 				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
 			firstLine = gui.getStaff(staffNumber).getLineY(2);
 		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
@@ -135,21 +132,10 @@ public class ScoreWriter {
 	}
 
 	private void sortObjectsInStaff(int staffNumber) {
-		Collections.sort(staffList.get(staffNumber), new CompareFirstName());
+		Collections.sort(staffList.get(staffNumber), new CompareXPos());
 	}
 
-	private int calculateMidiNumber(int staffNumber, GraphicalNote n) {
-		GraphicalStaff gs = gui.getStaff(staffNumber);
-		int position = gs.getPosInStaff(n);
-		int baseMidi = 60; // C4 (do centrale)
-		int[] scale = { 0, 2, 4, 5, 7, 9, 11 }; // C D E F G A B
-
-		int degree = position % 7;
-		int octaveShift = position / 7;
-		System.out.println(baseMidi + scale[degree] + (octaveShift * 12));
-		return baseMidi + scale[degree] + (octaveShift * 12) + n.getAlteration();
-	}
-
+	
 	/**
 	 * 
 	 * @param x
@@ -190,6 +176,15 @@ public class ScoreWriter {
 		gui.repaintPanel();
 	}
 
+	public void mousePressed(int x, int y) {
+		selectObjectAtPos(x, y);
+		GraphicalObject o = getSelectedObject();
+		if (o == null)
+			return;
+		o.moveTo(x, y);
+		gui.repaintPanel();
+	
+	}
 	public void mouseDragged(int x, int y) {
 		GraphicalObject o = getSelectedObject();
 		if (o == null)
@@ -199,13 +194,8 @@ public class ScoreWriter {
 	}
 
 	public void mouseReleased(int x, int y) {
-		GraphicalObject o = getSelectedObject();
-		if (o instanceof GraphicalNote note) {
 			int sn = checkInWichStaffIsPoint(x, y);
-			int midi = calculateMidiNumber(sn, note);
-			note.setMidiNumber(midi);
 			sortObjectsInStaff(sn);
-		}
 	}
 
 	private GraphicalObject getSelectedObject() {
@@ -220,12 +210,12 @@ public class ScoreWriter {
 	}
 
 	public void export() {
-		Exporter x = new Exporter();
+		Exporter x = new Exporter(gui);
 		x.setStaffs(staffList);
 		x.parse();
 	}
 
-	class CompareFirstName implements java.util.Comparator<GraphicalObject> {
+	class CompareXPos implements java.util.Comparator<GraphicalObject> {
 		@Override
 		public int compare(GraphicalObject o1, GraphicalObject o2) {
 			if (o1.getX() > o2.getX())

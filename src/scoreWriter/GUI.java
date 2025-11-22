@@ -194,7 +194,7 @@ public class GUI extends JFrame {
 		setBackground(Color.LIGHT_GRAY);
 
 		MusicalSymbol[] clefs = {
-		        SymbolRegistry.CLEf_TREBLE,
+		        SymbolRegistry.CLEF_TREBLE,
 		        SymbolRegistry.CLEF_BASS,
 		        SymbolRegistry.CLEF_TREBLE_8
 		    };
@@ -334,18 +334,19 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
+			requestFocusInWindow();
 			if (insertMode) {
 				controller.insertObject(pointer, objectToInsert); // TODO scegli lo staff
 			} 
 			else {
-				controller.mouseClicked(e.getX(), e.getY());
+				controller.selectObjectAtPos(e.getX(), e.getY());
 			}
 			repaint();
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			requestFocusInWindow();
+			controller.mousePressed(e.getX(), e.getY());
 		}
 
 		@Override

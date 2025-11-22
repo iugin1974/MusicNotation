@@ -139,7 +139,7 @@ public class SymbolRegistry {
             MusicalSymbol.Type.BARLINE, -1
         );
 
-public static final MusicalSymbol CLEf_TREBLE = new MusicalSymbol(
+public static final MusicalSymbol CLEF_TREBLE = new MusicalSymbol(
         "Treble Clef",
         "/icons/treble.png",
         "\uE050", null,
