@@ -135,8 +135,12 @@ public class GraphicalClef implements GraphicalObject {
 		return symbol;
 	}
 	
-	 public int getMidiOffset() { 
-		 return symbol.getMidiOffset();
+	 public int[] getSemitoneMap() { 
+		 return symbol.getSemitoneMap();
 	}
+	 
+	 public int getMidiOffset() {
+		 return symbol.getMidiOffset();
+	 }
 
 }

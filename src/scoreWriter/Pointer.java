@@ -2,7 +2,6 @@ package scoreWriter;
 
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;

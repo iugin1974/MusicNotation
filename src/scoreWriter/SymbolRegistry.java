@@ -151,20 +151,23 @@ public static final MusicalSymbol CLEF_TREBLE = new MusicalSymbol(
         "Treble Clef",
         "/icons/treble.png",
         "\uE050",
-        MusicalSymbol.Type.CLEF, 60
+        MusicalSymbol.Type.CLEF, 60,
+        SemitoneMap.SEMITONE_MAP_TREBLE
     );
 
 public static final MusicalSymbol CLEF_BASS = new MusicalSymbol(
         "Bass Clef",
         "/icons/bass.png",
         "\uE062",
-        MusicalSymbol.Type.CLEF, 40
+        MusicalSymbol.Type.CLEF, 40,
+        SemitoneMap.SEMITONE_MAP_BASS
     );
 
 public static final MusicalSymbol CLEF_TREBLE_8 = new MusicalSymbol(
         "Treble 8 Clef",
         "/icons/treble8.png",
         "\uE052",
-        MusicalSymbol.Type.CLEF, 48
+        MusicalSymbol.Type.CLEF, 48,
+        SemitoneMap.SEMITONE_MAP_TREBLE_8
     );
 };

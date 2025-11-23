@@ -8,7 +8,7 @@ public class Exporter {
 
 	private ArrayList<ArrayList<GraphicalObject>> staffList;
 	private GUI gui;
-	private int midiOffset = 0;
+	private GraphicalClef clef;
 	
 	public Exporter(GUI gui) {
 		this.gui = gui;
@@ -35,7 +35,7 @@ public class Exporter {
 	}
 
 	private void parseClef(GraphicalClef go) {
-		midiOffset = go.getMidiOffset();
+		clef = go;
 		if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE) { 
 			System.out.println("treble");
 		}
@@ -63,7 +63,7 @@ public class Exporter {
 	}
 	
 	private int calculateMidiNumber(int staffNumber, GraphicalNote n) {
-	    int[] scale = {0, 2, 4, 5, 7, 9, 11}; // C D E F G A B
+	    int[] scale = clef.getSemitoneMap();
 	    GraphicalStaff s = gui.getStaff(staffNumber);
 	    int position = s.getPosInStaff(n);
 
@@ -71,7 +71,7 @@ public class Exporter {
 	    int degree = Math.floorMod(position, 7);      // 0..6
 	    int octaveShift = Math.floorDiv(position, 7); // può essere negativo
 
-	    return midiOffset + scale[degree] + (octaveShift * 12) + n.getAlteration();
+	    return clef.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getAlteration();
 	}
 	
 }

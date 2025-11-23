@@ -9,6 +9,7 @@ public class MusicalSymbol {
 	private int duration = -1;
 	private Type type;
 	private int midiOffset = -1;
+	private int[] semitoneMap = null;
 
 	public enum Type {
 		NOTE, REST, BARLINE, CLEF
@@ -36,7 +37,7 @@ public class MusicalSymbol {
 	}
 
 	// chiavi
-	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int midiOffset) {
+	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int midiOffset, int[] semitoneMap) {
 		this.name = name;
 		this.iconPath = iconPath;
 		this.glyphUp = null;
@@ -44,6 +45,7 @@ public class MusicalSymbol {
 		this.type = type;
 		this.midiOffset = midiOffset;
 		this.glyphDown = null;
+		this.semitoneMap = semitoneMap;
 	}
 
 	public String getName() {
@@ -76,5 +78,9 @@ public class MusicalSymbol {
 	
 	public int getMidiOffset() {
 		return midiOffset;
+	}
+	
+	public int[] getSemitoneMap() {
+		return semitoneMap;
 	}
 }
