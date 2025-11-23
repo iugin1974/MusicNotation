@@ -2,6 +2,7 @@ package scoreWriter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -9,6 +10,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -26,6 +29,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 
 import musicInterface.MusicObject;
@@ -44,6 +48,7 @@ public class GUI extends JFrame {
 	private ButtonGroup groupButtonsBars;
 	private ButtonGroup groupButtonsClef;
 	private GraphicalObject objectToInsert;
+	private JScrollPane scrollPane;
 
 	private void initFont() {
 		try (InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
@@ -65,7 +70,10 @@ public class GUI extends JFrame {
 		// Pannello centrale
 		mainPanel = new MainPanel();
 		mainPanel.setBackground(Color.WHITE);
-		add(mainPanel, BorderLayout.CENTER);
+		scrollPane = new JScrollPane(mainPanel,
+		        JScrollPane.VERTICAL_SCROLLBAR_NEVER, // niente scroll verticale
+		        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // scroll orizzontale se serve
+		add(scrollPane, BorderLayout.CENTER);
 		
 		
 		add(mainToolbar(), BorderLayout.NORTH);
@@ -295,11 +303,18 @@ public class GUI extends JFrame {
 	public void repaintPanel() {
 		mainPanel.repaint();
 	}
+	
+	public void resizePanel(int w, int h) {
+		mainPanel.setPreferredSize(new Dimension(w, h));
+		mainPanel.revalidate();
+		
+		}
 
-	class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
+	class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
 
 		public MainPanel() {
 			addMouseListener(this);
+			addComponentListener(this);
 			addMouseMotionListener(this);
 			addKeyListener(new KeyAdapter() {
 				@Override
@@ -311,6 +326,7 @@ public class GUI extends JFrame {
 			setFocusable(true);
 		}
 
+		
 		private void drawStaves(Graphics g) {
 			for (GraphicalStaff gs : staffList) {
 				gs.draw(g);
@@ -364,23 +380,44 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			int mouseX = e.getX();
-			int mouseY = e.getY();
-			int snapY = mouseY;
-			if (staffList != null && staffList.get(0).contains(mouseX, mouseY)) {
-				ArrayList<Integer> snapPoints = staffList.get(0).getSnapPoints();
-				int nearest = snapPoints.get(0);
-				int minDist = Math.abs(mouseY - nearest);
-				for (int y : snapPoints) {
-					int d = Math.abs(mouseY - y);
-					if (d < minDist) {
-						minDist = d;
-						nearest = y;
-					}
-				}
-				snapY = nearest;
-			controller.mouseDragged(mouseX, snapY);
-		}
+		    int mouseX = e.getX();
+		    int mouseY = e.getY();
+
+		    int snapY = mouseY; // di default nessuno snap
+
+		    // 1) Trova lo staff sotto il mouse
+		    GraphicalStaff targetStaff = null;
+		    for (GraphicalStaff staff : staffList) {
+		        if (staff.contains(mouseX, mouseY)) {
+		            targetStaff = staff;
+		            break;
+		        }
+		    }
+
+		    // 2) Se abbiamo trovato lo staff: snap verticale
+		    if (targetStaff != null) {
+		        ArrayList<Integer> snapPoints = targetStaff.getSnapPoints();
+
+		        // Trova lo snap point più vicino
+		        int nearest = snapPoints.get(0);
+		        int minDist = Math.abs(mouseY - nearest);
+
+		        for (int y : snapPoints) {
+		            int d = Math.abs(mouseY - y);
+		            if (d < minDist) {
+		                minDist = d;
+		                nearest = y;
+		            }
+		        }
+
+		        snapY = nearest;
+		    }
+
+		    // 3) Muovi l'oggetto (qui avviene lo snap orizzontale tra pentagrammi)
+		    controller.moveObject(mouseX, snapY);
+
+		    // 4) Repaint
+		    repaint();
 		}
 
 		@Override
@@ -398,6 +435,40 @@ public class GUI extends JFrame {
 				repaint();
 			} 
 		}
+
+		@Override
+		public void componentResized(ComponentEvent e) {
+			if (staffList == null) return;
+			int w = this.getWidth();
+			int h = this.getHeight();
+			for (GraphicalStaff s : staffList) {
+				if (s.getWidth() > w) return; // setta la lunghezza solo se è inferiore a quella della finestra
+				s.setWidth(w);				
+			}
+			mainPanel.setPreferredSize(new Dimension(w, h));
+			mainPanel.revalidate();
+			mainPanel.repaint();
+			repaint();
+			
+		}
+
+		@Override
+		public void componentMoved(ComponentEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void componentShown(ComponentEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 
 	private int getPointedStaffIndex(int mouseX, int mouseY) {
@@ -411,6 +482,10 @@ public class GUI extends JFrame {
 		return staffN;
 	}
 
+	public ArrayList<GraphicalStaff> getStaffList() {
+		return staffList;
+	}
+	
 	private int getSnapY(GraphicalStaff staff, int mouseY) {
 		ArrayList<Integer> snapPoints = staff.getSnapPoints();
 		int nearest = snapPoints.get(0);

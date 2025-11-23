@@ -12,7 +12,7 @@ class GraphicalStaff implements GraphicalObject {
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
-	private final int MAX_ADDED_LINES = 2; // i tagli addizionali
+	private final int MAX_ADDED_LINES = 3; // i tagli addizionali
 	private ScoreWriter controller;
 	private final GraphicalHelper helper = new GraphicalHelper();
 
@@ -26,6 +26,14 @@ class GraphicalStaff implements GraphicalObject {
 		this.id = id;
 	}
 
+	public void setWidth(int width) {
+		this.width = width;
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+	
 	public int getX2() {
 		return x + width;
 	}

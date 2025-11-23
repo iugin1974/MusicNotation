@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -13,6 +14,7 @@ import musicInterface.MusicObject;
 public class ScoreWriter {
 
 	private ArrayList<ArrayList<GraphicalObject>> staffList;
+	private SpatialGrid grid = new SpatialGrid(20);
 	// private ArrayList<GraphicalObject> graphicalObjects = new ArrayList<>();
 	private GUI gui;
 
@@ -91,9 +93,25 @@ public class ScoreWriter {
 	private void insertNote(GraphicalNote n, int staffNumber) {
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
 		staffList.get(staffNumber).add(newNote);
+		grid.add(newNote);
+		System.out.println("Added note on Staff "+staffNumber);
+		// se necessario allunga i pentagrammi
+		GraphicalStaff g = gui.getStaff(0);
+		int x = newNote.getX();
+		if (x > g.getWidth() - 100) resizeStaves();
 	}
 
-	private void insertBar(GraphicalBar bar, int staffNumber) {
+	private void resizeStaves() {
+		System.out.println("resize");
+		int w = gui.getStaffList().get(0).getWidth();
+		for (GraphicalStaff s :  gui.getStaffList()) {
+			s.setWidth(w + 200);
+		}
+		gui.resizePanel(w + 200, gui.getHeight()); // TODO l'altezza deve essere in base agli staves
+		// anche nella guissa
+		gui.repaintPanel();
+	}
+		private void insertBar(GraphicalBar bar, int staffNumber) {
 		GraphicalBar b = (GraphicalBar) bar.cloneObject();
 		int firstLine = gui.getStaff(staffNumber).getLineY(1);
 		b.setY(firstLine);
@@ -132,6 +150,7 @@ public class ScoreWriter {
 	}
 
 	private void sortObjectsInStaff(int staffNumber) {
+		System.out.println("Sort objects in staff " + staffNumber);
 		Collections.sort(staffList.get(staffNumber), new CompareXPos());
 	}
 
@@ -170,6 +189,7 @@ public class ScoreWriter {
 		for (ArrayList<GraphicalObject> staff : staffList) {
 			if (staff.contains(object)) {
 				staff.remove(object);
+				if (object instanceof GraphicalNote) grid.remove((GraphicalNote)object);
 				break;
 			}
 		}
@@ -177,21 +197,62 @@ public class ScoreWriter {
 	}
 
 	public void mousePressed(int x, int y) {
+		// TODO deseleziona tutti gli altri oggetti
 		selectObjectAtPos(x, y);
-		GraphicalObject o = getSelectedObject();
-		if (o == null)
-			return;
-		o.moveTo(x, y);
 		gui.repaintPanel();
 	
 	}
-	public void mouseDragged(int x, int y) {
-		GraphicalObject o = getSelectedObject();
-		if (o == null)
-			return;
-		o.moveTo(x, y);
-		gui.repaintPanel();
+	
+	public void moveObject(int x, int y) {
+	    GraphicalObject o = getSelectedObject();
+	    if (o == null)
+	        return;
+
+	    // Trova lo staff di partenza e quello nuovo (per cambio staff)
+	    int oldStaffIndex = checkInWichStaffIsPoint(o.getX(), o.getY());
+	    int newStaffIndex = checkInWichStaffIsPoint(x, y);
+
+	    // Snap verticale (rimane invariato, calcolato dal mouse)
+	    int snapY = y;
+
+	    // Se l'oggetto è una nota, applica snap orizzontale tramite la grid
+	    if (o instanceof GraphicalNote) {
+	        GraphicalNote n = (GraphicalNote) o;
+	        int oldX = n.getX();
+
+	        // Muove la nota temporaneamente
+	        n.moveTo(x, snapY);
+	        int newX = n.getX();
+
+	        // Aggiorna la posizione nella grid globale
+	        grid.updatePosition(n, oldX, newX);
+
+	        // Snap X alle note vicine
+	        final int SNAP_DISTANCE = 10;
+	        List<GraphicalNote> near = grid.getNearby(newX);
+	        for (GraphicalNote other : near) {
+	            if (other == n) continue; // ignora se stessa
+	            if (Math.abs(other.getX() - newX) < SNAP_DISTANCE) {
+	                n.moveTo(other.getX(), snapY); // snap orizzontale
+	                break;
+	            }
+	        }
+	    } else {
+	        // Oggetti non-note: movimento libero
+	        o.moveTo(x, snapY);
+	    }
+
+	    // Aggiorna le liste dello staff se cambia staff
+	    if (newStaffIndex != oldStaffIndex && oldStaffIndex >= 0 && newStaffIndex >= 0) {
+	        staffList.get(oldStaffIndex).remove(o);
+	        staffList.get(newStaffIndex).add(o);
+	        System.out.println("Staff changed: " + oldStaffIndex + " -> " + newStaffIndex);
+	    }
+
+	    // Ridisegna il pannello
+	    gui.repaintPanel();
 	}
+
 
 	public void mouseReleased(int x, int y) {
 			int sn = checkInWichStaffIsPoint(x, y);

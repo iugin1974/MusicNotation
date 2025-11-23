@@ -25,6 +25,11 @@ public class GraphicalNote extends Note implements GraphicalObject {
 
 	public static final int STEM_UP = 1;
 	public static final int STEM_DOWN = -1;
+	public static final int ONE_VOICE = 0;
+	public static final int VOICE_ONE = 1;
+	public static final int VOICE_TWO = 2;
+	private int voice = ONE_VOICE;
+	
 	private int stemDirection = STEM_UP;
 	private Rectangle bounds;
 	private final GraphicalHelper helper = new GraphicalHelper();

@@ -20,6 +20,7 @@ public class Exporter {
 	
 	public void parse() {
 		for (int i = 0; i< staffList.size(); i++) {
+			System.out.println("Staff "+i+":");
 			parseStaff(i);
 		}
 	}
