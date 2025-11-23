@@ -107,6 +107,7 @@ public class GraphicalClef implements GraphicalObject {
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyphUp();
+		if (glyph == null) glyph = symbol.getGlyph();
         FontMetrics fm = g.getFontMetrics();
         int width = fm.stringWidth(glyph);
         int ascent = fm.getAscent();
@@ -135,14 +136,7 @@ public class GraphicalClef implements GraphicalObject {
 	}
 	
 	 public int getMidiOffset() { 
-	    	if (symbol == SymbolRegistry.CLEF_TREBLE) return 60;
-	    	if (symbol == SymbolRegistry.CLEF_TREBLE_8) return 48;
-	    	if (symbol == SymbolRegistry.CLEF_BASS) return 40;
-	    	//if (symbol == SymbolRegistry.CLEF_ALTO) return 49;
-	    	//if (symbol == SymbolRegistry.CLEF_TENOR) return 46;
-	    	//if (symbol == SymbolRegistry.CLEF_SOPRANO) return 57;
-	    	// if (symbol == SymbolRegistry.CLEF_ BARITONE) return 43;
-	    	return -1;
+		 return symbol.getMidiOffset();
 	}
 
 }

@@ -188,7 +188,7 @@ public class GUI extends JFrame {
 	            removeOtherSelections(groupButtonsNotes);
 	            objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
 	            insertMode = true;
-	            pointer = new Pointer(noteSymbol, this); // pointer riceve il simbolo da mostrare
+	            pointer = new Pointer(noteSymbol); // pointer riceve il simbolo da mostrare
 	        });
 			groupButtonsNotes.add(button);
 			p.add(button);
@@ -227,7 +227,7 @@ public class GUI extends JFrame {
 	            removeOtherSelections(groupButtonsNotes);
 	            objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
 	            insertMode = true;
-	            pointer = new Pointer(clefSymbol, this); // pointer riceve il simbolo da mostrare
+	            pointer = new Pointer(clefSymbol); // pointer riceve il simbolo da mostrare
 	        });
 			groupButtonsClef.add(button);
 			p.add(button);
@@ -270,7 +270,7 @@ public class GUI extends JFrame {
 	            removeOtherSelections(groupButtonsBars);
 	            objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
 	            insertMode = true;
-	            pointer = new Pointer(barlineSymbol, this); // passa direttamente il simbolo
+	            pointer = new Pointer(barlineSymbol); // passa direttamente il simbolo
 	        });
 
 	        groupButtonsBars.add(button);

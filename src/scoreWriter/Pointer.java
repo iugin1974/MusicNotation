@@ -11,12 +11,9 @@ import java.io.InputStream;
 public class Pointer {
 
 	private int x, y;
-	private GUI gui;
 	private MusicalSymbol symbol;
-	public static enum GlyphType { NOTE, REST, BARLINE };
 	
-	Pointer(MusicalSymbol noteSymbol, GUI gui) {
-		this.gui = gui;
+	Pointer(MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
 		init();
 	}
@@ -47,12 +44,10 @@ public class Pointer {
 	}
 
 	public void draw(Graphics g) {
-//		String glyph = null;
-//		if (glyphType == GlyphType.NOTE && y <= gui.getStaff(0).getLineY(3)) glyph = SymbolLibrary.getNoteGlyph(SymbolLibrary.STEM_DOWN, duration);
-//		else if (glyphType == GlyphType.NOTE && y > gui.getStaff(0).getLineY(3)) glyph = SymbolLibrary.getNoteGlyph(SymbolLibrary.STEM_UP, duration);
-//		else if (glyphType == GlyphType.REST) glyph = SymbolLibrary.getRestGlyph(duration);
-//		else if (glyphType == GlyphType.BARLINE) glyph = SymbolLibrary.getBarlineGlyph(duration);
-        g.drawString(symbol.getGlyphUp(), x, y);
+		// se il costruttore ha solo un glifo, prende quello.
+		String glyph = symbol.getGlyphUp();
+		if (glyph == null) glyph = symbol.getGlyph();
+        g.drawString(glyph, x, y);
 		
 	}
 }

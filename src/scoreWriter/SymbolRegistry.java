@@ -1,7 +1,11 @@
 package scoreWriter;
 
+import scoreWriter.MusicalSymbol.Type;
+
 public class SymbolRegistry {
 
+	// note e pause
+	//	public MusicalSymbol(String name, String iconPath, String glyphUp, String glyphDown, Type type, int duration)
     public static final MusicalSymbol WHOLE_NOTE = new MusicalSymbol(
         "Whole Note",
         "/icons/nota_1.png",
@@ -103,60 +107,64 @@ public class SymbolRegistry {
     );
 
 
+ // stanghette di battuta
+ 	// public MusicalSymbol(String name, String iconPath, String glyph, Type type)
     // Barline symbols
     public static final MusicalSymbol SINGLE_BARLINE = new MusicalSymbol(
         "Single Barline",
         "/icons/bar_single.png",
-        "\uE030", null,
-        MusicalSymbol.Type.BARLINE, -1
+        "\uE030",
+        MusicalSymbol.Type.BARLINE
     );
 
     public static final MusicalSymbol DOUBLE_BARLINE = new MusicalSymbol(
         "Double Barline",
         "/icons/bar_double.png",
-        "\uE031", null,
-        MusicalSymbol.Type.BARLINE, -1
+        "\uE031",
+        MusicalSymbol.Type.BARLINE
     );
 
     public static final MusicalSymbol FINAL_BARLINE = new MusicalSymbol(
         "Final Barline",
         "/icons/bar_end.png",
-        "\uE032", null,
-        MusicalSymbol.Type.BARLINE, -1
+        "\uE032",
+        MusicalSymbol.Type.BARLINE
     );
 
     public static final MusicalSymbol REPEAT_START_BARLINE = new MusicalSymbol(
         "Repeat Start",
         "/icons/bar_startRepeat.png",
-        "\uE040", null,
-        MusicalSymbol.Type.BARLINE, -1
+        "\uE040",
+        MusicalSymbol.Type.BARLINE
     );
 
     public static final MusicalSymbol REPEAT_END_BARLINE = new MusicalSymbol(
             "Repeat End",
             "/icons/bar_endRepeat.png",
-            "\uE041", null,
-            MusicalSymbol.Type.BARLINE, -1
+            "\uE041",
+            MusicalSymbol.Type.BARLINE
         );
 
+ // chiavi
+ //	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int midiOffset)
 public static final MusicalSymbol CLEF_TREBLE = new MusicalSymbol(
         "Treble Clef",
         "/icons/treble.png",
-        "\uE050", null,
-        MusicalSymbol.Type.CLEF, -1
+        "\uE050",
+        MusicalSymbol.Type.CLEF, 60
     );
 
 public static final MusicalSymbol CLEF_BASS = new MusicalSymbol(
         "Bass Clef",
         "/icons/bass.png",
-        "\uE062", null,
-        MusicalSymbol.Type.CLEF, -1
+        "\uE062",
+        MusicalSymbol.Type.CLEF, 40
     );
 
 public static final MusicalSymbol CLEF_TREBLE_8 = new MusicalSymbol(
         "Treble 8 Clef",
         "/icons/treble8.png",
-        "\\uE052", null,
-        MusicalSymbol.Type.CLEF, -1
+        "\uE052",
+        MusicalSymbol.Type.CLEF, 48
     );
 };
