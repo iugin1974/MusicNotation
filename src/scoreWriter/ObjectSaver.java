@@ -1,11 +1,16 @@
 package scoreWriter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ObjectSaver {
 
 	private ArrayList<ArrayList<GraphicalObject>> staffList;
 
+	public ObjectSaver() {
+		staffList = new ArrayList<>();
+	}
+	
 	/** crea uno staff */
 	public void addStaff() {
 		staffList.add(new ArrayList<>());
@@ -57,4 +62,36 @@ public class ObjectSaver {
 	public int getStaffCount() {
 		return staffList.size();
 	}
+	
+	/** Restituisce la nota successiva se esiste, oppure <i>null</i> */
+	public GraphicalNote getNextNote(GraphicalNote n) {
+		for (int i = 0; i < getStaffCount(); i++) {
+			int index = getNotes(i).indexOf(n);
+			// se c'è una nota successiva la ritorna
+			if (index < getNotes(i).size()-1) return getNotes(i).get(index + 1);
+		}
+		return null;
+	}
+	
+	/** Controlla se n1 e n2 sono consecutive **/
+	public boolean areNotesConsecutive(GraphicalNote n1, GraphicalNote n2) {
+	    return getNextNote(n1) == n2;
+	}
+	
+	/** Ordina gli oggetti in base alla loro posizione orizzontale */
+	public void sort(int staffNumber) {
+		Collections.sort(staffList.get(staffNumber), new CompareXPos());
+	}
+	
+	class CompareXPos implements java.util.Comparator<GraphicalObject> {
+		@Override
+		public int compare(GraphicalObject o1, GraphicalObject o2) {
+			if (o1.getX() > o2.getX())
+				return 1;
+			if (o1.getX() < o2.getX())
+				return -1;
+			return 0;
+		}
+	}
+
 }

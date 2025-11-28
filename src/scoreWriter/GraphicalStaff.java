@@ -12,7 +12,7 @@ class GraphicalStaff implements GraphicalObject {
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
-	private final int MAX_ADDED_LINES = 3; // i tagli addizionali
+	private final int MAX_LEDGER_LINES = 3; // i tagli addizionali
 	private ScoreWriter controller;
 	private final GraphicalHelper helper = new GraphicalHelper();
 
@@ -130,11 +130,13 @@ class GraphicalStaff implements GraphicalObject {
 			if (object instanceof GraphicalNote) {
 				GraphicalNote note = (GraphicalNote) object;
 				drawNote(note, g);
+				LedgerLinesRenderer r = new LedgerLinesRenderer();
+				r.drawLedgerLines(g, note, this);
 			}
 		}
 	}
 
-	public int getId() {
+		public int getId() {
 		return id;
 	}
 
@@ -175,8 +177,8 @@ class GraphicalStaff implements GraphicalObject {
 
 	@Override
 	public boolean contains(int px, int py) {
-		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_ADDED_LINES)
-				&& py <= (y + (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_ADDED_LINES));
+		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_LEDGER_LINES)
+				&& py <= (y + (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_LEDGER_LINES));
 	}
 
 	@Override

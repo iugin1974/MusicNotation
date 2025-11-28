@@ -1,13 +1,17 @@
 package scoreWriter;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -18,8 +22,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.CubicCurve2D;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -37,6 +45,7 @@ import musicInterface.MusicObject;
 public class GUI extends JFrame {
 
 	private final int DISTANCE_BETWEEN_STAVES = 50;
+	private final int TOP_MARGIN = 50;
 	private ScoreWriter controller;
 	private Font musicFont;
 	private int mouseX, mouseY;
@@ -60,117 +69,115 @@ public class GUI extends JFrame {
 	}
 
 	public GUI(ScoreWriter controller) {
-		this.controller = controller;
-		initFont();
-		setTitle("Editor Musicale");
-		setSize(800, 600);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
+	    this.controller = controller;
+	    initFont();
+	    setTitle("Editor Musicale");
+	    setSize(800, 600);
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setLocationRelativeTo(null);
 
-		// Pannello centrale
-		mainPanel = new MainPanel();
-		mainPanel.setBackground(Color.WHITE);
-		scrollPane = new JScrollPane(mainPanel,
-		        JScrollPane.VERTICAL_SCROLLBAR_NEVER, // niente scroll verticale
-		        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // scroll orizzontale se serve
-		add(scrollPane, BorderLayout.CENTER);
-		
-		
-		add(mainToolbar(), BorderLayout.NORTH);
+	    // Pannello centrale
+	    mainPanel = new MainPanel();
+	    mainPanel.setBackground(Color.WHITE);
+	    scrollPane = new JScrollPane(
+	            mainPanel,
+	            JScrollPane.VERTICAL_SCROLLBAR_NEVER,      // niente scroll verticale
+	            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED // scroll orizzontale se serve
+	    );
+	    add(scrollPane, BorderLayout.CENTER);
 
-		// Barra menu
-		JMenuBar menuBar = new JMenuBar();
+	    // 🔹 Toolbar principale (già esistente)
+	    JPanel topBar = new JPanel(new BorderLayout());
+	    topBar.add(mainToolbar(), BorderLayout.WEST);
 
-		JMenu fileMenu = new JMenu("File");
-		JMenuItem nuovo = new JMenuItem("Nuovo");
-		JMenuItem apri = new JMenuItem("Apri");
-		JMenuItem salva = new JMenuItem("Salva");
-		fileMenu.add(nuovo);
-		fileMenu.add(apri);
-		fileMenu.add(salva);
+	    // 🔹 Aggiungo la nuova voce toolbar 
+	    topBar.add(voiceToolbar(), BorderLayout.EAST);
 
-		JMenu modificaMenu = new JMenu("Modifica");
-		JMenuItem addStaffMenu = new JMenuItem("add Staff");
-		addStaffMenu.addActionListener(new ActionListener() {
+	    add(topBar, BorderLayout.NORTH);
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				controller.addStaff();
-			}
-		});
-		JMenuItem itemInsertNote = new JMenuItem("Insert Note");
-		itemInsertNote.addActionListener(new ActionListener() {
+	    // Barra menu
+	    JMenuBar menuBar = new JMenuBar();
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				insertMode = true;
-			}
-		});
-		
-		salva.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				controller.export();
-				
-			}
-		});
-		modificaMenu.add(addStaffMenu);
-		modificaMenu.add(itemInsertNote);
+	    JMenu fileMenu = new JMenu("File");
+	    JMenuItem nuovo = new JMenuItem("Nuovo");
+	    JMenuItem apri = new JMenuItem("Apri");
+	    JMenuItem salva = new JMenuItem("Salva");
+	    fileMenu.add(nuovo);
+	    fileMenu.add(apri);
+	    fileMenu.add(salva);
 
-		menuBar.add(fileMenu);
-		menuBar.add(modificaMenu);
+	    JMenu modificaMenu = new JMenu("Modifica");
+	    JMenuItem addStaffMenu = new JMenuItem("add Staff");
+	    addStaffMenu.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            controller.addStaff();
+	        }
+	    });
 
-		setJMenuBar(menuBar);
+	    JMenuItem itemInsertNote = new JMenuItem("Insert Note");
+	    itemInsertNote.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            insertMode = true;
+	        }
+	    });
 
+	    salva.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            controller.export();
+	        }
+	    });
+
+	    modificaMenu.add(addStaffMenu);
+	    modificaMenu.add(itemInsertNote);
+
+	    menuBar.add(fileMenu);
+	    menuBar.add(modificaMenu);
+
+	    setJMenuBar(menuBar);
 	}
+
 
 	private JPanel mainToolbar() {
-	    JPanel mainPanel = new JPanel();
-	    mainPanel.setLayout(new BorderLayout());
-	    mainPanel.setBackground(Color.LIGHT_GRAY);
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.setBackground(Color.LIGHT_GRAY);
 
-	    // Pannello orizzontale per i pulsanti
-	    JPanel toolbarPanel = new JPanel();
-	    toolbarPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-	    toolbarPanel.setBackground(Color.LIGHT_GRAY);
+		// Pannello orizzontale per i pulsanti
+		JPanel toolbarPanel = new JPanel();
+		toolbarPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+		toolbarPanel.setBackground(Color.LIGHT_GRAY);
 
-	    // Aggiungi le toolbar specifiche
-	    toolbarPanel.add(noteToolbar());
-	    toolbarPanel.add(barlineToolbar());
-	    toolbarPanel.add(clefToolbar());
-	    // Potrai aggiungere altre toolbar qui in futuro:
-	    // toolbarPanel.add(clefToolbar());
-	    // toolbarPanel.add(keySignatureToolbar());
-	    // toolbarPanel.add(timeSignatureToolbar());
-	    // ecc.
+		// Aggiungi le toolbar specifiche
+		toolbarPanel.add(noteToolbar());
+		toolbarPanel.add(barlineToolbar());
+		toolbarPanel.add(clefToolbar());
+		// Potrai aggiungere altre toolbar qui in futuro:
+		// toolbarPanel.add(clefToolbar());
+		// toolbarPanel.add(keySignatureToolbar());
+		// toolbarPanel.add(timeSignatureToolbar());
+		// ecc.
 
-	    // Inserisci la toolbar nella parte alta del main panel
-	    mainPanel.add(toolbarPanel, BorderLayout.NORTH);
+		// Inserisci la toolbar nella parte alta del main panel
+		mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-	    return mainPanel;
+		return mainPanel;
 	}
 
-
-	
 	private JPanel noteToolbar() {
 		JPanel p = new JPanel();
 		p.setLayout(new FlowLayout(FlowLayout.LEFT));
 		setBackground(Color.LIGHT_GRAY);
 
-		MusicalSymbol[] notes = {
-		        SymbolRegistry.WHOLE_NOTE,
-		        SymbolRegistry.HALF_NOTE,
-		        SymbolRegistry.QUARTER_NOTE,
-		        SymbolRegistry.EIGHTH_NOTE,
-		        SymbolRegistry.SIXTEENTH_NOTE,
-		        SymbolRegistry.THIRTY_SECOND_NOTE,
-		        SymbolRegistry.SIXTY_FOURTH_NOTE
-		    };
+		MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
+				SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
+				SymbolRegistry.SIXTY_FOURTH_NOTE };
 
 		groupButtonsNotes = new ButtonGroup();
-		
-		 for (MusicalSymbol noteSymbol : notes) {
+
+		for (MusicalSymbol noteSymbol : notes) {
 			JToggleButton button = new JToggleButton();
 			button.setIcon(new ImageIcon(getClass().getResource(noteSymbol.getIconPath())));
 			button.setBorder(BorderFactory.createEmptyBorder());
@@ -178,38 +185,34 @@ public class GUI extends JFrame {
 			button.setContentAreaFilled(false);
 			button.setFocusPainted(false);
 			button.addChangeListener(e -> {
-			    if (button.isSelected()) {
-			        button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-			    } else {
-			        button.setBorder(BorderFactory.createEmptyBorder());
-			    }
+				if (button.isSelected()) {
+					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+				} else {
+					button.setBorder(BorderFactory.createEmptyBorder());
+				}
 			});
 			button.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsNotes);
-	            objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
-	            insertMode = true;
-	            pointer = new Pointer(noteSymbol); // pointer riceve il simbolo da mostrare
-	        });
+				removeOtherSelections(groupButtonsNotes);
+				objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
+				insertMode = true;
+				pointer = new Pointer(noteSymbol); // pointer riceve il simbolo da mostrare
+			});
 			groupButtonsNotes.add(button);
 			p.add(button);
 		}
 		return p;
 	}
-	
+
 	private JPanel clefToolbar() {
 		JPanel p = new JPanel();
 		p.setLayout(new FlowLayout(FlowLayout.LEFT));
 		setBackground(Color.LIGHT_GRAY);
 
-		MusicalSymbol[] clefs = {
-		        SymbolRegistry.CLEF_TREBLE,
-		        SymbolRegistry.CLEF_BASS,
-		        SymbolRegistry.CLEF_TREBLE_8
-		    };
+		MusicalSymbol[] clefs = { SymbolRegistry.CLEF_TREBLE, SymbolRegistry.CLEF_BASS, SymbolRegistry.CLEF_TREBLE_8 };
 
 		groupButtonsClef = new ButtonGroup();
-		
-		 for (MusicalSymbol clefSymbol : clefs) {
+
+		for (MusicalSymbol clefSymbol : clefs) {
 			JToggleButton button = new JToggleButton();
 			button.setIcon(new ImageIcon(getClass().getResource(clefSymbol.getIconPath())));
 			button.setBorder(BorderFactory.createEmptyBorder());
@@ -217,84 +220,115 @@ public class GUI extends JFrame {
 			button.setContentAreaFilled(false);
 			button.setFocusPainted(false);
 			button.addChangeListener(e -> {
-			    if (button.isSelected()) {
-			        button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-			    } else {
-			        button.setBorder(BorderFactory.createEmptyBorder());
-			    }
+				if (button.isSelected()) {
+					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+				} else {
+					button.setBorder(BorderFactory.createEmptyBorder());
+				}
 			});
 			button.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsNotes);
-	            objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
-	            insertMode = true;
-	            pointer = new Pointer(clefSymbol); // pointer riceve il simbolo da mostrare
-	        });
+				removeOtherSelections(groupButtonsNotes);
+				objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
+				insertMode = true;
+				pointer = new Pointer(clefSymbol); // pointer riceve il simbolo da mostrare
+			});
 			groupButtonsClef.add(button);
 			p.add(button);
 		}
 		return p;
 	}
-	
-	private JPanel barlineToolbar() {
-	    JPanel p = new JPanel();
-	    p.setLayout(new FlowLayout(FlowLayout.LEFT));
-	    p.setBackground(Color.LIGHT_GRAY);
 
-	    MusicalSymbol[] barlines = {
-	        SymbolRegistry.SINGLE_BARLINE,
-	        SymbolRegistry.DOUBLE_BARLINE,
-	        SymbolRegistry.FINAL_BARLINE,
-	        SymbolRegistry.REPEAT_START_BARLINE,
-	        SymbolRegistry.REPEAT_END_BARLINE
+	private JPanel barlineToolbar() {
+		JPanel p = new JPanel();
+		p.setLayout(new FlowLayout(FlowLayout.LEFT));
+		p.setBackground(Color.LIGHT_GRAY);
+
+		MusicalSymbol[] barlines = { SymbolRegistry.SINGLE_BARLINE, SymbolRegistry.DOUBLE_BARLINE,
+				SymbolRegistry.FINAL_BARLINE, SymbolRegistry.REPEAT_START_BARLINE, SymbolRegistry.REPEAT_END_BARLINE };
+
+		groupButtonsBars = new ButtonGroup();
+
+		for (MusicalSymbol barlineSymbol : barlines) {
+			JToggleButton button = new JToggleButton();
+			button.setIcon(new ImageIcon(getClass().getResource(barlineSymbol.getIconPath())));
+			button.setBorder(BorderFactory.createEmptyBorder());
+			button.setMargin(new Insets(0, 0, 0, 0));
+			button.setContentAreaFilled(false);
+			button.setFocusPainted(false);
+
+			button.addChangeListener(e -> {
+				if (button.isSelected()) {
+					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+				} else {
+					button.setBorder(BorderFactory.createEmptyBorder());
+				}
+			});
+
+			button.addActionListener(e -> {
+				removeOtherSelections(groupButtonsBars);
+				objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
+				insertMode = true;
+				pointer = new Pointer(barlineSymbol); // passa direttamente il simbolo
+			});
+
+			groupButtonsBars.add(button);
+			p.add(button);
+		}
+
+		return p;
+	}
+	
+	private JPanel voiceToolbar() {
+
+	    JPanel voiceNumberToolbar = new JPanel();
+	    voiceNumberToolbar.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+	    // Pulsanti toggle
+	    JToggleButton voice1Button = new JToggleButton("1");
+	    JToggleButton voice2Button = new JToggleButton("2");
+
+	    // Gruppo (solo uno può essere attivo)
+	    ButtonGroup group = new ButtonGroup();
+	    group.add(voice1Button);
+	    group.add(voice2Button);
+
+	    // Selezione iniziale
+	    voice1Button.setSelected(true);
+
+	    // Listener condiviso
+	    ActionListener voiceListener = e -> {
+	        if (voice1Button.isSelected()) {
+	            controller.setCurrentVoice(1);
+	        } else if (voice2Button.isSelected()) {
+	        	controller.setCurrentVoice(2);
+	        }
 	    };
 
-	    groupButtonsBars = new ButtonGroup();
+	    voice1Button.addActionListener(voiceListener);
+	    voice2Button.addActionListener(voiceListener);
 
-	    for (MusicalSymbol barlineSymbol : barlines) {
-	        JToggleButton button = new JToggleButton();
-	        button.setIcon(new ImageIcon(getClass().getResource(barlineSymbol.getIconPath())));
-	        button.setBorder(BorderFactory.createEmptyBorder());
-	        button.setMargin(new Insets(0, 0, 0, 0));
-	        button.setContentAreaFilled(false);
-	        button.setFocusPainted(false);
-
-	        button.addChangeListener(e -> {
-	            if (button.isSelected()) {
-	                button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-	            } else {
-	                button.setBorder(BorderFactory.createEmptyBorder());
-	            }
-	        });
-
-	        button.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsBars);
-	            objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
-	            insertMode = true;
-	            pointer = new Pointer(barlineSymbol); // passa direttamente il simbolo
-	        });
-
-	        groupButtonsBars.add(button);
-	        p.add(button);
-	    }
-
-	    return p;
+	    // Aggiunta al pannello
+	    voiceNumberToolbar.add(voice1Button);
+	    voiceNumberToolbar.add(voice2Button);
+	    
+	    return voiceNumberToolbar;
 	}
 
-
 	private int calculateNextY() {
-		int yPos = 0;
+		int yPos = TOP_MARGIN;
 		for (GraphicalStaff s : staffList) {
 			yPos += s.getHeight() + DISTANCE_BETWEEN_STAVES;
 		}
 		return yPos;
 	}
-	
+
 	public GraphicalStaff getStaff(int i) {
 		return staffList.get(i);
 	}
-	
+
 	public void addStaff(int id) {
-		if (staffList == null) staffList = new ArrayList<>();
+		if (staffList == null)
+			staffList = new ArrayList<>();
 		int yPos = calculateNextY();
 		GraphicalStaff gs = new GraphicalStaff(id, 0, yPos, mainPanel.getWidth(), 5, 10, controller);
 		staffList.add(gs);
@@ -303,14 +337,16 @@ public class GUI extends JFrame {
 	public void repaintPanel() {
 		mainPanel.repaint();
 	}
-	
+
 	public void resizePanel(int w, int h) {
 		mainPanel.setPreferredSize(new Dimension(w, h));
 		mainPanel.revalidate();
-		
-		}
+
+	}
 
 	class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
+
+		private HashMap<GraphicalObject, Integer> startPositions;
 
 		public MainPanel() {
 			addMouseListener(this);
@@ -326,43 +362,117 @@ public class GUI extends JFrame {
 			setFocusable(true);
 		}
 
-		
 		private void drawStaves(Graphics g) {
 			for (GraphicalStaff gs : staffList) {
 				gs.draw(g);
 			}
 		}
-		
+
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setFont(musicFont);
-			if (staffList == null) return;
+			if (staffList == null)
+				return;
 			drawStaves(g);
 			for (ArrayList<GraphicalObject> staff : controller.getStaffList()) {
 				for (GraphicalObject gr : staff) {
 					gr.draw(g);
-				}
-				}
+				}				
+			}
+			
 			if (insertMode && mouseX > 0 && mouseY > 0) {
 				pointer.draw(g);
 			}
 		}
 
+		private void drawSlurs(Graphics2D g2) {
+		    g2.setStroke(new BasicStroke(2.0f));
+
+		    for (ArrayList<GraphicalObject> staff : controller.getStaffList()) {
+
+		        // assumiamo che "staff" sia già ordinato per X crescente
+		        Deque<GraphicalNote> stack = new ArrayDeque<>();
+
+		        for (GraphicalObject o : staff) {
+		            if (!(o instanceof GraphicalNote)) continue;
+		            GraphicalNote n = (GraphicalNote) o;
+
+		            // 1) Se la nota è END: chiudi la slur più recente (se esiste)
+		            if (n.isSlurEnd()) {
+		                if (!stack.isEmpty()) {
+		                    GraphicalNote start = stack.removeLast(); // pop
+		                    drawSlurBetween(g2, start, n);
+		                    // notare: non facciamo "start = null" perché usiamo stack
+		                } else {
+		                    // caso: END senza START — ignoriamo o logghiamo
+		                }
+		            }
+
+		            // 2) Se la nota è START: apri una nuova slur (push)
+		            if (n.isSlurStart()) {
+		                stack.addLast(n);
+		            }
+		        }
+
+		        // eventuali START rimaste in stack non abbinate -> ignorate per ora
+		        // se vuoi, puoi disegnarle con una handle oppure loggarle
+		    }
+		}
+
+		/** Disegna una slur morbida tra due note (puoi adattare i parametri di offset) */
+		private void drawSlurBetween(Graphics2D g2, GraphicalNote n1, GraphicalNote n2) {
+		    int x1 = n1.getX();
+		    int y1 = n1.getY();
+		    int x2 = n2.getX();
+		    int y2 = n2.getY();
+
+		    // scegli sopra o sotto in base allo stem / posizione media (semplice euristica)
+		    boolean above = true; //(y1 + y2) / 2 > someStaffMidY(n1); // oppure un criterio tuo
+		    double dir = above ? -1 : 1;
+
+		    double dx = x2 - x1;
+		    double height = Math.max(8, Math.abs(dx) * 0.18); // regola la curvatura
+
+		    double c1x = x1 + dx * 0.25;
+		    double c2x = x1 + dx * 0.75;
+		    double c1y = Math.min(y1, y2) + dir * height;
+		    double c2y = Math.min(y1, y2) + dir * height;
+
+		    CubicCurve2D.Double curve = new CubicCurve2D.Double(
+		        x1, y1,
+		        c1x, c1y,
+		        c2x, c2y,
+		        x2, y2
+		    );
+
+		    Stroke oldStroke = g2.getStroke();
+		    g2.setStroke(new BasicStroke(1.6f));
+		    g2.draw(curve);
+		    g2.setStroke(oldStroke);
+		}
+
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			requestFocusInWindow();
+			boolean ctrl = e.isControlDown();
+
 			if (insertMode) {
-				controller.insertObject(pointer, objectToInsert); // TODO scegli lo staff
-			} 
-			else {
-				controller.selectObjectAtPos(e.getX(), e.getY());
+				controller.insertObject(pointer, objectToInsert);
+			} else {
+				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
 			}
+
 			repaint();
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			controller.mousePressed(e.getX(), e.getY());
+			if (e.isControlDown())
+				startPositions = controller.getStartXPositions(e.getX(), e.getY());
+			else {
+				controller.selectObjectAtPos(e.getX(), e.getY(), false);	
+			}
 		}
 
 		@Override
@@ -380,44 +490,41 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-		    int mouseX = e.getX();
-		    int mouseY = e.getY();
+			int mouseX = e.getX();
+			int mouseY = e.getY();
+			// 1) Trova lo staff sotto il mouse
+			int staffNumber = getPointedStaffIndex(mouseX, mouseY);
+			GraphicalStaff targetStaff = staffList.get(staffNumber);
 
-		    int snapY = mouseY; // di default nessuno snap
+			if (e.isControlDown()) {
+				controller.shiftHorizontal(mouseX, startPositions, staffNumber);
+			} else {
+				int snapY = mouseY; // di default nessuno snap
 
-		    // 1) Trova lo staff sotto il mouse
-		    GraphicalStaff targetStaff = null;
-		    for (GraphicalStaff staff : staffList) {
-		        if (staff.contains(mouseX, mouseY)) {
-		            targetStaff = staff;
-		            break;
-		        }
-		    }
+				// 2) Se abbiamo trovato lo staff: snap verticale
+				if (targetStaff != null) {
+					ArrayList<Integer> snapPoints = targetStaff.getSnapPoints();
 
-		    // 2) Se abbiamo trovato lo staff: snap verticale
-		    if (targetStaff != null) {
-		        ArrayList<Integer> snapPoints = targetStaff.getSnapPoints();
+					// Trova lo snap point più vicino
+					int nearest = snapPoints.get(0);
+					int minDist = Math.abs(mouseY - nearest);
 
-		        // Trova lo snap point più vicino
-		        int nearest = snapPoints.get(0);
-		        int minDist = Math.abs(mouseY - nearest);
+					for (int y : snapPoints) {
+						int d = Math.abs(mouseY - y);
+						if (d < minDist) {
+							minDist = d;
+							nearest = y;
+						}
+					}
 
-		        for (int y : snapPoints) {
-		            int d = Math.abs(mouseY - y);
-		            if (d < minDist) {
-		                minDist = d;
-		                nearest = y;
-		            }
-		        }
+					snapY = nearest;
+				}
 
-		        snapY = nearest;
-		    }
+				// 3) Muovi l'oggetto (qui avviene lo snap orizzontale tra pentagrammi)
+				controller.moveObjects(mouseX, snapY);
 
-		    // 3) Muovi l'oggetto (qui avviene lo snap orizzontale tra pentagrammi)
-		    controller.moveObject(mouseX, snapY);
-
-		    // 4) Repaint
-		    repaint();
+			}
+			repaint();
 		}
 
 		@Override
@@ -433,45 +540,47 @@ public class GUI extends JFrame {
 				snapY = getSnapY(staffList.get(staffN), mouseY);
 				pointer.moveTo(mouseX, snapY);
 				repaint();
-			} 
+			}
 		}
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			if (staffList == null) return;
+			if (staffList == null)
+				return;
 			int w = this.getWidth();
 			int h = this.getHeight();
 			for (GraphicalStaff s : staffList) {
-				if (s.getWidth() > w) return; // setta la lunghezza solo se è inferiore a quella della finestra
-				s.setWidth(w);				
+				if (s.getWidth() > w)
+					return; // setta la lunghezza solo se è inferiore a quella della finestra
+				s.setWidth(w);
 			}
 			mainPanel.setPreferredSize(new Dimension(w, h));
 			mainPanel.revalidate();
 			mainPanel.repaint();
 			repaint();
-			
+
 		}
 
 		@Override
 		public void componentMoved(ComponentEvent e) {
 			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void componentShown(ComponentEvent e) {
 			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void componentHidden(ComponentEvent e) {
 			// TODO Auto-generated method stub
-			
+
 		}
 	}
 
-	private int getPointedStaffIndex(int mouseX, int mouseY) {
+	public int getPointedStaffIndex(int mouseX, int mouseY) {
 		int staffN = -1;
 		for (int i = 0; i < staffList.size(); i++) {
 			if (staffList.get(i).contains(mouseX, mouseY)) {
@@ -485,7 +594,7 @@ public class GUI extends JFrame {
 	public ArrayList<GraphicalStaff> getStaffList() {
 		return staffList;
 	}
-	
+
 	private int getSnapY(GraphicalStaff staff, int mouseY) {
 		ArrayList<Integer> snapPoints = staff.getSnapPoints();
 		int nearest = snapPoints.get(0);
@@ -501,19 +610,18 @@ public class GUI extends JFrame {
 	}
 
 	private void removeOtherSelections(ButtonGroup clickedGroup) {
-	    if (clickedGroup != groupButtonsNotes) {
-	        groupButtonsNotes.clearSelection();
-	        insertMode = false;
-	        // TODO
-	    }
-	    if (clickedGroup != groupButtonsBars) {
-	        groupButtonsBars.clearSelection();
-	        insertMode = false;
-	        // TODO
-	        
-	    }
-	}
+		if (clickedGroup != groupButtonsNotes) {
+			groupButtonsNotes.clearSelection();
+			insertMode = false;
+			// TODO
+		}
+		if (clickedGroup != groupButtonsBars) {
+			groupButtonsBars.clearSelection();
+			insertMode = false;
+			// TODO
 
+		}
+	}
 
 	public void exitInsertMode() {
 		insertMode = false;

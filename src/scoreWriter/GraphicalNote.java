@@ -15,7 +15,20 @@ import musicEvent.Note;
 public class GraphicalNote extends Note implements GraphicalObject {
 
 	private MusicalSymbol symbol;
-
+	private Slur slur;
+	private boolean slurStart = false;
+	private boolean slurEnd = false;
+	private boolean tieStart = false;
+	private boolean tieEnd = false;
+	public static final int STEM_UP = 1;
+	public static final int STEM_DOWN = -1;
+	public static final int ONE_VOICE = 0;
+	public static final int VOICE_ONE = 1;
+	public static final int VOICE_TWO = 2;
+	private int voice = ONE_VOICE;
+	private int stemDirection = STEM_UP;
+	private final GraphicalHelper helper = new GraphicalHelper();
+	private Tie tie;
 
 	public GraphicalNote(MusicalSymbol symbol) {
 		super(0); // crea una nota con midi 0
@@ -23,18 +36,7 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		setup();
 	}
 
-	public static final int STEM_UP = 1;
-	public static final int STEM_DOWN = -1;
-	public static final int ONE_VOICE = 0;
-	public static final int VOICE_ONE = 1;
-	public static final int VOICE_TWO = 2;
-	private int voice = ONE_VOICE;
 	
-	private int stemDirection = STEM_UP;
-	private Rectangle bounds;
-	private final GraphicalHelper helper = new GraphicalHelper();
-
-
 	private void setup() {
 		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
 		Font font = null;
@@ -57,6 +59,35 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		stemDirection = direction;
 	}
 
+	public void setSlur(Slur slur) {
+		this.slur = slur;
+	}
+	
+	public void setTie(Tie tie) {
+		this.tie = tie;
+	}
+	
+	public Slur getSlur() {
+		return slur;
+	}
+	
+	public Tie getTie() {
+		return tie;
+	}
+	
+	public CurvedConnection getCurvedConnection() {
+		if (tie != null) return tie;
+		return slur; // che può essere null. Quindi ritorna null se entrambi non esistono
+	}
+	
+	public boolean isCurveStart() {
+		return isTiedStart() || isSlurStart();
+	}
+	
+	public boolean isCurveEnd() {
+		return isTiedEnd() || isSlurEnd();
+	}
+	
 	@Override
 	public void draw(Graphics g) {		
 		String glyph = symbol.getGlyphUp();
@@ -88,7 +119,7 @@ public class GraphicalNote extends Note implements GraphicalObject {
 
 	@Override
 	public void setX(int x) {
-		helper.setX(x);;
+		helper.setX(x);
 	}
 
 	@Override
@@ -157,4 +188,17 @@ public class GraphicalNote extends Note implements GraphicalObject {
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
+	
+	public void slurStart() { slurStart = true; }
+	public void slurEnd() { slurEnd = true; }
+	public void slurNone() { slurStart = slurEnd = false; }
+	public void tieStart() { tieStart = true; }
+	public void tieEnd() { tieEnd = true; }
+	public void tieNone() { tieStart = tieEnd = false; }
+	public boolean isSlurStart()  { return slurStart; }
+	public boolean isSlurEnd()    { return slurEnd; }
+	public boolean isTiedStart()  { return tieStart; }
+	public boolean isTiedEnd()    { return tieEnd; }
+
+	
 }

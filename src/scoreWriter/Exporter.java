@@ -37,13 +37,13 @@ public class Exporter {
 	private void parseClef(GraphicalClef go) {
 		clef = go;
 		if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE) { 
-			System.out.println("treble");
+			System.out.println("\\clef \"treble\"");
 		}
 		else if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE_8) { 
-			System.out.println("treble8");
+			System.out.println("\\clef \"treble_8\"");
 		}
 		else if (go.getSymbol() == SymbolRegistry.CLEF_BASS) {
-			System.out.println("bass");
+			System.out.println("\"\\clef \"bass\"\"");
 		}
 		// TODO continua
 		
@@ -54,6 +54,9 @@ public class Exporter {
 		go.setMidiNumber(midi);
 		LilyNote ln = new LilyNote(go);
 		System.out.print(ln.getNamedNote()+" ");
+		if (go.isSlurStart()) System.out.print("(");
+		if (go.isSlurEnd()) System.out.print(")");
+		if (go.isTiedStart()) System.out.print("~");
 		
 	}
 
@@ -63,6 +66,10 @@ public class Exporter {
 	}
 	
 	private int calculateMidiNumber(int staffNumber, GraphicalNote n) {
+		if (clef == null) {
+			System.out.println("Export ist no possible. No clef");
+			return -1;
+		}
 	    int[] scale = clef.getSemitoneMap();
 	    GraphicalStaff s = gui.getStaff(staffNumber);
 	    int position = s.getPosInStaff(n);
