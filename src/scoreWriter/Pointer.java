@@ -7,13 +7,17 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 
+import scoreWriter.VoiceLayer.VoiceType;
+
 public class Pointer {
 
 	private int x, y;
 	private MusicalSymbol symbol;
+	private ScoreWriter controller;
 	
-	Pointer(MusicalSymbol noteSymbol) {
+	Pointer(ScoreWriter controller, MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
+		this.controller = controller;
 		init();
 	}
 	
@@ -43,8 +47,14 @@ public class Pointer {
 	}
 
 	public void draw(Graphics g) {
+		VoiceType voiceType = controller.getVoiceType();
 		// se il costruttore ha solo un glifo, prende quello.
-		String glyph = symbol.getGlyphUp();
+		String glyph = null;
+				// TODO riscrivi la funzione. Le pause hanno lo stesso glifo per one e two
+		if (voiceType == VoiceType.VOICE_ONE)
+			glyph = symbol.getGlyphUp();
+		else if (voiceType == VoiceType.VOICE_TWO)
+			glyph = symbol.getGlyphDown();
 		if (glyph == null) glyph = symbol.getGlyph();
         g.drawString(glyph, x, y);
 		

@@ -50,7 +50,6 @@ public class GUI extends JFrame {
 	private Font musicFont;
 	private int mouseX, mouseY;
 	private boolean insertMode = false;
-	private Pointer pointer = null;
 	private MainPanel mainPanel;
 	private ArrayList<GraphicalStaff> staffList;
 	private ButtonGroup groupButtonsNotes;
@@ -195,7 +194,7 @@ public class GUI extends JFrame {
 				removeOtherSelections(groupButtonsNotes);
 				objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
 				insertMode = true;
-				pointer = new Pointer(noteSymbol); // pointer riceve il simbolo da mostrare
+				controller.setPointer(noteSymbol); // pointer riceve il simbolo da mostrare
 			});
 			groupButtonsNotes.add(button);
 			p.add(button);
@@ -230,7 +229,7 @@ public class GUI extends JFrame {
 				removeOtherSelections(groupButtonsNotes);
 				objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
 				insertMode = true;
-				pointer = new Pointer(clefSymbol); // pointer riceve il simbolo da mostrare
+				controller.setPointer(clefSymbol); // pointer riceve il simbolo da mostrare
 			});
 			groupButtonsClef.add(button);
 			p.add(button);
@@ -268,7 +267,7 @@ public class GUI extends JFrame {
 				removeOtherSelections(groupButtonsBars);
 				objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
 				insertMode = true;
-				pointer = new Pointer(barlineSymbol); // passa direttamente il simbolo
+				controller.setPointer(barlineSymbol); // passa direttamente il simbolo
 			});
 
 			groupButtonsBars.add(button);
@@ -374,83 +373,14 @@ public class GUI extends JFrame {
 			if (staffList == null)
 				return;
 			drawStaves(g);
-			for (ArrayList<GraphicalObject> staff : controller.getStaffList()) {
-				for (GraphicalObject gr : staff) {
-					gr.draw(g);
-				}				
+			for (GraphicalObject object: controller.getAllObjects()) {
+				object.draw(g);
 			}
 			
 			if (insertMode && mouseX > 0 && mouseY > 0) {
-				pointer.draw(g);
+				controller.getPointer().draw(g);
 			}
 		}
-
-		private void drawSlurs(Graphics2D g2) {
-		    g2.setStroke(new BasicStroke(2.0f));
-
-		    for (ArrayList<GraphicalObject> staff : controller.getStaffList()) {
-
-		        // assumiamo che "staff" sia già ordinato per X crescente
-		        Deque<GraphicalNote> stack = new ArrayDeque<>();
-
-		        for (GraphicalObject o : staff) {
-		            if (!(o instanceof GraphicalNote)) continue;
-		            GraphicalNote n = (GraphicalNote) o;
-
-		            // 1) Se la nota è END: chiudi la slur più recente (se esiste)
-		            if (n.isSlurEnd()) {
-		                if (!stack.isEmpty()) {
-		                    GraphicalNote start = stack.removeLast(); // pop
-		                    drawSlurBetween(g2, start, n);
-		                    // notare: non facciamo "start = null" perché usiamo stack
-		                } else {
-		                    // caso: END senza START — ignoriamo o logghiamo
-		                }
-		            }
-
-		            // 2) Se la nota è START: apri una nuova slur (push)
-		            if (n.isSlurStart()) {
-		                stack.addLast(n);
-		            }
-		        }
-
-		        // eventuali START rimaste in stack non abbinate -> ignorate per ora
-		        // se vuoi, puoi disegnarle con una handle oppure loggarle
-		    }
-		}
-
-		/** Disegna una slur morbida tra due note (puoi adattare i parametri di offset) */
-		private void drawSlurBetween(Graphics2D g2, GraphicalNote n1, GraphicalNote n2) {
-		    int x1 = n1.getX();
-		    int y1 = n1.getY();
-		    int x2 = n2.getX();
-		    int y2 = n2.getY();
-
-		    // scegli sopra o sotto in base allo stem / posizione media (semplice euristica)
-		    boolean above = true; //(y1 + y2) / 2 > someStaffMidY(n1); // oppure un criterio tuo
-		    double dir = above ? -1 : 1;
-
-		    double dx = x2 - x1;
-		    double height = Math.max(8, Math.abs(dx) * 0.18); // regola la curvatura
-
-		    double c1x = x1 + dx * 0.25;
-		    double c2x = x1 + dx * 0.75;
-		    double c1y = Math.min(y1, y2) + dir * height;
-		    double c2y = Math.min(y1, y2) + dir * height;
-
-		    CubicCurve2D.Double curve = new CubicCurve2D.Double(
-		        x1, y1,
-		        c1x, c1y,
-		        c2x, c2y,
-		        x2, y2
-		    );
-
-		    Stroke oldStroke = g2.getStroke();
-		    g2.setStroke(new BasicStroke(1.6f));
-		    g2.draw(curve);
-		    g2.setStroke(oldStroke);
-		}
-
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -458,7 +388,7 @@ public class GUI extends JFrame {
 			boolean ctrl = e.isControlDown();
 
 			if (insertMode) {
-				controller.insertObject(pointer, objectToInsert);
+				controller.insertObject(objectToInsert);
 			} else {
 				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
 			}
@@ -477,7 +407,6 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			controller.mouseReleased(e.getX(), e.getY());
 		}
 
 		@Override
@@ -529,7 +458,7 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			if (staffList != null && pointer != null) {
+			if (staffList != null && controller.pointerExists()) {
 				mouseX = e.getX();
 				mouseY = e.getY();
 				// in quale Staff è il puntatore?
@@ -538,7 +467,7 @@ public class GUI extends JFrame {
 					return;
 				int snapY = mouseY;
 				snapY = getSnapY(staffList.get(staffN), mouseY);
-				pointer.moveTo(mouseX, snapY);
+				controller.movePointerTo(mouseX, snapY);
 				repaint();
 			}
 		}
@@ -628,7 +557,7 @@ public class GUI extends JFrame {
 		groupButtonsNotes.clearSelection();
 		groupButtonsBars.clearSelection();
 		groupButtonsClef.clearSelection();
-		pointer = null;
+		controller.destroyPointer();
 		repaint();
 	}
 

@@ -17,7 +17,7 @@ public class GraphicalBar implements GraphicalObject {
 
 	@Override
 	public void draw(Graphics g) {
-		String glyph = symbol.getGlyphUp();
+		String glyph = symbol.getGlyph();
 		FontMetrics fm = g.getFontMetrics();
 		int width = fm.stringWidth(glyph);
 		int ascent = fm.getAscent();

@@ -30,9 +30,9 @@ public class MusicalSymbol {
 	public MusicalSymbol(String name, String iconPath, String glyph, Type type) {
 		this.name = name;
 		this.iconPath = iconPath;
-		this.glyphUp = glyph;
+		this.glyphUp = null;
 		this.type = type;
-		this.glyph = null;
+		this.glyph = glyph;
 		this.glyphDown = null;
 	}
 

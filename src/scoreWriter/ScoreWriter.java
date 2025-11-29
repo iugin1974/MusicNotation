@@ -12,18 +12,19 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 
 import musicInterface.MusicObject;
+import scoreWriter.VoiceLayer.VoiceType;
 
 public class ScoreWriter {
 
-	private ObjectSaver saver;
+	private Score score;
 	private SpatialGrid grid;
 	private SelectionManager selectionManager;
-	private int currentVoice = 1;
-	// private ArrayList<GraphicalObject> graphicalObjects = new ArrayList<>();
 	private GUI gui;
+	private VoiceType voiceType = VoiceType.VOICE_ONE;
+	private Pointer pointer;
 
 	public ScoreWriter() {
-		saver = new ObjectSaver();
+		score = new Score();
 		selectionManager = new SelectionManager();
 		grid = new SpatialGrid(20);
 	}
@@ -37,43 +38,50 @@ public class ScoreWriter {
 		c.setXY(50, 80);
 		n1.setXY(100, 100);
 		n2.setXY(200, 80);
-		saver.addObject(0, c);
-		saver.addObject(0, n1);
-		saver.addObject(0, n2);
+		score.addObject(c, 0, VoiceType.STAFF_WIDE);
+		score.addObject(n1, 0, VoiceType.VOICE_ONE);
+		score.addObject(n2, 0, VoiceType.VOICE_ONE);
 	}
 
 	public void addStaff() {
-		ArrayList<GraphicalObject> staffForSelectedObjects = new ArrayList<>();
-		saver.addStaff();
+		List<GraphicalObject> staffForSelectedObjects = new ArrayList<>();
+		score.addStaff();
 		selectionManager.addStaff();
-		gui.addStaff(saver.getStaffCount() - 1);
+		gui.addStaff(score.getStaffCount() - 1);
 		gui.repaint();
 	}
 
-	public ArrayList<ArrayList<GraphicalObject>> getStaffList() {
-		return saver.getAllStaffs();
+	public VoiceType getVoiceType() {
+		return voiceType;
 	}
 
-	public ArrayList<GraphicalObject> getStaff(int staffNumber) {
-		return saver.getObjects(staffNumber);
+	public List<Staff> getStaffList() {
+		return score.getAllStaves();
+	}
+
+	/** restituisce una lista con tutti gli oggetti di tutti gli staves */
+	public List<GraphicalObject> getAllObjects() {
+		return score.getAllObjects();
+	}
+
+	public List<GraphicalObject> getVoice(int staffNumber, VoiceType voiceType) {
+		return score.getObjects(staffNumber, voiceType);
+	}
+
+	public List<GraphicalObject> getVoices(int staffNumber) {
+		return score.getObjects(staffNumber);
 	}
 
 	private GraphicalObject getObjectAt(int x, int y) {
-		for (int j = 0; j < saver.getStaffCount(); j++) {
-			ArrayList<GraphicalObject> objects = saver.getObjects(j);
-
-			for (int i = 0; i < objects.size(); i++) {
-				GraphicalObject obj = objects.get(i);
-
-				if (obj.contains(x, y))
-					return obj;
-			}
+		for (GraphicalObject object : score.getAllObjects()) {
+			if (object.contains(x, y))
+				return object;
 		}
 		return null;
 	}
 
 	public void selectObjectAtPos(int x, int y, boolean multipleSelection) {
-		if (saver.getStaffCount() == 0)
+		if (score.getStaffCount() == 0)
 			return;
 		if (!multipleSelection)
 			selectionManager.deselectAll();
@@ -99,15 +107,22 @@ public class ScoreWriter {
 		new ScoreWriter().go();
 	}
 
-	private void insertNote(GraphicalNote n, int staffNumber) {
+	private boolean insertNote(GraphicalNote n, int staffNumber, VoiceType voiceType) {
+		if (voiceType == VoiceType.STAFF_WIDE)
+			return false;
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
-		saver.addObject(staffNumber, newNote);
+		if (voiceType == VoiceType.VOICE_ONE)
+			newNote.setStemDirection(GraphicalNote.STEM_UP);
+		else if (voiceType == VoiceType.VOICE_TWO)
+			newNote.setStemDirection(GraphicalNote.STEM_DOWN);
+		score.addObject(newNote, staffNumber, voiceType);
 		grid.add(newNote);
 		// se necessario allunga i pentagrammi
 		GraphicalStaff g = gui.getStaff(0);
 		int x = newNote.getX();
 		if (x > g.getWidth() - 100)
 			resizeStaves();
+		return true;
 	}
 
 	private void resizeStaves() {
@@ -125,7 +140,7 @@ public class ScoreWriter {
 		GraphicalBar b = (GraphicalBar) bar.cloneObject();
 		int firstLine = gui.getStaff(staffNumber).getLineY(1);
 		b.setY(firstLine);
-		saver.addObject(staffNumber, b);
+		score.addObject(b, staffNumber, VoiceType.STAFF_WIDE);
 	}
 
 	private void insertClef(GraphicalClef clef, int staffNumber) {
@@ -137,10 +152,10 @@ public class ScoreWriter {
 		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
 			firstLine = gui.getStaff(staffNumber).getLineY(4);
 		c.setY(firstLine);
-		saver.addObject(staffNumber, c);
+		score.addObject(c, staffNumber, VoiceType.STAFF_WIDE);
 	}
 
-	public void insertObject(Pointer pointer, GraphicalObject object) {
+	public void insertObject(GraphicalObject object) {
 		int x = pointer.getX();
 		int y = pointer.getY();
 		int staffNumber = checkInWichStaffIsPoint(x, y);
@@ -151,12 +166,11 @@ public class ScoreWriter {
 		selectionManager.deselectAll();
 		selectionManager.select(object, staffNumber);
 		if (object instanceof GraphicalNote)
-			insertNote((GraphicalNote) object, staffNumber);
+			insertNote((GraphicalNote) object, staffNumber, voiceType);
 		else if (object instanceof GraphicalBar)
 			insertBar((GraphicalBar) object, staffNumber);
 		else if (object instanceof GraphicalClef)
 			insertClef((GraphicalClef) object, staffNumber);
-		saver.sort(staffNumber);
 		gui.repaintPanel();
 	}
 
@@ -169,7 +183,7 @@ public class ScoreWriter {
 	 */
 	private int checkInWichStaffIsPoint(int x, int y) {
 
-		for (int i = 0; i < saver.getStaffCount(); i++) {
+		for (int i = 0; i < score.getStaffCount(); i++) {
 			GraphicalStaff gs = gui.getStaff(i);
 			if (gs.contains(x, y)) {
 				System.out.println("Note inside Staff " + i);
@@ -195,10 +209,14 @@ public class ScoreWriter {
 			// se è selezionata solo una nota fa la legatura con la successiva
 			if (selectedNotes.size() == 1) {
 				GraphicalNote n1 = selectedNotes.get(0);
-				GraphicalNote n2 = saver.getNextNote(n1);
-				if (n1.getY() == n2.getY()) tie(n1, n2, i);
-				else slur(n1, n2, i);
-				
+				GraphicalNote n2 = score.getNextNote(n1);
+				if (n2 == null)
+					return;
+				if (n1.getY() == n2.getY())
+					tie(n1, n2, i);
+				else
+					slur(n1, n2, i);
+
 				break;
 			}
 			// altrimenti tra le due selezionate
@@ -206,8 +224,10 @@ public class ScoreWriter {
 				GraphicalNote n1 = selectedNotes.get(j);
 				GraphicalNote n2 = selectedNotes.get(j + 1);
 				// le note devono aver la stessa altezza ed essere consecutive
-				if (hasSameHeight(n1, n2) && saver.areNotesConsecutive(n1, n2)) tie(n1, n2, j);
-				else slur(n1, n2, j);
+				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2))
+					tie(n1, n2, j);
+				else
+					slur(n1, n2, j);
 			}
 		}
 		gui.repaintPanel();
@@ -216,37 +236,42 @@ public class ScoreWriter {
 	private boolean hasSameHeight(GraphicalNote n1, GraphicalNote n2) {
 		return n1.getY() == n2.getY();
 	}
-	
+
+	private void addCurve(CurvedConnection curve, GraphicalNote n1, GraphicalNote n2, int staffNumber) {
+		curve.setNotes(n1, n2);
+		VoiceType voiceType = getLayerOf(n1);
+		if (voiceType != null) {
+			score.addObject(curve, staffNumber, voiceType);
+		} else {
+			System.err.println("Errore: nota iniziale non trovata in nessun layer!");
+		}
+	}
+
 	private void tie(GraphicalNote n1, GraphicalNote n2, int staffNumber) {
-		System.out.println("Tie");
-		Tie tie = new Tie();
-		tie.setNotes(n1, n2);
-		saver.addObject(staffNumber, tie);
-		
+		addCurve(new Tie(), n1, n2, staffNumber);
 	}
 
 	private void slur(GraphicalNote n1, GraphicalNote n2, int staffNumber) {
-		System.out.println("Slur");
-				Slur slur = new Slur();
-				slur.setNotes(n1, n2);
-				saver.addObject(staffNumber, slur);
+		addCurve(new Slur(), n1, n2, staffNumber);
 	}
 
 	private void deleteSelectedObject() {
-		ArrayList<GraphicalObject> selectedObjects = getSelectedObjects();
-		if (selectedObjects.size() == 0)
+		List<GraphicalObject> selectedObjects = getSelectedObjects();
+		if (selectedObjects.isEmpty())
 			return;
 
-		// TODO refractoring usando lo saver
-		for (ArrayList<GraphicalObject> staff : saver.getAllStaffs()) {
-			for (GraphicalObject object : selectedObjects) {
-				if (staff.contains(object)) {
-					staff.remove(object);
-					if (object instanceof GraphicalNote)
-						grid.remove((GraphicalNote) object);
-				}
+		for (Staff staff : score.getAllStaves()) {
+			for (VoiceLayer layer : staff.getVoices()) {
+				layer.getObjects().removeAll(selectedObjects);
 			}
 		}
+
+		// rimuovi anche dal grid solo le note
+		for (GraphicalObject obj : selectedObjects) {
+			if (obj instanceof GraphicalNote)
+				grid.remove((GraphicalNote) obj);
+		}
+
 		gui.repaintPanel();
 	}
 
@@ -282,7 +307,7 @@ public class ScoreWriter {
 
 		n.moveTo(x, y);
 		// TODO: cosa fare con la tie o slur?
-		
+
 		int newX = n.getX();
 
 		updateGrid(n, oldX, newX);
@@ -326,16 +351,43 @@ public class ScoreWriter {
 		o.moveTo(x, y);
 	}
 
-	// ------------------------
-	// Staff update
-	// ------------------------
-
+	/**
+	 * Sposta un oggetto da uno staff a un altro, mantenendo il layer originale.
+	 */
 	private void updateStaffIfChanged(GraphicalObject o, int oldStaff, int newStaff) {
-		if (oldStaff == newStaff || oldStaff < 0 || newStaff < 0)
+		if (o == null || oldStaff == newStaff || oldStaff < 0 || newStaff < 0)
 			return;
 
-		saver.removeObject(oldStaff, o);
-		saver.addObject(newStaff, o);
+		List<Staff> staves = score.getAllStaves();
+
+		if (oldStaff >= staves.size() || newStaff >= staves.size()) {
+			System.err.println("Staff index out of range!");
+			return;
+		}
+
+		Staff oldS = staves.get(oldStaff);
+		Staff newS = staves.get(newStaff);
+
+		// trova il layer del vecchio staff
+		VoiceLayer oldLayer = null;
+		for (VoiceLayer layer : oldS.getVoices()) {
+			if (layer.getObjects().contains(o)) {
+				oldLayer = layer;
+				break;
+			}
+		}
+
+		if (oldLayer == null) {
+			System.err.println("Oggetto non trovato nello staff vecchio!");
+			return;
+		}
+
+		// rimuovi dall’oldLayer
+		oldLayer.removeObject(o);
+
+		// aggiungi nello stesso tipo di layer nel nuovo staff
+		VoiceLayer newLayer = newS.getVoice(oldLayer.getVoiceType());
+		newLayer.addObject(o);
 
 		System.out.println("Staff changed: " + oldStaff + " -> " + newStaff);
 	}
@@ -343,7 +395,7 @@ public class ScoreWriter {
 	public HashMap<GraphicalObject, Integer> getStartXPositions(int mouseX, int mouseY) {
 		// cerca l'oggetto alla posizione dopo di quella dove è il mouse
 		int staffNumber = gui.getPointedStaffIndex(mouseX, mouseY);
-		ArrayList<GraphicalObject> staff = saver.getObjects(staffNumber);
+		List<GraphicalObject> staff = score.getObjects(staffNumber);
 		HashMap<GraphicalObject, Integer> map = new HashMap<>();
 		for (int i = 0; i < staff.size(); i++) {
 			GraphicalObject g = staff.get(i);
@@ -372,7 +424,7 @@ public class ScoreWriter {
 		}
 
 		// Aggiorna lunghezza dello staff se necessario
-		ArrayList<GraphicalObject> staff = saver.getObjects(staffNumber);
+		List<GraphicalObject> staff = score.getObjects(staffNumber);
 		GraphicalStaff s = gui.getStaff(staffNumber);
 		int maxX = staff.stream().mapToInt(GraphicalObject::getX).max().orElse(0);
 		if (maxX > s.getWidth()) {
@@ -384,7 +436,7 @@ public class ScoreWriter {
 
 	public void moveObjects(int mouseX, int mouseY) {
 
-		ArrayList<GraphicalObject> objects = getSelectedObjects();
+		List<GraphicalObject> objects = getSelectedObjects();
 		if (objects.isEmpty())
 			return;
 
@@ -433,18 +485,11 @@ public class ScoreWriter {
 		updateStaffIfChanged(o, oldStaff, newStaff);
 	}
 
-	public void mouseReleased(int x, int y) {
-		int sn = checkInWichStaffIsPoint(x, y);
-		saver.sort(sn);
-	}
-
-	private ArrayList<GraphicalObject> getSelectedObjects() {
-		ArrayList<GraphicalObject> selectedObjects = new ArrayList<>();
-		for (ArrayList<GraphicalObject> staff : saver.getAllStaffs()) {
-			for (GraphicalObject object : staff) {
-				if (object.isSelected()) {
-					selectedObjects.add(object);
-				}
+	private List<GraphicalObject> getSelectedObjects() {
+		List<GraphicalObject> selectedObjects = new ArrayList<>();
+		for (GraphicalObject object : score.getAllObjects()) {
+			if (object.isSelected()) {
+				selectedObjects.add(object);
 			}
 		}
 		return selectedObjects;
@@ -452,14 +497,57 @@ public class ScoreWriter {
 
 	public void export() {
 		Exporter x = new Exporter(gui);
-		x.setStaffs(saver.getAllStaffs());
+		x.setScore(score);
 		x.parse();
 	}
 
 	public void setCurrentVoice(int i) {
-		currentVoice = i;
-		
+		switch (i) {
+		case 1:
+			voiceType = VoiceType.VOICE_ONE;
+			break;
+		case 2:
+			voiceType = VoiceType.VOICE_TWO;
+			break;
+		}
 	}
 
+	/**
+	 * Restituisce il tipo di voce (VoiceType) del layer che contiene la nota n.
+	 * Ritorna null se la nota non è presente in nessun layer.
+	 */
+	private VoiceType getLayerOf(GraphicalNote n) {
+		if (n == null)
+			return null;
 
+		for (Staff staff : score.getAllStaves()) {
+			for (VoiceLayer layer : staff.getVoices()) {
+				if (layer.getObjects().contains(n)) {
+					return layer.getVoiceType();
+				}
+			}
+		}
+
+		return null; // nota non trovata
+	}
+
+	public void setPointer(MusicalSymbol barlineSymbol) {
+		pointer = new Pointer(this, barlineSymbol);
+	}
+
+	public Pointer getPointer() {
+		return pointer;
+	}
+
+	public void movePointerTo(int mouseX, int snapY) {
+		pointer.moveTo(mouseX, snapY);
+	}
+
+	public void destroyPointer() {
+		pointer = null;
+	}
+
+	public boolean pointerExists() {
+		return pointer != null;
+	}
 }

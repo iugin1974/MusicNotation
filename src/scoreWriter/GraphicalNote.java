@@ -22,10 +22,6 @@ public class GraphicalNote extends Note implements GraphicalObject {
 	private boolean tieEnd = false;
 	public static final int STEM_UP = 1;
 	public static final int STEM_DOWN = -1;
-	public static final int ONE_VOICE = 0;
-	public static final int VOICE_ONE = 1;
-	public static final int VOICE_TWO = 2;
-	private int voice = ONE_VOICE;
 	private int stemDirection = STEM_UP;
 	private final GraphicalHelper helper = new GraphicalHelper();
 	private Tie tie;
@@ -36,7 +32,6 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		setup();
 	}
 
-	
 	private void setup() {
 		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
 		Font font = null;
@@ -49,12 +44,10 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		ge.registerFont(font);
 	}
 
-
-
 	public void setMidiNumber(int midi) {
 		this.midiNumber = midi;
 	}
-	
+
 	public void setStemDirection(int direction) {
 		stemDirection = direction;
 	}
@@ -62,49 +55,54 @@ public class GraphicalNote extends Note implements GraphicalObject {
 	public void setSlur(Slur slur) {
 		this.slur = slur;
 	}
-	
+
 	public void setTie(Tie tie) {
 		this.tie = tie;
 	}
-	
+
 	public Slur getSlur() {
 		return slur;
 	}
-	
+
 	public Tie getTie() {
 		return tie;
 	}
-	
+
 	public CurvedConnection getCurvedConnection() {
-		if (tie != null) return tie;
+		if (tie != null)
+			return tie;
 		return slur; // che può essere null. Quindi ritorna null se entrambi non esistono
 	}
-	
+
 	public boolean isCurveStart() {
 		return isTiedStart() || isSlurStart();
 	}
-	
+
 	public boolean isCurveEnd() {
 		return isTiedEnd() || isSlurEnd();
 	}
-	
-	@Override
-	public void draw(Graphics g) {		
-		String glyph = symbol.getGlyphUp();
-        FontMetrics fm = g.getFontMetrics();
-        int width = fm.stringWidth(glyph);
-        int ascent = fm.getAscent();
-        int descent = fm.getDescent();
-        int height = ascent + descent;
 
-        Rectangle bounds = new Rectangle(helper.getX(), helper.getY() - ascent, width, height);
-        helper.setBounds(bounds);
-        if (helper.isSelected()) {
+	@Override
+	public void draw(Graphics g) {
+		String glyph;
+		if (stemDirection == STEM_UP)
+			glyph = symbol.getGlyphUp();
+		else
+			glyph = symbol.getGlyphDown();
+		FontMetrics fm = g.getFontMetrics();
+		int width = fm.stringWidth(glyph);
+		int ascent = fm.getAscent();
+		int descent = fm.getDescent();
+		int height = ascent + descent;
+
+		Rectangle bounds = new Rectangle(helper.getX(), helper.getY() - ascent, width, height);
+		helper.setBounds(bounds);
+		if (helper.isSelected()) {
 			g.setColor(Color.RED);
 		} else {
 			g.setColor(Color.BLACK);
 		}
-        g.drawString(glyph, helper.getX(), helper.getY());
+		g.drawString(glyph, helper.getX(), helper.getY());
 	}
 
 	@Override
@@ -144,18 +142,18 @@ public class GraphicalNote extends Note implements GraphicalObject {
 
 	@Override
 	public boolean contains(int x, int y) {
-        return helper.contains(x, y);
-    }
+		return helper.contains(x, y);
+	}
 
 	@Override
 	public void moveTo(int x, int y) {
 		helper.moveTo(x, y);
-		
+
 	}
 
 	@Override
 	public void moveBy(int dx, int dy) {
-		 helper.moveBy(dx, dy);
+		helper.moveBy(dx, dy);
 	}
 
 	@Override
@@ -170,11 +168,9 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		return n;
 	}
 
-
-
 	@Override
 	public void setBounds(Rectangle bounds) {
-	helper.setBounds(bounds);
+		helper.setBounds(bounds);
 	}
 
 	@Override
@@ -182,23 +178,49 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		return helper.getBounds();
 	}
 
-
-
 	@Override
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
-	
-	public void slurStart() { slurStart = true; }
-	public void slurEnd() { slurEnd = true; }
-	public void slurNone() { slurStart = slurEnd = false; }
-	public void tieStart() { tieStart = true; }
-	public void tieEnd() { tieEnd = true; }
-	public void tieNone() { tieStart = tieEnd = false; }
-	public boolean isSlurStart()  { return slurStart; }
-	public boolean isSlurEnd()    { return slurEnd; }
-	public boolean isTiedStart()  { return tieStart; }
-	public boolean isTiedEnd()    { return tieEnd; }
 
-	
+	public void slurStart() {
+		slurStart = true;
+	}
+
+	public void slurEnd() {
+		slurEnd = true;
+	}
+
+	public void slurNone() {
+		slurStart = slurEnd = false;
+	}
+
+	public void tieStart() {
+		tieStart = true;
+	}
+
+	public void tieEnd() {
+		tieEnd = true;
+	}
+
+	public void tieNone() {
+		tieStart = tieEnd = false;
+	}
+
+	public boolean isSlurStart() {
+		return slurStart;
+	}
+
+	public boolean isSlurEnd() {
+		return slurEnd;
+	}
+
+	public boolean isTiedStart() {
+		return tieStart;
+	}
+
+	public boolean isTiedEnd() {
+		return tieEnd;
+	}
+
 }

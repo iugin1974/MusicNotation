@@ -1,12 +1,14 @@
 package scoreWriter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import musicLily.LilyNote;
+import scoreWriter.VoiceLayer.VoiceType;
 
 public class Exporter {
 
-	private ArrayList<ArrayList<GraphicalObject>> staffList;
+	private Score score;
 	private GUI gui;
 	private GraphicalClef clef;
 	
@@ -14,24 +16,38 @@ public class Exporter {
 		this.gui = gui;
 	}
 
-	public void setStaffs(ArrayList<ArrayList<GraphicalObject>> staffList) {
-		this.staffList = staffList;		
+	public void setScore(Score score) {
+		this.score = score;		
 	}
 	
 	public void parse() {
-		for (int i = 0; i< staffList.size(); i++) {
-			System.out.println("Staff "+i+":");
-			parseStaff(i);
+		for (int i = 0; i < score.getStaffCount(); i++) {
+			parseStaff(score.getStaff(i), i);
 		}
 	}
 	
-	public void parseStaff(int staffNumber) {
-		ArrayList<GraphicalObject> staff = staffList.get(staffNumber);
-		for (GraphicalObject go : staff) {
+	private void parseStaff(Staff staff, int staffNumber) {
+		for (VoiceLayer voice : staff.getVoices()) {
+			parseVoice(voice, staffNumber);
+		}
+	}
+
+	private void parseVoice(VoiceLayer voice, int staffNumber) {
+		List<GraphicalObject> objs = mixLayers(voice.getVoiceType(), staffNumber);
+		for (GraphicalObject go : objs) {
 			if (go instanceof GraphicalClef) parseClef((GraphicalClef)go);
 			if (go instanceof GraphicalNote) parseNote((GraphicalNote)go, staffNumber);
 			if (go instanceof GraphicalBar) parseBar((GraphicalBar)go);
 		}
+	}
+	
+	/** combina il layer staff-wide con la voceOne o two */
+	private List<GraphicalObject> mixLayers(VoiceType voiceType, int staffNumber) {
+		List<GraphicalObject> objects = new ArrayList<>();
+		objects.addAll(score.getStaffWideObjects(staffNumber));
+		objects.addAll(score.getObjects(staffNumber, voiceType));
+		objects.sort(new CompareXPos());
+		return objects;
 	}
 
 	private void parseClef(GraphicalClef go) {

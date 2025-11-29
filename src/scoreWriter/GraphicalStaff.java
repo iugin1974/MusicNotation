@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.List;
 
 import musicInterface.MusicObject;
 
@@ -105,14 +106,6 @@ class GraphicalStaff implements GraphicalObject {
 		return -(snapPoints.indexOf(n.getY()) - 14);
 	}
 
-	private void drawNote(GraphicalNote note, Graphics g) {
-		if (note.getY() > getLineY(3))
-			note.setStemDirection(GraphicalNote.STEM_UP);
-		else
-			note.setStemDirection(GraphicalNote.STEM_DOWN);
-		note.draw(g);
-	}
-
 	@Override
 	public void draw(Graphics g) {
 		if (selected) {
@@ -123,16 +116,6 @@ class GraphicalStaff implements GraphicalObject {
 		for (int i = 0; i < lineNumber; i++) {
 			int yPos = y + i * distanceBetweenLines;
 			g.drawLine(x, yPos, x + width, yPos);
-		}
-
-		ArrayList<GraphicalObject> objects = controller.getStaff(id);
-		for (GraphicalObject object : objects) {
-			if (object instanceof GraphicalNote) {
-				GraphicalNote note = (GraphicalNote) object;
-				drawNote(note, g);
-				LedgerLinesRenderer r = new LedgerLinesRenderer();
-				r.drawLedgerLines(g, note, this);
-			}
 		}
 	}
 
