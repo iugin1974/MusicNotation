@@ -7,7 +7,7 @@ import java.util.Map;
 public class SpatialGrid {
 
     private final int cellSize; // es: 20 px
-    private final Map<Integer, ArrayList<GraphicalNote>> grid = new HashMap<Integer, ArrayList<GraphicalNote>>();
+    private final Map<Integer, ArrayList<GraphicalObject>> grid = new HashMap<Integer, ArrayList<GraphicalObject>>();
 
     public SpatialGrid(int cellSize) {
         this.cellSize = cellSize;
@@ -18,12 +18,12 @@ public class SpatialGrid {
     }
 
     /** Aggiunge una nota nella cella corretta */
-    public void add(GraphicalNote n) {
+    public void add(GraphicalObject n) {
         int cell = getCell(n.getX());
-        ArrayList<GraphicalNote> list = grid.get(cell);
+        ArrayList<GraphicalObject> list = grid.get(cell);
 
         if (list == null) {
-            list = new ArrayList<GraphicalNote>();
+            list = new ArrayList<GraphicalObject>();
             grid.put(cell, list);
         }
 
@@ -31,9 +31,9 @@ public class SpatialGrid {
     }
 
     /** Rimuove la nota dalla cella corretta */
-    public void remove(GraphicalNote n) {
+    public void remove(GraphicalObject n) {
         int cell = getCell(n.getX());
-        ArrayList<GraphicalNote> list = grid.get(cell);
+        ArrayList<GraphicalObject> list = grid.get(cell);
 
         if (list != null) {
             list.remove(n);
@@ -44,7 +44,7 @@ public class SpatialGrid {
     }
 
     /** Aggiorna la cella quando la nota si sposta */
-    public void updatePosition(GraphicalNote n, int oldX, int newX) {
+    public void updatePosition(GraphicalObject n, int oldX, int newX) {
         int oldCell = getCell(oldX);
         int newCell = getCell(newX);
 
@@ -52,7 +52,7 @@ public class SpatialGrid {
             return;
 
         // Rimuovi dalla cella vecchia
-        ArrayList<GraphicalNote> oldList = grid.get(oldCell);
+        ArrayList<GraphicalObject> oldList = grid.get(oldCell);
         if (oldList != null) {
             oldList.remove(n);
             if (oldList.isEmpty()) {
@@ -61,9 +61,9 @@ public class SpatialGrid {
         }
 
         // Aggiungi alla cella nuova
-        ArrayList<GraphicalNote> newList = grid.get(newCell);
+        ArrayList<GraphicalObject> newList = grid.get(newCell);
         if (newList == null) {
-            newList = new ArrayList<GraphicalNote>();
+            newList = new ArrayList<GraphicalObject>();
             grid.put(newCell, newList);
         }
 
@@ -71,13 +71,13 @@ public class SpatialGrid {
     }
 
     /** Restituisce le note nella cella vicina (cella, cella-1, cella+1) */
-    public List<GraphicalNote> getNearby(int x) {
+    public List<GraphicalObject> getNearby(int x) {
         int cell = getCell(x);
 
-        ArrayList<GraphicalNote> result = new ArrayList<GraphicalNote>();
+        ArrayList<GraphicalObject> result = new ArrayList<GraphicalObject>();
 
         for (int c = cell - 1; c <= cell + 1; c++) {
-            ArrayList<GraphicalNote> list = grid.get(c);
+            ArrayList<GraphicalObject> list = grid.get(c);
             if (list != null) {
                 result.addAll(list);
             }

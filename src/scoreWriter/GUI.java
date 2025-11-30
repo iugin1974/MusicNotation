@@ -47,7 +47,7 @@ public class GUI extends JFrame {
 	private final int DISTANCE_BETWEEN_STAVES = 50;
 	private final int TOP_MARGIN = 50;
 	private ScoreWriter controller;
-	private Font musicFont;
+	private Font musicFont, iconFont;
 	private int mouseX, mouseY;
 	private boolean insertMode = false;
 	private MainPanel mainPanel;
@@ -57,14 +57,27 @@ public class GUI extends JFrame {
 	private ButtonGroup groupButtonsClef;
 	private GraphicalObject objectToInsert;
 	private JScrollPane scrollPane;
+	private ButtonGroup groupButtonsRests;
 
 	private void initFont() {
-		try (InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
-			musicFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(40f);
-			GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(musicFont);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	    try {
+	        // font principale (dimensione 40)
+	        try (InputStream is1 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
+	            musicFont = Font.createFont(Font.TRUETYPE_FONT, is1).deriveFont(40f);
+	        }
+
+	        // font secondario (dimensione 20)
+	        try (InputStream is2 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
+	            iconFont = Font.createFont(Font.TRUETYPE_FONT, is2).deriveFont(20f);
+	        }
+
+	        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	        ge.registerFont(musicFont);
+	        ge.registerFont(iconFont);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
 	public GUI(ScoreWriter controller) {
@@ -151,6 +164,7 @@ public class GUI extends JFrame {
 
 		// Aggiungi le toolbar specifiche
 		toolbarPanel.add(noteToolbar());
+		toolbarPanel.add(restToolbar());
 		toolbarPanel.add(barlineToolbar());
 		toolbarPanel.add(clefToolbar());
 		// Potrai aggiungere altre toolbar qui in futuro:
@@ -177,8 +191,8 @@ public class GUI extends JFrame {
 		groupButtonsNotes = new ButtonGroup();
 
 		for (MusicalSymbol noteSymbol : notes) {
-			JToggleButton button = new JToggleButton();
-			button.setIcon(new ImageIcon(getClass().getResource(noteSymbol.getIconPath())));
+			JToggleButton button = new JToggleButton(noteSymbol.getGlyphUp());
+			button.setFont(iconFont);
 			button.setBorder(BorderFactory.createEmptyBorder());
 			button.setMargin(new Insets(0, 0, 0, 0));
 			button.setContentAreaFilled(false);
@@ -200,6 +214,56 @@ public class GUI extends JFrame {
 			p.add(button);
 		}
 		return p;
+	}
+
+	private JPanel restToolbar() {
+	    JPanel p = new JPanel();
+	    p.setLayout(new FlowLayout(FlowLayout.LEFT));
+	    p.setBackground(Color.LIGHT_GRAY);
+
+	    // Elenco delle pause
+	    MusicalSymbol[] rests = {
+	        SymbolRegistry.WHOLE_REST,
+	        SymbolRegistry.HALF_REST,
+	        SymbolRegistry.QUARTER_REST,
+	        SymbolRegistry.EIGHTH_REST,
+	        SymbolRegistry.SIXTEENTH_REST,
+	        SymbolRegistry.THIRTY_SECOND_REST,
+	        SymbolRegistry.SIXTY_FOURTH_REST
+	    };
+
+	    groupButtonsRests = new ButtonGroup();
+
+	    for (MusicalSymbol restSymbol : rests) {
+	        JToggleButton button = new JToggleButton(restSymbol.getGlyph());
+	        button.setFont(iconFont);
+	        button.setBorder(BorderFactory.createEmptyBorder());
+	        button.setMargin(new Insets(0, 0, 0, 0));
+	        button.setContentAreaFilled(false);
+	        button.setFocusPainted(false);
+
+	        // Effetto bordo blu quando selezionato
+	        button.addChangeListener(e -> {
+	            if (button.isSelected()) {
+	                button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+	            } else {
+	                button.setBorder(BorderFactory.createEmptyBorder());
+	            }
+	        });
+
+	        // Azione: selezione di una pausa
+	        button.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsRests);
+	            objectToInsert = new GraphicalRest(restSymbol);  // crea la pausa da inserire
+	            insertMode = true;
+	            controller.setPointer(restSymbol);  // aggiorna il puntatore grafico
+	        });
+
+	        groupButtonsRests.add(button);
+	        p.add(button);
+	    }
+
+	    return p;
 	}
 
 	private JPanel clefToolbar() {

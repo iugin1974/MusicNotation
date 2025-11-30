@@ -15,7 +15,7 @@ public class MusicalSymbol {
 		NOTE, REST, BARLINE, CLEF
 	};
 
-	// note e pause
+	// note
 	public MusicalSymbol(String name, String iconPath, String glyphUp, String glyphDown, Type type, int duration) {
 		this.name = name;
 		this.iconPath = iconPath;
@@ -24,6 +24,17 @@ public class MusicalSymbol {
 		this.glyphDown = glyphDown;
 		this.type = type;
 		this.duration = duration;
+	}
+	
+	// pause
+	public MusicalSymbol(String name, String glyph, Type type, int duration) {
+		this.name = name;
+		this.iconPath = null;
+		this.glyphUp = null;
+		this.glyph = glyph;
+		this.type = type;
+		this.duration = duration;
+		this.glyphDown = null;
 	}
 
 	// stanghette di battuta

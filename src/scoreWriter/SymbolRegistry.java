@@ -59,50 +59,43 @@ public class SymbolRegistry {
     // Rest symbols
     public static final MusicalSymbol WHOLE_REST = new MusicalSymbol(
         "Whole Rest",
-        "/icons/whole_rest.png",
-        "\uE4E3", null,
+        "\uE4E3",
         MusicalSymbol.Type.REST, 0
     );
 
     public static final MusicalSymbol HALF_REST = new MusicalSymbol(
         "Half Rest",
-        "/icons/half_rest.png",
-        "\uE4E4", null,
+        "\uE4E4",
         MusicalSymbol.Type.REST, 1
     );
 
     public static final MusicalSymbol QUARTER_REST = new MusicalSymbol(
         "Quarter Rest",
-        "/icons/quarter_rest.png",
-        "\uE4E5", null,
+        "\uE4E5",
         MusicalSymbol.Type.REST, 2
     );
 
     public static final MusicalSymbol EIGHTH_REST = new MusicalSymbol(
         "Eighth Rest",
-        "/icons/eighth_rest.png",
-        "\uE4E6", null,
+        "\uE4E6",
         MusicalSymbol.Type.REST, 3
     );
 
     public static final MusicalSymbol SIXTEENTH_REST = new MusicalSymbol(
         "Sixteenth Rest",
-        "/icons/sixteenth_rest.png",
-        "\uE4E7", null,
+        "\uE4E7",
         MusicalSymbol.Type.REST, 4
     );
 
     public static final MusicalSymbol THIRTY_SECOND_REST = new MusicalSymbol(
         "Thirty-Second Rest",
-        "/icons/thirtysecond_rest.png",
-        "\uE4E8", null,
+        "\uE4E8",
         MusicalSymbol.Type.REST, 5
     );
 
     public static final MusicalSymbol SIXTY_FOURTH_REST = new MusicalSymbol(
         "Sixty-Fourth Rest",
-        "/icons/sixtyfourth_rest.png",
-        "\uE4E9", null,
+        "\uE4E9",
         MusicalSymbol.Type.REST, 6
     );
 

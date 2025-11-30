@@ -124,6 +124,20 @@ public class ScoreWriter {
 			resizeStaves();
 		return true;
 	}
+	
+	private boolean insertRest(GraphicalRest n, int staffNumber, VoiceType voiceType) {
+		if (voiceType == VoiceType.STAFF_WIDE)
+			return false;
+		GraphicalRest newNote = (GraphicalRest) n.cloneObject();
+		score.addObject(newNote, staffNumber, voiceType);
+		grid.add(newNote);
+		// se necessario allunga i pentagrammi
+		GraphicalStaff g = gui.getStaff(0);
+		int x = newNote.getX();
+		if (x > g.getWidth() - 100)
+			resizeStaves();
+		return true;
+	}
 
 	private void resizeStaves() {
 		System.out.println("resize");
@@ -167,6 +181,8 @@ public class ScoreWriter {
 		selectionManager.select(object, staffNumber);
 		if (object instanceof GraphicalNote)
 			insertNote((GraphicalNote) object, staffNumber, voiceType);
+		else if (object instanceof GraphicalRest)
+			insertRest((GraphicalRest) object, staffNumber, voiceType);
 		else if (object instanceof GraphicalBar)
 			insertBar((GraphicalBar) object, staffNumber);
 		else if (object instanceof GraphicalClef)
@@ -301,7 +317,7 @@ public class ScoreWriter {
 	// Gestione movimento nota
 	// ------------------------
 
-	private void moveNote(GraphicalNote n, int x, int y) {
+	private void moveNote(GraphicalObject n, int x, int y) {
 
 		int oldX = n.getX();
 
@@ -315,13 +331,13 @@ public class ScoreWriter {
 		updateSlurIfNeeded(n, newX, y);
 	}
 
-	private void updateGrid(GraphicalNote n, int oldX, int newX) {
+	private void updateGrid(GraphicalObject n, int oldX, int newX) {
 		grid.updatePosition(n, oldX, newX);
 	}
 
-	private void applyHorizontalSnap(GraphicalNote n, int snapY, int newX) {
+	private void applyHorizontalSnap(GraphicalObject n, int snapY, int newX) {
 		final int SNAP_DISTANCE = 10;
-		for (GraphicalNote other : grid.getNearby(newX)) {
+		for (GraphicalObject other : grid.getNearby(newX)) {
 			if (other != n && Math.abs(other.getX() - newX) < SNAP_DISTANCE) {
 				n.moveTo(other.getX(), snapY);
 				return;
@@ -329,7 +345,9 @@ public class ScoreWriter {
 		}
 	}
 
-	private void updateSlurIfNeeded(GraphicalNote n, int x, int y) {
+	private void updateSlurIfNeeded(GraphicalObject o, int x, int y) {
+		if (o instanceof GraphicalNote == false) return;
+		GraphicalNote n = (GraphicalNote)o;
 		Slur s = n.getSlur();
 		if (s == null)
 			return;
@@ -499,6 +517,7 @@ public class ScoreWriter {
 		Exporter x = new Exporter(gui);
 		x.setScore(score);
 		x.parse();
+		x.printScore();
 	}
 
 	public void setCurrentVoice(int i) {
