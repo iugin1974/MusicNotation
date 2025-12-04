@@ -1,6 +1,5 @@
 package scoreWriter;
 
-import java.awt.Color;
 import java.awt.Graphics;
 
 public class LedgerLinesRenderer {
@@ -13,7 +12,7 @@ public class LedgerLinesRenderer {
     }
     
     public void drawLedgerLines(Graphics g, int x, int y, GraphicalStaff staff) {
-
+    	if (staff == null) return;
         int top = staff.getLineY(5);     // es: posizione verticale della linea superiore
         int bottom = staff.getLineY(1);
 

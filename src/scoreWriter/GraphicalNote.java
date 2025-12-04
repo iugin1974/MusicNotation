@@ -12,7 +12,7 @@ import java.io.InputStream;
 
 import musicEvent.Note;
 
-public class GraphicalNote extends Note implements GraphicalObject {
+public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 
 	private MusicalSymbol symbol;
 	private Slur slur;
@@ -25,10 +25,13 @@ public class GraphicalNote extends Note implements GraphicalObject {
 	private int stemDirection = STEM_UP;
 	private final GraphicalHelper helper = new GraphicalHelper();
 	private Tie tie;
+	private int staffIndex;
+	private int staffPosition; // 0 DO, 1 RE, 2 MI
 
 	public GraphicalNote(MusicalSymbol symbol) {
 		super(0); // crea una nota con midi 0
 		this.symbol = symbol;
+		duration = symbol.getDuration();
 		setup();
 	}
 
@@ -164,7 +167,7 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		n.setY(getY());
 		n.setDuration(getDuration());
 		n.setDots(getDots());
-		setBounds(getBounds());
+		n.setBounds(getBounds());
 		return n;
 	}
 
@@ -223,4 +226,24 @@ public class GraphicalNote extends Note implements GraphicalObject {
 		return tieEnd;
 	}
 
+	@Override
+	public void setStaffIndex(int i) {
+		staffIndex = i;		
+	}
+
+	@Override
+	public int getStaffIndex() {		
+		return staffIndex;
+	}
+
+	@Override
+	public void setStaffPosition(int p) {
+		staffPosition = p;
+		
+	}
+
+	@Override
+	public int getStaffPosition() {
+		return staffPosition;
+	}
 }

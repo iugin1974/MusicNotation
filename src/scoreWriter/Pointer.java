@@ -9,11 +9,12 @@ import java.io.InputStream;
 
 import scoreWriter.VoiceLayer.VoiceType;
 
-public class Pointer {
+public class Pointer implements StaffInfo {
 
 	private int x, y;
 	private MusicalSymbol symbol;
 	private ScoreWriter controller;
+	private int staffIndex;
 	
 	Pointer(ScoreWriter controller, MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
@@ -57,6 +58,29 @@ public class Pointer {
 			glyph = symbol.getGlyphDown();
 		if (glyph == null) glyph = symbol.getGlyph();
         g.drawString(glyph, x, y);
+	}
+
+	@Override
+	public void setStaffIndex(int i) {
+		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public int getStaffIndex() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setStaffPosition(int p) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getStaffPosition() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

@@ -1,100 +1,112 @@
 package scoreWriter;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import musicLily.LilyNote;
-import scoreWriter.VoiceLayer.VoiceType;
 
 public class Exporter {
 
-	private Score score;
-	private GUI gui;
-	private GraphicalClef clef;
-	
-	public Exporter(GUI gui) {
-		this.gui = gui;
-	}
+    private final StringBuilder sb = new StringBuilder();
+    private GraphicalClef clef;
 
-	public void setScore(Score score) {
-		this.score = score;		
-	}
-	
-	public void parse() {
-		for (int i = 0; i < score.getStaffCount(); i++) {
-			parseStaff(score.getStaff(i), i);
-		}
-	}
-	
-	private void parseStaff(Staff staff, int staffNumber) {
-		for (VoiceLayer voice : staff.getVoices()) {
-			parseVoice(voice, staffNumber);
-		}
-	}
+    /** Esporta tutti gli staves e voci in LilyPond */
+    public void export(List<ParsedStaff> parsed) {
 
-	private void parseVoice(VoiceLayer voice, int staffNumber) {
-		List<GraphicalObject> objs = mixLayers(voice.getVoiceType(), staffNumber);
-		for (GraphicalObject go : objs) {
-			if (go instanceof GraphicalClef) parseClef((GraphicalClef)go);
-			if (go instanceof GraphicalNote) parseNote((GraphicalNote)go, staffNumber);
-			if (go instanceof GraphicalBar) parseBar((GraphicalBar)go);
-		}
-	}
-	
-	/** combina il layer staff-wide con la voceOne o two */
-	private List<GraphicalObject> mixLayers(VoiceType voiceType, int staffNumber) {
-		List<GraphicalObject> objects = new ArrayList<>();
-		objects.addAll(score.getStaffWideObjects(staffNumber));
-		objects.addAll(score.getObjects(staffNumber, voiceType));
-		objects.sort(new CompareXPos());
-		return objects;
-	}
+        for (ParsedStaff staff : parsed) {
 
-	private void parseClef(GraphicalClef go) {
-		clef = go;
-		if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE) { 
-			System.out.println("\\clef \"treble\"");
-		}
-		else if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE_8) { 
-			System.out.println("\\clef \"treble_8\"");
-		}
-		else if (go.getSymbol() == SymbolRegistry.CLEF_BASS) {
-			System.out.println("\"\\clef \"bass\"\"");
-		}
-		// TODO continua
-		
-	}
+            for (List<GraphicalObject> voiceObjs : staff.voices) {
 
-	private void parseNote(GraphicalNote go, int staffNumber) {
-		int midi = calculateMidiNumber(staffNumber, go);
-		go.setMidiNumber(midi);
-		LilyNote ln = new LilyNote(go);
-		System.out.print(ln.getNamedNote()+" ");
-		if (go.isSlurStart()) System.out.print("(");
-		if (go.isSlurEnd()) System.out.print(")");
-		if (go.isTiedStart()) System.out.print("~");
-		
-	}
+                // Se la voce non contiene né note né pause → non esportare
+                if (!hasNotesOrRests(voiceObjs)) 
+                    continue;
 
-	private void parseBar(GraphicalBar b) {
-		if (b.getSymbol().equals(SymbolRegistry.SINGLE_BARLINE)) System.out.println("|");
-		else if (b.getSymbol().equals(SymbolRegistry.DOUBLE_BARLINE)) System.out.println("\\bar \"||\"");
-	}
-	
-	private int calculateMidiNumber(int staffNumber, GraphicalNote n) {
-		if (clef == null) {
-			System.out.println("Export ist no possible. No clef");
-			return -1;
-		}
-	    int[] scale = clef.getSemitoneMap();
-	    GraphicalStaff s = gui.getStaff(staffNumber);
-	    int position = s.getPosInStaff(n);
+                createVoiceHeader(staff, voiceObjs);
+                parseObjects(voiceObjs, staff);
 
-	    // degree con supporto per numeri negativi
-	    int degree = Math.floorMod(position, 7);      // 0..6
-	    int octaveShift = Math.floorDiv(position, 7); // può essere negativo
+                sb.append("\n}\n\n");
+                clef = null;
+            }
+        }
+    }
 
-	    return clef.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getAlteration();
-	}
-	
+    /** Inizio della voce in LilyPond */
+    private void createVoiceHeader(ParsedStaff staff, List<GraphicalObject> voiceObjs) {
+        sb.append("\\relative c' {\n");
+    }
+
+    /** Analizza tutti gli oggetti della voce */
+    private void parseObjects(List<GraphicalObject> objs, ParsedStaff staff) {
+
+        for (GraphicalObject go : objs) {
+
+            if (go instanceof GraphicalClef) {
+                parseClef((GraphicalClef) go);
+            }
+            else if (go instanceof GraphicalNote) {
+                parseNote((GraphicalNote) go);
+            }
+            else if (go instanceof GraphicalBar) {
+                parseBar((GraphicalBar) go);
+            }
+        }
+    }
+
+    /** Esporta una clef LilyPond */
+    private void parseClef(GraphicalClef go) {
+
+        clef = go;
+
+        if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE) {
+            sb.append("\\clef \"treble\"");
+        }
+        else if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE_8) {
+            sb.append("\\clef \"treble_8\"");
+        }
+        else if (go.getSymbol() == SymbolRegistry.CLEF_BASS) {
+            sb.append("\\clef \"bass\"");
+        }
+
+        sb.append("\n");
+    }
+
+    /** Esporta una nota */
+    private void parseNote(GraphicalNote go) {
+
+        int midi = MidiCalculator.calculateMidiNumber(go, clef);
+        if (midi == -1) return; // chiave mancante
+
+        go.setMidiNumber(midi);
+
+        LilyNote ln = new LilyNote(go);
+        sb.append(ln.draw()).append(" ");
+
+        if (go.isSlurStart()) sb.append("(");
+        if (go.isSlurEnd()) sb.append(")");
+        if (go.isTiedStart()) sb.append("~");
+    }
+
+    /** Esporta una barra di misura */
+    private void parseBar(GraphicalBar b) {
+
+        if (b.getSymbol().equals(SymbolRegistry.SINGLE_BARLINE)) {
+            sb.append(" |\n");
+        }
+        else if (b.getSymbol().equals(SymbolRegistry.DOUBLE_BARLINE)) {
+            sb.append(" \\bar \"||\"\n");
+        }
+    }
+
+    /** Controlla se una voce contiene almeno una nota o pausa */
+    private boolean hasNotesOrRests(List<GraphicalObject> voice) {
+        for (GraphicalObject obj : voice) {
+            if (obj instanceof GraphicalNote ||
+                obj instanceof GraphicalRest) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void printScore() {
+        System.out.println(sb.toString());
+    }
 }

@@ -58,99 +58,98 @@ public class GUI extends JFrame {
 	private GraphicalObject objectToInsert;
 	private JScrollPane scrollPane;
 	private ButtonGroup groupButtonsRests;
+	LedgerLinesRenderer ledger;
 
 	private void initFont() {
-	    try {
-	        // font principale (dimensione 40)
-	        try (InputStream is1 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
-	            musicFont = Font.createFont(Font.TRUETYPE_FONT, is1).deriveFont(40f);
-	        }
+		try {
+			// font principale (dimensione 40)
+			try (InputStream is1 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
+				musicFont = Font.createFont(Font.TRUETYPE_FONT, is1).deriveFont(40f);
+			}
 
-	        // font secondario (dimensione 20)
-	        try (InputStream is2 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
-	            iconFont = Font.createFont(Font.TRUETYPE_FONT, is2).deriveFont(20f);
-	        }
+			// font secondario (dimensione 20)
+			try (InputStream is2 = getClass().getResourceAsStream("/fonts/Bravura.otf")) {
+				iconFont = Font.createFont(Font.TRUETYPE_FONT, is2).deriveFont(20f);
+			}
 
-	        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	        ge.registerFont(musicFont);
-	        ge.registerFont(iconFont);
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			ge.registerFont(musicFont);
+			ge.registerFont(iconFont);
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public GUI(ScoreWriter controller) {
-	    this.controller = controller;
-	    initFont();
-	    setTitle("Editor Musicale");
-	    setSize(800, 600);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    setLocationRelativeTo(null);
+		this.controller = controller;
+		ledger = new LedgerLinesRenderer();
+		initFont();
+		setTitle("Editor Musicale");
+		setSize(800, 600);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
 
-	    // Pannello centrale
-	    mainPanel = new MainPanel();
-	    mainPanel.setBackground(Color.WHITE);
-	    scrollPane = new JScrollPane(
-	            mainPanel,
-	            JScrollPane.VERTICAL_SCROLLBAR_NEVER,      // niente scroll verticale
-	            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED // scroll orizzontale se serve
-	    );
-	    add(scrollPane, BorderLayout.CENTER);
+		// Pannello centrale
+		mainPanel = new MainPanel();
+		mainPanel.setBackground(Color.WHITE);
+		scrollPane = new JScrollPane(mainPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, // niente scroll verticale
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED // scroll orizzontale se serve
+		);
+		add(scrollPane, BorderLayout.CENTER);
 
-	    // 🔹 Toolbar principale (già esistente)
-	    JPanel topBar = new JPanel(new BorderLayout());
-	    topBar.add(mainToolbar(), BorderLayout.WEST);
+		// 🔹 Toolbar principale (già esistente)
+		JPanel topBar = new JPanel(new BorderLayout());
+		topBar.add(mainToolbar(), BorderLayout.WEST);
 
-	    // 🔹 Aggiungo la nuova voce toolbar 
-	    topBar.add(voiceToolbar(), BorderLayout.EAST);
+		// 🔹 Aggiungo la nuova voce toolbar
+		topBar.add(voiceToolbar(), BorderLayout.EAST);
 
-	    add(topBar, BorderLayout.NORTH);
+		add(topBar, BorderLayout.NORTH);
 
-	    // Barra menu
-	    JMenuBar menuBar = new JMenuBar();
+		// Barra menu
+		JMenuBar menuBar = new JMenuBar();
 
-	    JMenu fileMenu = new JMenu("File");
-	    JMenuItem nuovo = new JMenuItem("Nuovo");
-	    JMenuItem apri = new JMenuItem("Apri");
-	    JMenuItem salva = new JMenuItem("Salva");
-	    fileMenu.add(nuovo);
-	    fileMenu.add(apri);
-	    fileMenu.add(salva);
+		JMenu fileMenu = new JMenu("File");
+		JMenuItem nuovo = new JMenuItem("Nuovo");
+		JMenuItem apri = new JMenuItem("Apri");
+		JMenuItem salva = new JMenuItem("Salva");
+		fileMenu.add(nuovo);
+		fileMenu.add(apri);
+		fileMenu.add(salva);
 
-	    JMenu modificaMenu = new JMenu("Modifica");
-	    JMenuItem addStaffMenu = new JMenuItem("add Staff");
-	    addStaffMenu.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            controller.addStaff();
-	        }
-	    });
+		JMenu modificaMenu = new JMenu("Modifica");
+		JMenuItem addStaffMenu = new JMenuItem("add Staff");
+		addStaffMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				controller.addStaff();
+			}
+		});
 
-	    JMenuItem itemInsertNote = new JMenuItem("Insert Note");
-	    itemInsertNote.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            insertMode = true;
-	        }
-	    });
+		JMenuItem itemInsertNote = new JMenuItem("Insert Note");
+		itemInsertNote.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				insertMode = true;
+			}
+		});
 
-	    salva.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            controller.export();
-	        }
-	    });
+		salva.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				controller.export();
+			}
+		});
 
-	    modificaMenu.add(addStaffMenu);
-	    modificaMenu.add(itemInsertNote);
+		modificaMenu.add(addStaffMenu);
+		modificaMenu.add(itemInsertNote);
 
-	    menuBar.add(fileMenu);
-	    menuBar.add(modificaMenu);
+		menuBar.add(fileMenu);
+		menuBar.add(modificaMenu);
 
-	    setJMenuBar(menuBar);
+		setJMenuBar(menuBar);
 	}
-
 
 	private JPanel mainToolbar() {
 		JPanel mainPanel = new JPanel();
@@ -180,201 +179,179 @@ public class GUI extends JFrame {
 	}
 
 	private JPanel noteToolbar() {
-		JPanel p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.LEFT));
-		setBackground(Color.LIGHT_GRAY);
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
 
-		MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
-				SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
-				SymbolRegistry.SIXTY_FOURTH_NOTE };
-
-		groupButtonsNotes = new ButtonGroup();
-
-		for (MusicalSymbol noteSymbol : notes) {
-			JToggleButton button = new JToggleButton(noteSymbol.getGlyphUp());
-			button.setFont(iconFont);
-			button.setBorder(BorderFactory.createEmptyBorder());
-			button.setMargin(new Insets(0, 0, 0, 0));
-			button.setContentAreaFilled(false);
-			button.setFocusPainted(false);
-			button.addChangeListener(e -> {
-				if (button.isSelected()) {
-					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-				} else {
-					button.setBorder(BorderFactory.createEmptyBorder());
-				}
-			});
-			button.addActionListener(e -> {
-				removeOtherSelections(groupButtonsNotes);
-				objectToInsert = new GraphicalNote(noteSymbol); // passo direttamente il simbolo
-				insertMode = true;
-				controller.setPointer(noteSymbol); // pointer riceve il simbolo da mostrare
-			});
-			groupButtonsNotes.add(button);
-			p.add(button);
-		}
-		return p;
-	}
-
-	private JPanel restToolbar() {
-	    JPanel p = new JPanel();
-	    p.setLayout(new FlowLayout(FlowLayout.LEFT));
-	    p.setBackground(Color.LIGHT_GRAY);
-
-	    // Elenco delle pause
-	    MusicalSymbol[] rests = {
-	        SymbolRegistry.WHOLE_REST,
-	        SymbolRegistry.HALF_REST,
-	        SymbolRegistry.QUARTER_REST,
-	        SymbolRegistry.EIGHTH_REST,
-	        SymbolRegistry.SIXTEENTH_REST,
-	        SymbolRegistry.THIRTY_SECOND_REST,
-	        SymbolRegistry.SIXTY_FOURTH_REST
+	    MusicalSymbol[] notes = {
+	        SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
+	        SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE,
+	        SymbolRegistry.THIRTY_SECOND_NOTE, SymbolRegistry.SIXTY_FOURTH_NOTE
 	    };
 
-	    groupButtonsRests = new ButtonGroup();
+	    groupButtonsNotes = new ButtonGroup();
 
-	    for (MusicalSymbol restSymbol : rests) {
-	        JToggleButton button = new JToggleButton(restSymbol.getGlyph());
-	        button.setFont(iconFont);
-	        button.setBorder(BorderFactory.createEmptyBorder());
-	        button.setMargin(new Insets(0, 0, 0, 0));
-	        button.setContentAreaFilled(false);
-	        button.setFocusPainted(false);
-
-	        // Effetto bordo blu quando selezionato
-	        button.addChangeListener(e -> {
-	            if (button.isSelected()) {
-	                button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-	            } else {
-	                button.setBorder(BorderFactory.createEmptyBorder());
-	            }
-	        });
-
-	        // Azione: selezione di una pausa
-	        button.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsRests);
-	            objectToInsert = new GraphicalRest(restSymbol);  // crea la pausa da inserire
+	    for (MusicalSymbol noteSymbol : notes) {
+	        JToggleButton btn = createIconToggleButton(noteSymbol.getGlyphUp(), iconFont);
+	        btn.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsNotes);
+	            objectToInsert = new GraphicalNote(noteSymbol);
 	            insertMode = true;
-	            controller.setPointer(restSymbol);  // aggiorna il puntatore grafico
+	            controller.setPointer(noteSymbol);
 	        });
-
-	        groupButtonsRests.add(button);
-	        p.add(button);
+	        groupButtonsNotes.add(btn);
+	        p.add(btn);
 	    }
 
 	    return p;
 	}
 
-	private JPanel clefToolbar() {
-		JPanel p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.LEFT));
-		setBackground(Color.LIGHT_GRAY);
 
-		MusicalSymbol[] clefs = { SymbolRegistry.CLEF_TREBLE, SymbolRegistry.CLEF_BASS, SymbolRegistry.CLEF_TREBLE_8 };
+	private JPanel restToolbar() {
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
 
-		groupButtonsClef = new ButtonGroup();
-
-		for (MusicalSymbol clefSymbol : clefs) {
-			JToggleButton button = new JToggleButton();
-			button.setIcon(new ImageIcon(getClass().getResource(clefSymbol.getIconPath())));
-			button.setBorder(BorderFactory.createEmptyBorder());
-			button.setMargin(new Insets(0, 0, 0, 0));
-			button.setContentAreaFilled(false);
-			button.setFocusPainted(false);
-			button.addChangeListener(e -> {
-				if (button.isSelected()) {
-					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-				} else {
-					button.setBorder(BorderFactory.createEmptyBorder());
-				}
-			});
-			button.addActionListener(e -> {
-				removeOtherSelections(groupButtonsNotes);
-				objectToInsert = new GraphicalClef(clefSymbol); // passo direttamente il simbolo
-				insertMode = true;
-				controller.setPointer(clefSymbol); // pointer riceve il simbolo da mostrare
-			});
-			groupButtonsClef.add(button);
-			p.add(button);
-		}
-		return p;
-	}
-
-	private JPanel barlineToolbar() {
-		JPanel p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.LEFT));
-		p.setBackground(Color.LIGHT_GRAY);
-
-		MusicalSymbol[] barlines = { SymbolRegistry.SINGLE_BARLINE, SymbolRegistry.DOUBLE_BARLINE,
-				SymbolRegistry.FINAL_BARLINE, SymbolRegistry.REPEAT_START_BARLINE, SymbolRegistry.REPEAT_END_BARLINE };
-
-		groupButtonsBars = new ButtonGroup();
-
-		for (MusicalSymbol barlineSymbol : barlines) {
-			JToggleButton button = new JToggleButton();
-			button.setIcon(new ImageIcon(getClass().getResource(barlineSymbol.getIconPath())));
-			button.setBorder(BorderFactory.createEmptyBorder());
-			button.setMargin(new Insets(0, 0, 0, 0));
-			button.setContentAreaFilled(false);
-			button.setFocusPainted(false);
-
-			button.addChangeListener(e -> {
-				if (button.isSelected()) {
-					button.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-				} else {
-					button.setBorder(BorderFactory.createEmptyBorder());
-				}
-			});
-
-			button.addActionListener(e -> {
-				removeOtherSelections(groupButtonsBars);
-				objectToInsert = new GraphicalBar(barlineSymbol); // passo direttamente il simbolo
-				insertMode = true;
-				controller.setPointer(barlineSymbol); // passa direttamente il simbolo
-			});
-
-			groupButtonsBars.add(button);
-			p.add(button);
-		}
-
-		return p;
-	}
-	
-	private JPanel voiceToolbar() {
-
-	    JPanel voiceNumberToolbar = new JPanel();
-	    voiceNumberToolbar.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-	    // Pulsanti toggle
-	    JToggleButton voice1Button = new JToggleButton("1");
-	    JToggleButton voice2Button = new JToggleButton("2");
-
-	    // Gruppo (solo uno può essere attivo)
-	    ButtonGroup group = new ButtonGroup();
-	    group.add(voice1Button);
-	    group.add(voice2Button);
-
-	    // Selezione iniziale
-	    voice1Button.setSelected(true);
-
-	    // Listener condiviso
-	    ActionListener voiceListener = e -> {
-	        if (voice1Button.isSelected()) {
-	            controller.setCurrentVoice(1);
-	        } else if (voice2Button.isSelected()) {
-	        	controller.setCurrentVoice(2);
-	        }
+	    MusicalSymbol[] rests = {
+	        SymbolRegistry.WHOLE_REST, SymbolRegistry.HALF_REST, SymbolRegistry.QUARTER_REST,
+	        SymbolRegistry.EIGHTH_REST, SymbolRegistry.SIXTEENTH_REST,
+	        SymbolRegistry.THIRTY_SECOND_REST, SymbolRegistry.SIXTY_FOURTH_REST
 	    };
 
-	    voice1Button.addActionListener(voiceListener);
-	    voice2Button.addActionListener(voiceListener);
+	    groupButtonsRests = new ButtonGroup();
 
-	    // Aggiunta al pannello
-	    voiceNumberToolbar.add(voice1Button);
-	    voiceNumberToolbar.add(voice2Button);
-	    
-	    return voiceNumberToolbar;
+	    for (MusicalSymbol restSymbol : rests) {
+	        JToggleButton btn = createIconToggleButton(restSymbol.getGlyph(), iconFont);
+	        btn.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsRests);
+	            objectToInsert = new GraphicalRest(restSymbol);
+	            insertMode = true;
+	            controller.setPointer(restSymbol);
+	        });
+	        groupButtonsRests.add(btn);
+	        p.add(btn);
+	    }
+
+	    return p;
+	}
+
+
+	private JPanel clefToolbar() {
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
+
+	    MusicalSymbol[] clefs = {
+	        SymbolRegistry.CLEF_TREBLE,
+	        SymbolRegistry.CLEF_BASS,
+	        SymbolRegistry.CLEF_TREBLE_8
+	    };
+
+	    groupButtonsClef = new ButtonGroup();
+
+	    for (MusicalSymbol clefSymbol : clefs) {
+	        JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
+	        btn.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsClef);
+	            objectToInsert = new GraphicalClef(clefSymbol);
+	            insertMode = true;
+	            controller.setPointer(clefSymbol);
+	        });
+	        groupButtonsClef.add(btn);
+	        p.add(btn);
+	    }
+
+	    return p;
+	}
+
+
+	private JPanel barlineToolbar() {
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
+
+	    MusicalSymbol[] bars = {
+	        SymbolRegistry.SINGLE_BARLINE, SymbolRegistry.DOUBLE_BARLINE,
+	        SymbolRegistry.FINAL_BARLINE, SymbolRegistry.REPEAT_START_BARLINE,
+	        SymbolRegistry.REPEAT_END_BARLINE
+	    };
+
+	    groupButtonsBars = new ButtonGroup();
+
+	    for (MusicalSymbol s : bars) {
+	        JToggleButton btn = createIconImageToggle(s.getIconPath());
+	        btn.addActionListener(e -> {
+	            removeOtherSelections(groupButtonsBars);
+	            objectToInsert = new GraphicalBar(s);
+	            insertMode = true;
+	            controller.setPointer(s);
+	        });
+	        groupButtonsBars.add(btn);
+	        p.add(btn);
+	    }
+
+	    return p;
+	}
+
+	private JPanel voiceToolbar() {
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
+
+	    JToggleButton voice1 = new JToggleButton("Voce 1");
+	    JToggleButton voice2 = new JToggleButton("Voce 2");
+
+	    ButtonGroup g = new ButtonGroup();
+	    g.add(voice1);
+	    g.add(voice2);
+
+	    voice1.setSelected(true);
+
+	    ActionListener listener = e -> {
+	        controller.setCurrentVoice( voice1.isSelected() ? 1 : 2 );
+	    };
+
+	    voice1.addActionListener(listener);
+	    voice2.addActionListener(listener);
+
+	    p.add(voice1);
+	    p.add(voice2);
+
+	    return p;
+	}
+
+	private JToggleButton createIconToggleButton(String textOrGlyph, Font font) {
+	    JToggleButton btn = new JToggleButton(textOrGlyph);
+	    btn.setFont(font);
+	    btn.setFocusPainted(false);
+	    btn.setContentAreaFilled(true);
+	    btn.setBackground(new Color(245, 245, 245));
+	    btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+
+	    btn.addChangeListener(e -> {
+	        if (btn.isSelected()) {
+	            btn.setBackground(new Color(200, 220, 255));
+	            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
+	        } else {
+	            btn.setBackground(new Color(245, 245, 245));
+	            btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+	        }
+	    });
+	    return btn;
+	}
+
+	private JToggleButton createIconImageToggle(String iconPath) {
+	    JToggleButton btn = new JToggleButton(new ImageIcon(getClass().getResource(iconPath)));
+	    btn.setFocusPainted(false);
+	    btn.setContentAreaFilled(true);
+	    btn.setBackground(new Color(245, 245, 245));
+	    btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+
+	    btn.addChangeListener(e -> {
+	        if (btn.isSelected()) {
+	            btn.setBackground(new Color(200, 220, 255));
+	            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
+	        } else {
+	            btn.setBackground(new Color(245, 245, 245));
+	            btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+	        }
+	    });
+	    return btn;
 	}
 
 	private int calculateNextY() {
@@ -437,12 +414,20 @@ public class GUI extends JFrame {
 			if (staffList == null)
 				return;
 			drawStaves(g);
-			for (GraphicalObject object: controller.getAllObjects()) {
+			for (GraphicalObject object : controller.getAllObjects()) {
 				object.draw(g);
+				if (object instanceof GraphicalNote) {
+					GraphicalNote n = (GraphicalNote) object;
+				        GraphicalStaff staff = getStaff(n.getStaffIndex());
+				        ledger.drawLedgerLines(g, n, staff);
+				}
 			}
-			
+
 			if (insertMode && mouseX > 0 && mouseY > 0) {
-				controller.getPointer().draw(g);
+				Pointer pointer = controller.getPointer();
+				pointer.draw(g);
+				GraphicalStaff staff = getStaff(pointer.getStaffIndex());
+				ledger.drawLedgerLines(g, pointer, staff);
 			}
 		}
 
@@ -465,7 +450,7 @@ public class GUI extends JFrame {
 			if (e.isControlDown())
 				startPositions = controller.getStartXPositions(e.getX(), e.getY());
 			else {
-				controller.selectObjectAtPos(e.getX(), e.getY(), false);	
+				controller.selectObjectAtPos(e.getX(), e.getY(), false);
 			}
 		}
 
@@ -582,6 +567,11 @@ public class GUI extends JFrame {
 			}
 		}
 		return staffN;
+	}
+
+	public GraphicalStaff getPointedStaff(int mouseX, int mouseY) {
+		int pos = getPointedStaffIndex(mouseX, mouseY);
+		return staffList.get(pos);
 	}
 
 	public ArrayList<GraphicalStaff> getStaffList() {

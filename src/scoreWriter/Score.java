@@ -6,6 +6,7 @@ import scoreWriter.VoiceLayer.VoiceType;
 
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class Score {
 
@@ -37,6 +38,11 @@ public class Score {
 		}
 		return staffList.get(staffNumber).getVoice(voiceType).getObjects();
 	}
+	
+	/** Restituisce la lista degli oggetti di uno staff e voce specifici */
+	public List<GraphicalObject> getObjects(Staff staff, VoiceType voiceType) {
+		return staff.getVoice(voiceType).getObjects();
+	}
 
 	/**
 	 * Restituisce tutti gli oggetti di uno staff, di tutti i layer.
@@ -59,6 +65,10 @@ public class Score {
 	
 	public List<GraphicalObject> getStaffWideObjects(int staffNumber) {
 		Staff staff = getStaff(staffNumber);
+		return staff.getObjects(VoiceType.STAFF_WIDE);
+	}
+	
+	public List<GraphicalObject> getStaffWideObjects(Staff staff) {
 		return staff.getObjects(VoiceType.STAFF_WIDE);
 	}
 
@@ -170,5 +180,6 @@ public class Score {
 	public boolean areNotesConsecutive(GraphicalNote n1, GraphicalNote n2) {
 	    return getNextNote(n1) == n2;
 	}
+
 	
 }

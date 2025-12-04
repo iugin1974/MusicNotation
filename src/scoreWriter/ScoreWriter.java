@@ -31,8 +31,8 @@ public class ScoreWriter {
 
 	private void test() {
 		addStaff();
-		addStaff();
-		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
+		//addStaff();
+		/*GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
 		c.setXY(50, 80);
@@ -40,11 +40,12 @@ public class ScoreWriter {
 		n2.setXY(200, 80);
 		score.addObject(c, 0, VoiceType.STAFF_WIDE);
 		score.addObject(n1, 0, VoiceType.VOICE_ONE);
-		score.addObject(n2, 0, VoiceType.VOICE_ONE);
+		score.addObject(n2, 0, VoiceType.VOICE_ONE);*/
+		//export();
+		//System.exit(0);
 	}
 
 	public void addStaff() {
-		List<GraphicalObject> staffForSelectedObjects = new ArrayList<>();
 		score.addStaff();
 		selectionManager.addStaff();
 		gui.addStaff(score.getStaffCount() - 1);
@@ -115,6 +116,10 @@ public class ScoreWriter {
 			newNote.setStemDirection(GraphicalNote.STEM_UP);
 		else if (voiceType == VoiceType.VOICE_TWO)
 			newNote.setStemDirection(GraphicalNote.STEM_DOWN);
+		newNote.setStaffIndex(staffNumber);
+		GraphicalStaff staff = gui.getStaff(staffNumber);
+		int position = staff.getPosInStaff(newNote);
+		newNote.setStaffPosition(position);
 		score.addObject(newNote, staffNumber, voiceType);
 		grid.add(newNote);
 		// se necessario allunga i pentagrammi
@@ -514,9 +519,13 @@ public class ScoreWriter {
 	}
 
 	public void export() {
-		Exporter x = new Exporter(gui);
-		x.setScore(score);
-		x.parse();
+		ScoreParser parser = new ScoreParser(score);
+		List<ParsedStaff> parsedStaves = parser.parse();
+		for (ParsedStaff parsedStaff : parsedStaves) {
+			if (!parsedStaff.startsWithClef()) return;
+		}
+		Exporter x = new Exporter();
+		x.export(parsedStaves);
 		x.printScore();
 	}
 
@@ -560,8 +569,10 @@ public class ScoreWriter {
 
 	public void movePointerTo(int mouseX, int snapY) {
 		pointer.moveTo(mouseX, snapY);
+		int index = checkInWichStaffIsPoint(mouseX, snapY);
+		pointer.setStaffIndex(index);
 	}
-
+	
 	public void destroyPointer() {
 		pointer = null;
 	}

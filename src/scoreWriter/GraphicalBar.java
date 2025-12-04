@@ -11,7 +11,7 @@ public class GraphicalBar implements GraphicalObject {
 
 	private MusicalSymbol symbol;
 
-	GraphicalBar(MusicalSymbol barlineSymbol) {
+	public GraphicalBar(MusicalSymbol barlineSymbol) {
 		this.symbol = barlineSymbol;
 	}
 
