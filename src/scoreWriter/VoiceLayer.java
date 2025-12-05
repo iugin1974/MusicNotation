@@ -45,6 +45,16 @@ public class VoiceLayer {
     public List<GraphicalObject> getObjects() {
         return objects;
     }
+    
+    /** Restituisce solo le note **/
+    public List<GraphicalNote> getNotes() {
+    	List<GraphicalNote> notes = new ArrayList<>();
+    	for (GraphicalObject object : objects) {
+    		if (object instanceof GraphicalNote)
+    			notes.add((GraphicalNote)object);
+    	}
+    	return notes;
+    }
 
     /** Pulisce tutti gli oggetti dal layer */
     public void clear() {

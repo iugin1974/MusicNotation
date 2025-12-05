@@ -22,6 +22,7 @@ public class ScoreWriter {
 	private GUI gui;
 	private VoiceType voiceType = VoiceType.VOICE_ONE;
 	private Pointer pointer;
+	private Lyrics lyrics;
 
 	public ScoreWriter() {
 		score = new Score();
@@ -31,16 +32,20 @@ public class ScoreWriter {
 
 	private void test() {
 		addStaff();
-		//addStaff();
-		/*GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
+		addStaff();
+		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
+		Lyric l1 = new Lyric("Hal", n1);
+		Lyric l2 = new Lyric("lo", n2);
+		n1.addLyric(l1);
+		n2.addLyric(l2);
 		c.setXY(50, 80);
 		n1.setXY(100, 100);
 		n2.setXY(200, 80);
 		score.addObject(c, 0, VoiceType.STAFF_WIDE);
 		score.addObject(n1, 0, VoiceType.VOICE_ONE);
-		score.addObject(n2, 0, VoiceType.VOICE_ONE);*/
+		score.addObject(n2, 0, VoiceType.VOICE_ONE);
 		//export();
 		//System.exit(0);
 	}
@@ -58,6 +63,10 @@ public class ScoreWriter {
 
 	public List<Staff> getStaffList() {
 		return score.getAllStaves();
+	}
+	
+	public int getStaffCount() {
+		return getStaffList().size();
 	}
 
 	/** restituisce una lista con tutti gli oggetti di tutti gli staves */
@@ -580,4 +589,30 @@ public class ScoreWriter {
 	public boolean pointerExists() {
 		return pointer != null;
 	}
-}
+	
+	
+	public void removeLyrics(int staffIndex, VoiceType voiceType) {
+		Staff s = score.getStaff(staffIndex);
+	    VoiceLayer v = s.getVoice(voiceType);
+	    List<GraphicalNote> notes = v.getNotes();
+	    for (GraphicalNote n : notes) {
+	    	n.removeLyric();
+	    }
+	}
+	
+	public void addLyrics(List<String> syllables, int staffIndex, VoiceType voiceType) {
+	    Staff s = score.getStaff(staffIndex);
+	    VoiceLayer v = s.getVoice(voiceType);
+	    List<GraphicalNote> notes = v.getNotes();
+
+	    int n = 0;
+	    for (String syllable : syllables) {
+	        if (n >= notes.size()) break;  // più sillabe che note, esci
+
+	        Lyric l = new Lyric(syllable, notes.get(n));
+	        notes.get(n).addLyric(l);
+	        n++;
+	    }
+	}
+
+	}

@@ -27,6 +27,7 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	private Tie tie;
 	private int staffIndex;
 	private int staffPosition; // 0 DO, 1 RE, 2 MI
+	private Lyric lyric = null;
 
 	public GraphicalNote(MusicalSymbol symbol) {
 		super(0); // crea una nota con midi 0
@@ -245,5 +246,21 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	@Override
 	public int getStaffPosition() {
 		return staffPosition;
+	}
+	
+	public void addLyric(Lyric lyric) {
+		this.lyric = lyric;
+	}
+	
+	public Lyric getLyric() {
+		return lyric;
+	}
+	
+	public boolean hasLyric() {
+		return lyric != null;
+	}
+
+	public void removeLyric() {
+		lyric = null;
 	}
 }

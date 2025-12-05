@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -58,7 +59,9 @@ public class GUI extends JFrame {
 	private GraphicalObject objectToInsert;
 	private JScrollPane scrollPane;
 	private ButtonGroup groupButtonsRests;
-	LedgerLinesRenderer ledger;
+	private LedgerLinesRenderer ledger;
+	private Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
+
 
 	private void initFont() {
 		try {
@@ -145,8 +148,25 @@ public class GUI extends JFrame {
 		modificaMenu.add(addStaffMenu);
 		modificaMenu.add(itemInsertNote);
 
+		JMenu lyricsMenu = new JMenu("Lyrics");
+		JMenuItem addLyricsMenu = new JMenuItem("add Lyrics");
+		
+		addLyricsMenu.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        // 'MainFrame.this' passa il JFrame principale alla dialog
+		        LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
+		        led.setVisible(true); // mostra la finestra modale
+		        repaintPanel();
+		    }
+		});
+
+		lyricsMenu.add(addLyricsMenu);
+		
+		
 		menuBar.add(fileMenu);
 		menuBar.add(modificaMenu);
+		menuBar.add(lyricsMenu);
 
 		setJMenuBar(menuBar);
 	}
@@ -420,13 +440,21 @@ public class GUI extends JFrame {
 					GraphicalNote n = (GraphicalNote) object;
 				        GraphicalStaff staff = getStaff(n.getStaffIndex());
 				        ledger.drawLedgerLines(g, n, staff);
+				        if (n.hasLyric()) {
+				        	int y = staff.getLineY(0) + 30;
+				            Font old = g.getFont();
+				            g.setFont(fontLyric);                   // imposta il font per la lyric
+				            n.getLyric().draw(g, g.getFontMetrics(), y);
+				            g.setFont(old);                          // ripristina il font precedente
+				        }
 				}
 			}
 
 			if (insertMode && mouseX > 0 && mouseY > 0) {
 				Pointer pointer = controller.getPointer();
 				pointer.draw(g);
-				GraphicalStaff staff = getStaff(pointer.getStaffIndex());
+				GraphicalStaff staff = getPointedStaff(mouseX, mouseY);
+				if (staff == null) return;
 				ledger.drawLedgerLines(g, pointer, staff);
 			}
 		}
@@ -558,6 +586,12 @@ public class GUI extends JFrame {
 		}
 	}
 
+	/** Ritorna l'indice dello staff alla posizione mouseX, mouseY
+	 * oppure -1 se no vi è nessuno staff 
+	 * @param mouseX
+	 * @param mouseY
+	 * @return
+	 */
 	public int getPointedStaffIndex(int mouseX, int mouseY) {
 		int staffN = -1;
 		for (int i = 0; i < staffList.size(); i++) {
@@ -571,6 +605,7 @@ public class GUI extends JFrame {
 
 	public GraphicalStaff getPointedStaff(int mouseX, int mouseY) {
 		int pos = getPointedStaffIndex(mouseX, mouseY);
+		if (pos == -1) return null;
 		return staffList.get(pos);
 	}
 
