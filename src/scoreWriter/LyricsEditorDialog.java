@@ -2,7 +2,7 @@ package scoreWriter;
 
 import javax.swing.*;
 
-import scoreWriter.VoiceLayer.VoiceType;
+import scoreWriter.VoiceLayer.int;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -83,9 +83,9 @@ public class LyricsEditorDialog extends JDialog {
             java.util.List<String> syllables = Arrays.asList(text.split("\\s+"));
 
             int staffIndex = staffCombo.getSelectedIndex();
-       //     VoiceType voiceType = (VoiceType) voiceCombo.getSelectedItem();
+       //     int voiceNumber = (int) voiceCombo.getSelectedItem();
 
-            controller.addLyrics(syllables, staffIndex, VoiceType.VOICE_ONE);
+            controller.addLyrics(syllables, staffIndex, 1);
             dispose();
         });
 

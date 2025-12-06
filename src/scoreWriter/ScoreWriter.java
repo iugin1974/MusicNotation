@@ -12,7 +12,6 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 
 import musicInterface.MusicObject;
-import scoreWriter.VoiceLayer.VoiceType;
 
 public class ScoreWriter {
 
@@ -20,7 +19,7 @@ public class ScoreWriter {
 	private SpatialGrid grid;
 	private SelectionManager selectionManager;
 	private GUI gui;
-	private VoiceType voiceType = VoiceType.VOICE_ONE;
+	private int voiceNumber = 1;
 	private Pointer pointer;
 	private Lyrics lyrics;
 
@@ -43,9 +42,9 @@ public class ScoreWriter {
 		c.setXY(50, 80);
 		n1.setXY(100, 100);
 		n2.setXY(200, 80);
-		score.addObject(c, 0, VoiceType.STAFF_WIDE);
-		score.addObject(n1, 0, VoiceType.VOICE_ONE);
-		score.addObject(n2, 0, VoiceType.VOICE_ONE);
+		score.addObject(c, 0, 0);
+		score.addObject(n1, 0, 1);
+		score.addObject(n2, 0, 1);
 		//export();
 		//System.exit(0);
 	}
@@ -57,8 +56,8 @@ public class ScoreWriter {
 		gui.repaint();
 	}
 
-	public VoiceType getVoiceType() {
-		return voiceType;
+	public int getVoiceType() {
+		return voiceNumber;
 	}
 
 	public List<Staff> getStaffList() {
@@ -74,8 +73,8 @@ public class ScoreWriter {
 		return score.getAllObjects();
 	}
 
-	public List<GraphicalObject> getVoice(int staffNumber, VoiceType voiceType) {
-		return score.getObjects(staffNumber, voiceType);
+	public List<GraphicalObject> getVoice(int staffNumber, int voiceNumber) {
+		return score.getObjects(staffNumber, voiceNumber);
 	}
 
 	public List<GraphicalObject> getVoices(int staffNumber) {
@@ -117,19 +116,19 @@ public class ScoreWriter {
 		new ScoreWriter().go();
 	}
 
-	private boolean insertNote(GraphicalNote n, int staffNumber, VoiceType voiceType) {
-		if (voiceType == VoiceType.STAFF_WIDE)
+	private boolean insertNote(GraphicalNote n, int staffNumber, int voiceNumber) {
+		if (voiceNumber == 0)
 			return false;
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
-		if (voiceType == VoiceType.VOICE_ONE)
+		if (voiceNumber == 1)
 			newNote.setStemDirection(GraphicalNote.STEM_UP);
-		else if (voiceType == VoiceType.VOICE_TWO)
+		else if (voiceNumber == 2)
 			newNote.setStemDirection(GraphicalNote.STEM_DOWN);
 		newNote.setStaffIndex(staffNumber);
 		GraphicalStaff staff = gui.getStaff(staffNumber);
 		int position = staff.getPosInStaff(newNote);
 		newNote.setStaffPosition(position);
-		score.addObject(newNote, staffNumber, voiceType);
+		score.addObject(newNote, staffNumber, voiceNumber);
 		grid.add(newNote);
 		// se necessario allunga i pentagrammi
 		GraphicalStaff g = gui.getStaff(0);
@@ -139,11 +138,11 @@ public class ScoreWriter {
 		return true;
 	}
 	
-	private boolean insertRest(GraphicalRest n, int staffNumber, VoiceType voiceType) {
-		if (voiceType == VoiceType.STAFF_WIDE)
+	private boolean insertRest(GraphicalRest n, int staffNumber, int voiceNumber) {
+		if (voiceNumber == 0)
 			return false;
 		GraphicalRest newNote = (GraphicalRest) n.cloneObject();
-		score.addObject(newNote, staffNumber, voiceType);
+		score.addObject(newNote, staffNumber, voiceNumber);
 		grid.add(newNote);
 		// se necessario allunga i pentagrammi
 		GraphicalStaff g = gui.getStaff(0);
@@ -168,7 +167,7 @@ public class ScoreWriter {
 		GraphicalBar b = (GraphicalBar) bar.cloneObject();
 		int firstLine = gui.getStaff(staffNumber).getLineY(1);
 		b.setY(firstLine);
-		score.addObject(b, staffNumber, VoiceType.STAFF_WIDE);
+		score.addObject(b, staffNumber, 0);
 	}
 
 	private void insertClef(GraphicalClef clef, int staffNumber) {
@@ -180,7 +179,7 @@ public class ScoreWriter {
 		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
 			firstLine = gui.getStaff(staffNumber).getLineY(4);
 		c.setY(firstLine);
-		score.addObject(c, staffNumber, VoiceType.STAFF_WIDE);
+		score.addObject(c, staffNumber, 0);
 	}
 
 	public void insertObject(GraphicalObject object) {
@@ -194,9 +193,9 @@ public class ScoreWriter {
 		selectionManager.deselectAll();
 		selectionManager.select(object, staffNumber);
 		if (object instanceof GraphicalNote)
-			insertNote((GraphicalNote) object, staffNumber, voiceType);
+			insertNote((GraphicalNote) object, staffNumber, voiceNumber);
 		else if (object instanceof GraphicalRest)
-			insertRest((GraphicalRest) object, staffNumber, voiceType);
+			insertRest((GraphicalRest) object, staffNumber, voiceNumber);
 		else if (object instanceof GraphicalBar)
 			insertBar((GraphicalBar) object, staffNumber);
 		else if (object instanceof GraphicalClef)
@@ -269,9 +268,9 @@ public class ScoreWriter {
 
 	private void addCurve(CurvedConnection curve, GraphicalNote n1, GraphicalNote n2, int staffNumber) {
 		curve.setNotes(n1, n2);
-		VoiceType voiceType = getLayerOf(n1);
-		if (voiceType != null) {
-			score.addObject(curve, staffNumber, voiceType);
+		int voiceNumber = getLayerOf(n1);
+		if (voiceNumber != -1) {
+			score.addObject(curve, staffNumber, voiceNumber);
 		} else {
 			System.err.println("Errore: nota iniziale non trovata in nessun layer!");
 		}
@@ -531,7 +530,10 @@ public class ScoreWriter {
 		ScoreParser parser = new ScoreParser(score);
 		List<ParsedStaff> parsedStaves = parser.parse();
 		for (ParsedStaff parsedStaff : parsedStaves) {
-			if (!parsedStaff.startsWithClef()) return;
+			if (!parsedStaff.startsWithClef()) {
+				System.out.println("Manca la chiave in uno staff");
+				return;
+			}
 		}
 		Exporter x = new Exporter();
 		x.export(parsedStaves);
@@ -541,21 +543,21 @@ public class ScoreWriter {
 	public void setCurrentVoice(int i) {
 		switch (i) {
 		case 1:
-			voiceType = VoiceType.VOICE_ONE;
+			voiceNumber = 1;
 			break;
 		case 2:
-			voiceType = VoiceType.VOICE_TWO;
+			voiceNumber = 2;
 			break;
 		}
 	}
 
 	/**
-	 * Restituisce il tipo di voce (VoiceType) del layer che contiene la nota n.
-	 * Ritorna null se la nota non è presente in nessun layer.
+	 * Restituisce il tipo di voce (int) del layer che contiene la nota n.
+	 * Ritorna -1 se la nota non è presente in nessun layer.
 	 */
-	private VoiceType getLayerOf(GraphicalNote n) {
+	private int getLayerOf(GraphicalNote n) {
 		if (n == null)
-			return null;
+			return -1;
 
 		for (Staff staff : score.getAllStaves()) {
 			for (VoiceLayer layer : staff.getVoices()) {
@@ -565,7 +567,7 @@ public class ScoreWriter {
 			}
 		}
 
-		return null; // nota non trovata
+		return -1; // nota non trovata
 	}
 
 	public void setPointer(MusicalSymbol barlineSymbol) {
@@ -591,18 +593,18 @@ public class ScoreWriter {
 	}
 	
 	
-	public void removeLyrics(int staffIndex, VoiceType voiceType) {
+	public void removeLyrics(int staffIndex, int voiceNumber) {
 		Staff s = score.getStaff(staffIndex);
-	    VoiceLayer v = s.getVoice(voiceType);
+	    VoiceLayer v = s.getVoice(voiceNumber);
 	    List<GraphicalNote> notes = v.getNotes();
 	    for (GraphicalNote n : notes) {
 	    	n.removeLyric();
 	    }
 	}
 	
-	public void addLyrics(List<String> syllables, int staffIndex, VoiceType voiceType) {
+	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber) {
 	    Staff s = score.getStaff(staffIndex);
-	    VoiceLayer v = s.getVoice(voiceType);
+	    VoiceLayer v = s.getVoice(voiceNumber);
 	    List<GraphicalNote> notes = v.getNotes();
 
 	    int n = 0;

@@ -27,7 +27,7 @@ public class LayerMixer {
         for (VoiceLayer vl : staff.getVoices()) {
 
             // Skippa la voce STAFF_WIDE
-            if (vl.getVoiceType() == VoiceLayer.VoiceType.STAFF_WIDE)
+            if (vl.getVoiceType() == 0)
                 continue;
 
             // Crea lista combinata: staff-wide + questa voice

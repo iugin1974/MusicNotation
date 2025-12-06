@@ -5,28 +5,17 @@ import java.util.List;
 
 public class VoiceLayer {
 
-    /** Tipo di voce */
-    public enum VoiceType {
-        STAFF_WIDE,
-        ONE_VOICE,
-        VOICE_ONE,
-        VOICE_TWO
-    }
-
-    private final VoiceType voiceType;
+    private final int voiceNumber;
     private final List<GraphicalObject> objects;
 
-    public VoiceLayer(VoiceType voiceType) {
-        if (voiceType == null) {
-            throw new IllegalArgumentException("voiceType non può essere null");
-        }
-        this.voiceType = voiceType;
+    public VoiceLayer(int voiceNumber) {
+        this.voiceNumber = voiceNumber;
         this.objects = new ArrayList<>();
     }
 
     /** Restituisce il tipo di voice */
-    public VoiceType getVoiceType() {
-        return voiceType;
+    public int getVoiceType() {
+        return voiceNumber;
     }
 
     /** Aggiunge un oggetto al layer */

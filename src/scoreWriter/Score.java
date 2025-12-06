@@ -2,8 +2,6 @@ package scoreWriter;
 
 import java.util.List;
 
-import scoreWriter.VoiceLayer.VoiceType;
-
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,21 +25,21 @@ public class Score {
 	}
 
 	/** Aggiunge un oggetto allo staff e alla voce indicata */
-	public void addObject(GraphicalObject obj, int staffNumber, VoiceType voiceType) {
-		staffList.get(staffNumber).getVoice(voiceType).addObject(obj);
+	public void addObject(GraphicalObject obj, int staffNumber, int voiceNumber) {
+		staffList.get(staffNumber).getVoice(voiceNumber).addObject(obj);
 	}
 
 	/** Restituisce la lista degli oggetti di uno staff e voce specifici */
-	public List<GraphicalObject> getObjects(int staffNumber, VoiceType voiceType) {
+	public List<GraphicalObject> getObjects(int staffNumber, int voiceNumber) {
 		if (staffNumber < 0 || staffNumber >= staffList.size()) {
 			return null;
 		}
-		return staffList.get(staffNumber).getVoice(voiceType).getObjects();
+		return staffList.get(staffNumber).getVoice(voiceNumber).getObjects();
 	}
 	
 	/** Restituisce la lista degli oggetti di uno staff e voce specifici */
-	public List<GraphicalObject> getObjects(Staff staff, VoiceType voiceType) {
-		return staff.getVoice(voiceType).getObjects();
+	public List<GraphicalObject> getObjects(Staff staff, int voiceNumber) {
+		return staff.getVoice(voiceNumber).getObjects();
 	}
 
 	/**
@@ -65,18 +63,18 @@ public class Score {
 	
 	public List<GraphicalObject> getStaffWideObjects(int staffNumber) {
 		Staff staff = getStaff(staffNumber);
-		return staff.getObjects(VoiceType.STAFF_WIDE);
+		return staff.getObjects(0);
 	}
 	
 	public List<GraphicalObject> getStaffWideObjects(Staff staff) {
-		return staff.getObjects(VoiceType.STAFF_WIDE);
+		return staff.getObjects(0);
 	}
 
 	/**
 	 * Restituisce tutte le note di uno staff specifico e di una voce specifica.
 	 * Per il layer STAFF_WIDE ritorna una lista vuota.
 	 */
-	public List<GraphicalNote> getNotes(int staffNumber, VoiceType voiceType) {
+	public List<GraphicalNote> getNotes(int staffNumber, int voiceNumber) {
 	    
 	    // controlli di sicurezza
 	    if (staffNumber < 0 || staffNumber >= staffList.size())
@@ -84,12 +82,12 @@ public class Score {
 
 	    Staff staff = staffList.get(staffNumber);
 
-	    VoiceLayer layer = staff.getVoice(voiceType);
+	    VoiceLayer layer = staff.getVoice(voiceNumber);
 	    if (layer == null)
 	        return List.of();
 
 	    // STAFF_WIDE non contiene note → ritorna lista vuota
-	    if (layer.getVoiceType() == VoiceType.STAFF_WIDE)
+	    if (layer.getVoiceType() == 0)
 	        return List.of();
 
 	    List<GraphicalNote> notes = new ArrayList<>();
@@ -134,9 +132,9 @@ public class Score {
 
 
 	/** Rimuove tutti gli oggetti da uno staff */
-	public void clearVoice(int staffNumber, VoiceType voiceType) {
+	public void clearVoice(int staffNumber, int voiceNumber) {
 		if (staffNumber >= 0 && staffNumber < staffList.size()) {
-			staffList.get(staffNumber).clearVoice(voiceType);
+			staffList.get(staffNumber).clearVoice(voiceNumber);
 		}
 	}
 
@@ -155,7 +153,7 @@ public class Score {
 	        for (VoiceLayer layer : staff.getVoices()) {
 
 	            // Ignora layer staff-wide
-	            if (layer.getVoiceType() == VoiceType.STAFF_WIDE)
+	            if (layer.getVoiceType() == 0)
 	                continue;
 
 	            List<GraphicalObject> objs = layer.getObjects();

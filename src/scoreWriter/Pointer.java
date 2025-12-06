@@ -7,8 +7,6 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 
-import scoreWriter.VoiceLayer.VoiceType;
-
 public class Pointer implements StaffInfo {
 
 	private int x, y;
@@ -48,13 +46,13 @@ public class Pointer implements StaffInfo {
 	}
 
 	public void draw(Graphics g) {
-		VoiceType voiceType = controller.getVoiceType();
+		int voiceNumber = controller.getVoiceType();
 		// se il costruttore ha solo un glifo, prende quello.
 		String glyph = null;
 				// TODO riscrivi la funzione. Le pause hanno lo stesso glifo per one e two
-		if (voiceType == VoiceType.VOICE_ONE)
+		if (voiceNumber == 1)
 			glyph = symbol.getGlyphUp();
-		else if (voiceType == VoiceType.VOICE_TWO)
+		else if (voiceNumber == 2)
 			glyph = symbol.getGlyphDown();
 		if (glyph == null) glyph = symbol.getGlyph();
         g.drawString(glyph, x, y);

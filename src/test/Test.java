@@ -31,11 +31,11 @@ public class Test {
         n4.setX(112);
 
         // aggiungo gli oggetti allo score
-        score.addObject(n1, 0, VoiceLayer.VoiceType.VOICE_ONE);
-        score.addObject(n2, 0, VoiceLayer.VoiceType.VOICE_ONE);
-        score.addObject(w1, 0, VoiceLayer.VoiceType.STAFF_WIDE);
-        score.addObject(n3, 0, VoiceLayer.VoiceType.VOICE_TWO);
-        score.addObject(n4, 0, VoiceLayer.VoiceType.VOICE_TWO);
+        score.addObject(n1, 0, VoiceLayer.1);
+        score.addObject(n2, 0, VoiceLayer.1);
+        score.addObject(w1, 0, VoiceLayer.0);
+        score.addObject(n3, 0, VoiceLayer.2);
+        score.addObject(n4, 0, VoiceLayer.2);
 
         // creo il mixer
         LayerMixer lm = new LayerMixer(score);
