@@ -65,20 +65,39 @@ public class SelectionManager {
     
     public ArrayList<GraphicalNote> getSelectedNotes(int staffIndex) {
     	ArrayList<GraphicalNote> result = new ArrayList<>();
-
         for (GraphicalObject o : selectedPerStaff.get(staffIndex)) {
             if (o instanceof GraphicalNote) {
                 result.add((GraphicalNote) o);
             }
         }
-
-        // Ordina le note in base alla loro X
-     //   result.sort(Comparator.comparingInt(GraphicalObject::getX));
-
+        result.sort(new CompareXPos());
         return result;
     }
     
-    public int getStaffNumber() {
+    /**
+     * Restituisce tutte le note selezionate nello staff specificato,
+     * ordinate in base alla loro posizione X.
+     *
+     * @param staffNumber indice dello staff
+     * @return lista di GraphicalNote selezionate nello staff
+     */
+    public ArrayList<GraphicalNote> getSelectedNotesFromStaff(int staffNumber) {
+        ArrayList<GraphicalNote> notes = new ArrayList<>();
+        ArrayList<GraphicalObject> selectedObjects = getSelected(staffNumber);
+
+        for (GraphicalObject o : selectedObjects) {
+            if (o instanceof GraphicalNote) {
+                notes.add((GraphicalNote) o);
+            }
+        }
+
+        notes.sort(new CompareXPos());
+        return notes;
+    }
+
+    
+    public int getNumberOfStaves() {
     	return selectedPerStaff.size();
     }
+    
 }

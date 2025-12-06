@@ -5,20 +5,20 @@ import java.util.List;
 
 public class Staff {
 
-	private List<VoiceLayer> voices;
+	private List<Voice> voices;
 
 	public Staff() {
 		voices = new ArrayList<>();
-		voices.add(new VoiceLayer(0));
-		voices.add(new VoiceLayer(1));
-		voices.add(new VoiceLayer(2));
+		voices.add(new Voice(0));
+		voices.add(new Voice(1));
+		voices.add(new Voice(2));
 	}
 	
 	public void addVoice(int type) {
 		
 	}
 
-	public VoiceLayer getVoice(int n) {
+	public Voice getVoice(int n) {
 		return voices.get(n);
 	}
 	
@@ -26,7 +26,7 @@ public class Staff {
 		return getVoice(voiceNumber).getObjects();
 	}
 	
-	public List<VoiceLayer> getVoices() {
+	public List<Voice> getVoices() {
 		return voices;
 	}
 	
@@ -34,7 +34,7 @@ public class Staff {
 		 if (obj == null) 
 		        return false;
 		 
-		for (VoiceLayer v : voices) {
+		for (Voice v : voices) {
 			if (v.removeObject(obj))
 				return true;
 		}
@@ -43,7 +43,11 @@ public class Staff {
 
 	public void clearVoice(int voiceNumber) {
 		getVoice(voiceNumber).clear();
-		
 	}
 	
+	public void sort() {
+	    for (Voice voice : getVoices()) {
+	        voice.sort();
+	    }
+	}
 }

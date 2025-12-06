@@ -45,8 +45,8 @@ public class ScoreWriter {
 		score.addObject(c, 0, 0);
 		score.addObject(n1, 0, 1);
 		score.addObject(n2, 0, 1);
-		//export();
-		//System.exit(0);
+		// export();
+		// System.exit(0);
 	}
 
 	public void addStaff() {
@@ -63,7 +63,7 @@ public class ScoreWriter {
 	public List<Staff> getStaffList() {
 		return score.getAllStaves();
 	}
-	
+
 	public int getStaffCount() {
 		return getStaffList().size();
 	}
@@ -137,7 +137,7 @@ public class ScoreWriter {
 			resizeStaves();
 		return true;
 	}
-	
+
 	private boolean insertRest(GraphicalRest n, int staffNumber, int voiceNumber) {
 		if (voiceNumber == 0)
 			return false;
@@ -233,30 +233,33 @@ public class ScoreWriter {
 	}
 
 	private void slurOrTie() {
-		for (int i = 0; i < selectionManager.getStaffNumber(); i++) {
-			ArrayList<GraphicalNote> selectedNotes = selectionManager.getSelectedNotes(i);
-			// se è selezionata solo una nota fa la legatura con la successiva
+		for (int i = 0; i < selectionManager.getNumberOfStaves(); i++) {
+			ArrayList<GraphicalNote> selectedNotes = selectionManager.getSelectedNotesFromStaff(i);
+			if (selectedNotes.isEmpty())
+				continue;
+
 			if (selectedNotes.size() == 1) {
 				GraphicalNote n1 = selectedNotes.get(0);
 				GraphicalNote n2 = score.getNextNote(n1);
 				if (n2 == null)
-					return;
+					continue;
+
 				if (n1.getY() == n2.getY())
 					tie(n1, n2, i);
 				else
 					slur(n1, n2, i);
 
-				break;
+				continue; // passa al prossimo staff
 			}
-			// altrimenti tra le due selezionate
+
 			for (int j = 0; j < selectedNotes.size() - 1; j++) {
 				GraphicalNote n1 = selectedNotes.get(j);
 				GraphicalNote n2 = selectedNotes.get(j + 1);
-				// le note devono aver la stessa altezza ed essere consecutive
+
 				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2))
-					tie(n1, n2, j);
+					tie(n1, n2, i); // usa i invece di j
 				else
-					slur(n1, n2, j);
+					slur(n1, n2, i);
 			}
 		}
 		gui.repaintPanel();
@@ -267,7 +270,7 @@ public class ScoreWriter {
 	}
 
 	private void addCurve(CurvedConnection curve, GraphicalNote n1, GraphicalNote n2, int staffNumber) {
-		curve.setNotes(n1, n2);
+		curve.assignToNotes(n1, n2);
 		int voiceNumber = getLayerOf(n1);
 		if (voiceNumber != -1) {
 			score.addObject(curve, staffNumber, voiceNumber);
@@ -289,13 +292,21 @@ public class ScoreWriter {
 		if (selectedObjects.isEmpty())
 			return;
 
+		// prima puliamo le note se l'oggetto è curva
+		for (GraphicalObject obj : selectedObjects) {
+			if (obj instanceof CurvedConnection) {
+				((CurvedConnection) obj).removeFromNotes();
+			}
+		}
+
+		// rimuovi dagli strati
 		for (Staff staff : score.getAllStaves()) {
-			for (VoiceLayer layer : staff.getVoices()) {
+			for (Voice layer : staff.getVoices()) {
 				layer.getObjects().removeAll(selectedObjects);
 			}
 		}
 
-		// rimuovi anche dal grid solo le note
+		// rimuovi dal grid solo le note
 		for (GraphicalObject obj : selectedObjects) {
 			if (obj instanceof GraphicalNote)
 				grid.remove((GraphicalNote) obj);
@@ -359,8 +370,9 @@ public class ScoreWriter {
 	}
 
 	private void updateSlurIfNeeded(GraphicalObject o, int x, int y) {
-		if (o instanceof GraphicalNote == false) return;
-		GraphicalNote n = (GraphicalNote)o;
+		if (o instanceof GraphicalNote == false)
+			return;
+		GraphicalNote n = (GraphicalNote) o;
 		Slur s = n.getSlur();
 		if (s == null)
 			return;
@@ -400,8 +412,8 @@ public class ScoreWriter {
 		Staff newS = staves.get(newStaff);
 
 		// trova il layer del vecchio staff
-		VoiceLayer oldLayer = null;
-		for (VoiceLayer layer : oldS.getVoices()) {
+		Voice oldLayer = null;
+		for (Voice layer : oldS.getVoices()) {
 			if (layer.getObjects().contains(o)) {
 				oldLayer = layer;
 				break;
@@ -417,7 +429,7 @@ public class ScoreWriter {
 		oldLayer.removeObject(o);
 
 		// aggiungi nello stesso tipo di layer nel nuovo staff
-		VoiceLayer newLayer = newS.getVoice(oldLayer.getVoiceType());
+		Voice newLayer = newS.getVoice(oldLayer.getVoiceType());
 		newLayer.addObject(o);
 
 		System.out.println("Staff changed: " + oldStaff + " -> " + newStaff);
@@ -552,15 +564,15 @@ public class ScoreWriter {
 	}
 
 	/**
-	 * Restituisce il tipo di voce (int) del layer che contiene la nota n.
-	 * Ritorna -1 se la nota non è presente in nessun layer.
+	 * Restituisce il tipo di voce (int) del layer che contiene la nota n. Ritorna
+	 * -1 se la nota non è presente in nessun layer.
 	 */
 	private int getLayerOf(GraphicalNote n) {
 		if (n == null)
 			return -1;
 
 		for (Staff staff : score.getAllStaves()) {
-			for (VoiceLayer layer : staff.getVoices()) {
+			for (Voice layer : staff.getVoices()) {
 				if (layer.getObjects().contains(n)) {
 					return layer.getVoiceType();
 				}
@@ -583,7 +595,7 @@ public class ScoreWriter {
 		int index = checkInWichStaffIsPoint(mouseX, snapY);
 		pointer.setStaffIndex(index);
 	}
-	
+
 	public void destroyPointer() {
 		pointer = null;
 	}
@@ -591,30 +603,75 @@ public class ScoreWriter {
 	public boolean pointerExists() {
 		return pointer != null;
 	}
-	
-	
-	public void removeLyrics(int staffIndex, int voiceNumber) {
+
+	private void removeLyrics(int staffIndex, int voiceNumber) {
 		Staff s = score.getStaff(staffIndex);
-	    VoiceLayer v = s.getVoice(voiceNumber);
-	    List<GraphicalNote> notes = v.getNotes();
-	    for (GraphicalNote n : notes) {
-	    	n.removeLyric();
-	    }
+		Voice v = s.getVoice(voiceNumber);
+		List<GraphicalNote> notes = v.getNotes();
+		for (GraphicalNote n : notes) {
+			n.removeLyric();
+		}
 	}
-	
+
+	/**
+	 * Determina se una nota deve ricevere la lyric.
+	 * 
+	 * @param note      La nota corrente
+	 * @param connected Flag che indica se siamo dentro una curva
+	 * @return true se la nota deve ricevere lyric, false altrimenti
+	 */
+	private boolean shouldAssignLyric(GraphicalNote note, boolean connected) {
+		if (!connected) {
+			// Nota singola o inizio curva → lyric sì
+			return true;
+		} else {
+			// Dentro curva → skip
+			return false;
+		}
+	}
+
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber) {
-	    Staff s = score.getStaff(staffIndex);
-	    VoiceLayer v = s.getVoice(voiceNumber);
-	    List<GraphicalNote> notes = v.getNotes();
+		removeLyrics(staffIndex, voiceNumber);
+		Staff s = score.getStaff(staffIndex);
+		Voice v = s.getVoice(voiceNumber);
+		List<GraphicalNote> notes = v.getNotes();
 
-	    int n = 0;
-	    for (String syllable : syllables) {
-	        if (n >= notes.size()) break;  // più sillabe che note, esci
+		int syllableIndex = 0; // indice sillaba
+		int noteIndex = 0; // indice nota
+		boolean connected = false;
 
-	        Lyric l = new Lyric(syllable, notes.get(n));
-	        notes.get(n).addLyric(l);
-	        n++;
-	    }
+		while (syllableIndex < syllables.size() && noteIndex < notes.size()) {
+			GraphicalNote note = notes.get(noteIndex);
+			String syllable = syllables.get(syllableIndex);
+
+			if ("_".equals(syllable)) {
+				// salta nota e sillaba
+				syllableIndex++;
+				noteIndex++;
+				continue;
+			}
+
+			if ("--".equals(syllable) || "__".equals(syllable)) {
+				// sillaba speciale, non salta la nota
+				syllableIndex++;
+				continue;
+			}
+
+			// controlla curve
+			if (shouldAssignLyric(note, connected)) {
+				Lyric l = new Lyric(syllable, note);
+				note.addLyric(l);
+				syllableIndex++; // passa alla sillaba successiva
+
+				if (note.isCurveStart())
+					connected = true;
+			} else {
+				// dentro curva → skip note
+				if (note.isCurveEnd())
+					connected = false;
+			}
+
+			noteIndex++; // passa alla nota successiva solo se non è stato skip
+		}
 	}
-
-	}
+}

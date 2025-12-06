@@ -24,7 +24,7 @@ public class LayerMixer {
         List<GraphicalObject> wide = score.getStaffWideObjects(staff);
 
         // Per ogni voice dello staff
-        for (VoiceLayer vl : staff.getVoices()) {
+        for (Voice vl : staff.getVoices()) {
 
             // Skippa la voce STAFF_WIDE
             if (vl.getVoiceType() == 0)

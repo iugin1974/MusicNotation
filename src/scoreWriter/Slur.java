@@ -1,16 +1,58 @@
 package scoreWriter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Slur extends CurvedConnection {
-	
-	@Override
-	public void setNotes(GraphicalNote n1, GraphicalNote n2) {
-		n1.setSlur(this);
-		n2.setSlur(this);
-		n1.slurStart();
-		n2.slurEnd();
-		setX(n1.getX());
-		setY(n1.getY());
-		setX1(n2.getX());
-		setY1(n2.getY());
-	}
+
+    @Override
+    public void assignToNotes(GraphicalNote startNote, GraphicalNote endNote) {
+        this.startNote = startNote;
+        this.endNote = endNote;
+
+        startNote.setSlur(this);
+        endNote.setSlur(this);
+
+        startNote.slurStart();
+        endNote.slurEnd();
+
+        setX(startNote.getX());
+        setY(startNote.getY());
+        setX1(endNote.getX());
+        setY1(endNote.getY());
+    }
+    
+    public List<GraphicalNote> getNotesUnderSlur(Score score) {
+        List<GraphicalNote> notes = new ArrayList<>();
+
+        Voice voice = score.getVoiceOf(startNote);
+        if (voice == null) 
+            return notes;
+
+        List<GraphicalObject> objs = voice.getObjects();
+
+        boolean inside = false;
+
+        for (GraphicalObject obj : objs) {
+
+            if (obj == startNote) {
+                inside = true;
+                notes.add(startNote);
+                continue;
+            }
+
+            if (!inside)
+                continue;
+
+            if (obj instanceof GraphicalNote note) {
+                notes.add(note);
+
+                if (note == endNote)
+                    break;
+            }
+        }
+
+        return notes;
+    }
+
 }

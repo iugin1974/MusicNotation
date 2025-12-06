@@ -3,12 +3,12 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VoiceLayer {
+public class Voice {
 
     private final int voiceNumber;
     private final List<GraphicalObject> objects;
 
-    public VoiceLayer(int voiceNumber) {
+    public Voice(int voiceNumber) {
         this.voiceNumber = voiceNumber;
         this.objects = new ArrayList<>();
     }
@@ -32,12 +32,14 @@ public class VoiceLayer {
 
     /** Restituisce tutti gli oggetti del layer (modificabile) */
     public List<GraphicalObject> getObjects() {
+    	sort();
         return objects;
     }
     
     /** Restituisce solo le note **/
     public List<GraphicalNote> getNotes() {
     	List<GraphicalNote> notes = new ArrayList<>();
+    	sort();
     	for (GraphicalObject object : objects) {
     		if (object instanceof GraphicalNote)
     			notes.add((GraphicalNote)object);
@@ -48,5 +50,9 @@ public class VoiceLayer {
     /** Pulisce tutti gli oggetti dal layer */
     public void clear() {
         objects.clear();
+    }
+    
+    public void sort() {
+    	objects.sort(new CompareXPos());
     }
 }

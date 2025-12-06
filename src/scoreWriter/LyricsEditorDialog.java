@@ -2,10 +2,7 @@ package scoreWriter;
 
 import javax.swing.*;
 
-import scoreWriter.VoiceLayer.int;
-
 import java.awt.*;
-import java.awt.event.*;
 import java.util.Arrays;
 
 public class LyricsEditorDialog extends JDialog {

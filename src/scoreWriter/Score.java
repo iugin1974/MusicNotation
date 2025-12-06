@@ -54,7 +54,7 @@ public class Score {
 	    Staff staff = staffList.get(staffNumber);
 	    List<GraphicalObject> all = new ArrayList<>();
 
-	    for (VoiceLayer layer : staff.getVoices()) {
+	    for (Voice layer : staff.getVoices()) {
 	        all.addAll(layer.getObjects());
 	    }
 
@@ -82,7 +82,7 @@ public class Score {
 
 	    Staff staff = staffList.get(staffNumber);
 
-	    VoiceLayer layer = staff.getVoice(voiceNumber);
+	    Voice layer = staff.getVoice(voiceNumber);
 	    if (layer == null)
 	        return List.of();
 
@@ -110,7 +110,7 @@ public class Score {
 	public List<GraphicalObject> getAllObjects() {
 	    List<GraphicalObject> all = new ArrayList<>();
 	    for (Staff staff : staffList) {
-	        for (VoiceLayer v : staff.getVoices()) {
+	        for (Voice v : staff.getVoices()) {
 	            all.addAll(v.getObjects());
 	        }
 	    }
@@ -146,38 +146,50 @@ public class Score {
 	/** Restituisce la nota successiva nella stessa voce dello stesso staff,
 	 * oppure null se è l'ultima.
 	 */
-	public GraphicalNote getNextNote(GraphicalNote n) {
-	    if (n == null) return null;
+	public GraphicalNote getNextNote(GraphicalNote note) {
+	    if (note == null) return null;
 
-	    for (Staff staff : staffList) {
-	        for (VoiceLayer layer : staff.getVoices()) {
+	    Voice layer = getVoiceOf(note);
+	    if (layer == null) return null;
+	    
+	    List<GraphicalObject> objs = layer.getObjects();
+	    int index = objs.indexOf(note);
 
-	            // Ignora layer staff-wide
-	            if (layer.getVoiceType() == 0)
-	                continue;
-
-	            List<GraphicalObject> objs = layer.getObjects();
-
-	            int index = objs.indexOf(n);
-	            if (index != -1) {
-	                // nota trovata in questa voice
-	                // restituisce la successiva solo SE anche la successiva è una nota
-	                for (int i = index + 1; i < objs.size(); i++) {
-	                    if (objs.get(i) instanceof GraphicalNote) {
-	                        return (GraphicalNote) objs.get(i);
-	                    }
-	                }
-	                return null; // nessuna nota successiva
-	            }
-	        }
+	    for (int i = index + 1; i < objs.size(); i++) {
+	        if (objs.get(i) instanceof GraphicalNote next)
+	            return next;
 	    }
-	    return null; // nota non trovata
+
+	    return null;
 	}
+
+
 	
 	/** Controlla se n1 e n2 sono consecutive **/
 	public boolean areNotesConsecutive(GraphicalNote n1, GraphicalNote n2) {
 	    return getNextNote(n1) == n2;
 	}
 
-	
+	/** Restituisce la VoiceLayer che contiene la nota, oppure null. */
+	public Voice getVoiceOf(GraphicalNote note) {
+	    if (note == null) return null;
+
+	    for (Staff staff : staffList) {
+	        for (Voice layer : staff.getVoices()) {
+	            if (layer.getVoiceType() == 0)
+	                continue;
+
+	            if (layer.getObjects().contains(note)) {
+	                return layer;
+	            }
+	        }
+	    }
+	    return null;
+	}
+
+	public void sort() {
+	    for (Staff staff : getAllStaves()) {
+	        staff.sort();
+	    }
+	}
 }

@@ -500,6 +500,7 @@ public class GUI extends JFrame {
 			int mouseY = e.getY();
 			// 1) Trova lo staff sotto il mouse
 			int staffNumber = getPointedStaffIndex(mouseX, mouseY);
+			if (staffNumber == -1) return;
 			GraphicalStaff targetStaff = staffList.get(staffNumber);
 
 			if (e.isControlDown()) {
