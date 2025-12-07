@@ -21,7 +21,6 @@ public class ScoreWriter {
 	private GUI gui;
 	private int voiceNumber = 1;
 	private Pointer pointer;
-	private Lyrics lyrics;
 
 	public ScoreWriter() {
 		score = new Score();
@@ -153,7 +152,6 @@ public class ScoreWriter {
 	}
 
 	private void resizeStaves() {
-		System.out.println("resize");
 		int w = gui.getStaffList().get(0).getWidth();
 		for (GraphicalStaff s : gui.getStaffList()) {
 			s.setWidth(w + 200);
@@ -287,6 +285,7 @@ public class ScoreWriter {
 		addCurve(new Slur(), n1, n2, staffNumber);
 	}
 
+	// TODO cancella anche tie e slur se cancellata la nota
 	private void deleteSelectedObject() {
 		List<GraphicalObject> selectedObjects = getSelectedObjects();
 		if (selectedObjects.isEmpty())
@@ -343,17 +342,63 @@ public class ScoreWriter {
 
 	private void moveNote(GraphicalObject n, int x, int y) {
 
-		int oldX = n.getX();
+	    int oldX = n.getX();
 
-		n.moveTo(x, y);
-		// TODO: cosa fare con la tie o slur?
+	    if (n instanceof GraphicalNote note) {
+	        CurvedConnection curve = note.getCurvedConnection();
 
-		int newX = n.getX();
+	        if (curve != null) {
+	            // nota di partenza della curva
+	            if (note.isCurveStart()) {
+	                GraphicalNote start = note;
+	                GraphicalNote end = curve instanceof Tie tie ? score.getNextNote(start)
+	                                  : curve instanceof Slur slur ? slur.getEndNote()
+	                                  : null;
 
-		updateGrid(n, oldX, newX);
-		applyHorizontalSnap(n, y, newX);
-		updateSlurIfNeeded(n, newX, y);
+	                if (end != null && x > end.getX()) x = end.getX();
+
+	                start.moveTo(x, y);
+	                if (curve instanceof Tie) {
+	                    // muovi la seconda nota solo verticalmente
+	                    end.moveTo(end.getX(), y);
+	                }
+	                curve.setXY(start.getX(), start.getY());
+	                if (end != null) curve.setX1Y1(end.getX(), end.getY());
+	            }
+	            // nota di arrivo della curva
+	            else if (note.isCurveEnd()) {
+	                GraphicalNote end = note;
+	                GraphicalNote start = curve instanceof Tie tie ? score.getPrevNote(end)
+	                                   : curve instanceof Slur slur ? slur.getStartNote()
+	                                   : null;
+
+	                if (start != null && x < start.getX()) x = start.getX();
+
+	                end.moveTo(x, y);
+	                if (curve instanceof Tie) {
+	                    // muovi la prima nota solo verticalmente
+	                    start.moveTo(start.getX(), y);
+	                }
+	                if (start != null) curve.setXY(start.getX(), start.getY());
+	                curve.setX1Y1(end.getX(), end.getY());
+	            }
+	            else {
+	                // curva presente ma nota interna, solo movimento
+	                n.moveTo(x, y);
+	            }
+	        }
+	        else {
+	            // nota senza curva
+	            n.moveTo(x, y);
+	        }
+	    }
+
+	    int newX = n.getX();
+	    updateGrid(n, oldX, newX);
+	    applyHorizontalSnap(n, y, newX);
+	    updateSlurIfNeeded(n, newX, y);
 	}
+
 
 	private void updateGrid(GraphicalObject n, int oldX, int newX) {
 		grid.updatePosition(n, oldX, newX);

@@ -163,8 +163,26 @@ public class Score {
 	    return null;
 	}
 
+	/** Restituisce la nota precedente nella stessa voce dello stesso staff,
+	 * oppure null se è la prima.
+	 */
+	public GraphicalNote getPrevNote(GraphicalNote note) {
+	    if (note == null) return null;
 
-	
+	    Voice layer = getVoiceOf(note);
+	    if (layer == null) return null;
+	    
+	    List<GraphicalObject> objs = layer.getObjects();
+	    int index = objs.indexOf(note);
+
+	    for (int i = index - 1; i >= 0; i--) {
+	        if (objs.get(i) instanceof GraphicalNote prev)
+	            return prev;
+	    }
+
+	    return null;
+	}
+
 	/** Controlla se n1 e n2 sono consecutive **/
 	public boolean areNotesConsecutive(GraphicalNote n1, GraphicalNote n2) {
 	    return getNextNote(n1) == n2;
@@ -192,4 +210,5 @@ public class Score {
 	        staff.sort();
 	    }
 	}
+
 }

@@ -58,7 +58,9 @@ public abstract class CurvedConnection implements GraphicalObject {
     // -----------------------------
     @Override
     public void setXY(int x, int y) { helper.setXY(x, y); }
-
+    
+    public void setX1Y1(int x, int y) { x1 = x; y1 = y; }
+ 
     @Override
     public int getX() { return helper.getX(); }
 
