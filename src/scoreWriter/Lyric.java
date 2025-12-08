@@ -4,43 +4,36 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 
 public class Lyric {
-    private String syllable = null;
-    private boolean isExtender = false;   // per i "_" di Lylipond/Musescore
-    private boolean isHyphen = false;
-    private GraphicalNote parentNote; // a quale nota appartiene
-    
-    public Lyric(String syllable, GraphicalNote parentNote) {
-    	this.parentNote = parentNote;
-    	 // Riconoscimento extender/melisma
-    	if (syllable.equals("_")) {
-    	    this.isExtender = true;
-    	} else if (syllable.equals("--")) {
-    	    this.isHyphen = true;
-    	} else {
-    	    this.syllable = syllable;
-    	}
-    }
-    
-    public String getSyllable() {
-    	return syllable;
-    }
-    
-    public boolean isExtender() {
-    	return isExtender;
-    }
-    
-    public boolean isHyphen() {
-    	return isHyphen;
-    }
-    
-    public void draw(Graphics g, FontMetrics fm, int y) {
-        // posizione derivata dalla nota
-        int x = parentNote.getX();          
+	    private Syllable syllable;
+	    private GraphicalNote parentNote;
+	    private int staff, voice, stanza;
 
-        // centratura grossolana (opzionale)
-        int textWidth = fm.stringWidth(syllable);
-        int drawX = x - (textWidth / 2);
+	    public Lyric(Syllable syllable, GraphicalNote note, int staff, int voice, int stanza) {
+	        this.syllable = syllable;
+	        this.parentNote = note;
+	        this.staff = staff;
+	        this.voice = voice;
+	        this.stanza = stanza;
+	        note.addLyric(this);
+	    }
 
-        g.drawString(syllable, drawX, y);
-    }
+	    public Syllable getSyllable() { return syllable; }
+	    public GraphicalNote getParentNote() { return parentNote; }
+	    public int getStaff() { return staff; }
+	    public int getVoice() { return voice; }
+	    public int getStanza() { return stanza; }
+	    
+	    public void draw(Graphics g, FontMetrics fm, int y) {
+	        // posizione derivata dalla nota
+	        int x = parentNote.getX();          
+
+	        String text = syllable.getText();
+	        if (text == null) return;
+
+	        // centratura grossolana (opzionale)
+	        int textWidth = fm.stringWidth(text);
+	        int drawX = x - (textWidth / 2);
+
+	        g.drawString(text, drawX, y);
+	    }
 }

@@ -30,6 +30,14 @@ public class Staff {
 		return voices;
 	}
 	
+	public List<Voice> getVoicesWithMusic() {
+		List<Voice> voiceWithMusic = new ArrayList<>();
+		for (int i = 1; i < voices.size(); i++) {
+			if (!voices.get(i).isEmpty()) voiceWithMusic.add(voices.get(i));
+		}
+		return voiceWithMusic;
+	}
+	
 	public boolean removeObject(GraphicalObject obj) {
 		 if (obj == null) 
 		        return false;

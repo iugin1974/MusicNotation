@@ -6,31 +6,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lyrics {
-	private List<Lyric> lyrics;
+	    private List<Lyric> lyrics = new ArrayList<>();
 
-	public Lyrics() {
-		lyrics = new ArrayList<>();
-	}
+	    public void addLyric(Lyric l) { lyrics.add(l); }
 
-	public void addSyllable(Lyric lyric) {
-		lyrics.add(lyric);
-	}
+	    public void removeLyrics(int staff, int voice, int stanza) {
+	        for (int i = lyrics.size() - 1; i >= 0; i--) {
+	            Lyric l = lyrics.get(i);
+	            if (l.getStaff() == staff && l.getVoice() == voice && l.getStanza() == stanza) {
+	                lyrics.remove(i);
+	                l.getParentNote().removeLyric(stanza); // rimuove dalla nota
+	            }
+	        }
+	    }
 
-	public List<Lyric> getLyrics() {
-		return lyrics;
+	    public List<Lyric> getLyrics(int staff, int voice, int stanza) {
+	        List<Lyric> result = new ArrayList<>();
+	        for (Lyric l : lyrics) {
+	            if (l.getStaff() == staff && l.getVoice() == voice && l.getStanza() == stanza) {
+	                result.add(l);
+	            }
+	        }
+	        return result;
+	    }
+	    
+	    public void draw(Graphics g, FontMetrics fm, int offsetY, int staffIndex, int voiceNumber, int stanza) {
+	        for (Lyric l : lyrics) {
+	            // disegna solo quelle corrispondenti a staff, voice e stanza
+	            if (l.getStaff() == staffIndex && l.getVoice() == voiceNumber && l.getStanza() == stanza) {
+	                l.draw(g, fm, offsetY);
+	            }
+	        }
+	    }
 	}
-
-	public void draw(Graphics g, FontMetrics fm, int offsetY) {
-		for (Lyric lyric : lyrics) {
-			lyric.draw(g, fm, offsetY);
-		}
-	}
-	
-	public int length() {
-		return lyrics.size();
-	}
-	
-	public Lyric getLyric(int i) {
-		return lyrics.get(i);
-	}
-}

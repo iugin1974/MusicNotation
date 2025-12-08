@@ -9,6 +9,11 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import musicEvent.Note;
 
@@ -20,14 +25,12 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	private boolean slurEnd = false;
 	private boolean tieStart = false;
 	private boolean tieEnd = false;
-	public static final int STEM_UP = 1;
-	public static final int STEM_DOWN = -1;
-	private int stemDirection = STEM_UP;
+	private int voice = 1;
 	private final GraphicalHelper helper = new GraphicalHelper();
 	private Tie tie;
 	private int staffIndex;
 	private int staffPosition; // 0 DO, 1 RE, 2 MI
-	private Lyric lyric = null;
+	private Map<Integer, Lyric> lyrics = null;
 
 	public GraphicalNote(MusicalSymbol symbol) {
 		super(0); // crea una nota con midi 0
@@ -52,8 +55,8 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 		this.midiNumber = midi;
 	}
 
-	public void setStemDirection(int direction) {
-		stemDirection = direction;
+	public void setVoice(int voice) {
+		this.voice = voice;
 	}
 
 	public void setSlur(Slur slur) {
@@ -89,7 +92,7 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	@Override
 	public void draw(Graphics g) {
 		String glyph;
-		if (stemDirection == STEM_UP)
+		if (voice == 1)
 			glyph = symbol.getGlyphUp();
 		else
 			glyph = symbol.getGlyphDown();
@@ -101,10 +104,16 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 
 		Rectangle bounds = new Rectangle(helper.getX(), helper.getY() - ascent, width, height);
 		helper.setBounds(bounds);
+		if (voice == 1) {
+			g.setColor(Color.BLACK);
+		} else if (voice == 2) {
+			g.setColor(Color.BLUE);
+		} else {
+			g.setColor(Color.GRAY);
+		}
+		
 		if (helper.isSelected()) {
 			g.setColor(Color.RED);
-		} else {
-			g.setColor(Color.BLACK);
 		}
 		g.drawString(glyph, helper.getX(), helper.getY());
 	}
@@ -240,7 +249,6 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	@Override
 	public void setStaffPosition(int p) {
 		staffPosition = p;
-		
 	}
 
 	@Override
@@ -249,18 +257,31 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	}
 	
 	public void addLyric(Lyric lyric) {
-		this.lyric = lyric;
+		if (lyrics == null) lyrics = new HashMap<>();
+		lyrics.put(lyric.getStanza(), lyric);
 	}
 	
-	public Lyric getLyric() {
-		return lyric;
+	public Lyric getLyric(int stanza) {
+		return lyrics.get(stanza);
 	}
 	
 	public boolean hasLyric() {
-		return lyric != null;
+		return lyrics != null;
 	}
 
 	public void removeLyric() {
-		lyric = null;
+		lyrics = null;
 	}
+
+	public void removeLyric(int stanza) {
+	    if (lyrics != null) {
+	        lyrics.remove(stanza);
+
+	        // Se la nota non ha più lyric → mette a null
+	        if (lyrics.isEmpty()) {
+	            lyrics = null;
+	        }
+	    }
+	}
+
 }

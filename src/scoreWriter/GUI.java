@@ -437,17 +437,35 @@ public class GUI extends JFrame {
 			for (GraphicalObject object : controller.getAllObjects()) {
 				object.draw(g);
 				if (object instanceof GraphicalNote) {
-					GraphicalNote n = (GraphicalNote) object;
-				        GraphicalStaff staff = getStaff(n.getStaffIndex());
-				        ledger.drawLedgerLines(g, n, staff);
-				        if (n.hasLyric()) {
-				        	int y = staff.getLineY(0) + 30;
-				            Font old = g.getFont();
-				            g.setFont(fontLyric);                   // imposta il font per la lyric
-				            n.getLyric().draw(g, g.getFontMetrics(), y);
-				            g.setFont(old);                          // ripristina il font precedente
+				    GraphicalNote n = (GraphicalNote) object;
+				    GraphicalStaff staff = getStaff(n.getStaffIndex());
+
+				    // Ledger lines
+				    ledger.drawLedgerLines(g, n, staff);
+
+				    // Disegna lyrics: una riga per ogni stanza
+				    if (n.hasLyric()) {
+				        int baseY = staff.getLineY(0) + 30;
+
+				        Font old = g.getFont();
+				        g.setFont(fontLyric);
+
+				        int maxStanze = 10;   // o un valore configurabile
+				        int stanzaIndex = 0;  // riga verticale
+
+				        for (int stanza = 0; stanza < maxStanze; stanza++) {
+				            Lyric lyric = n.getLyric(stanza);
+				            if (lyric != null) {
+				                int y = baseY + (stanzaIndex * (fontLyric.getSize() + 6));
+				                lyric.draw(g, g.getFontMetrics(), y);
+				                stanzaIndex++;
+				            }
 				        }
+
+				        g.setFont(old);
+				    }
 				}
+
 			}
 
 			if (insertMode && mouseX > 0 && mouseY > 0) {

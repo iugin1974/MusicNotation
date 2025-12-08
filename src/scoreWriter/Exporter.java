@@ -21,6 +21,7 @@ public class Exporter {
 
                 createVoiceHeader(staff, voiceObjs);
                 parseObjects(voiceObjs, staff);
+                exportLyrics(voiceObjs);
 
                 sb.append("\n}\n\n");
                 clef = null;
@@ -106,6 +107,9 @@ public class Exporter {
         return false;
     }
 
+    public void exportLyrics(List<GraphicalObject> voiceObjs) {
+    	
+    }
     public void printScore() {
         System.out.println(sb.toString());
     }

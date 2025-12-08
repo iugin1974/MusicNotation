@@ -55,4 +55,8 @@ public class Voice {
     public void sort() {
     	objects.sort(new CompareXPos());
     }
+
+	public boolean isEmpty() {
+		return objects.isEmpty();
+	}
 }

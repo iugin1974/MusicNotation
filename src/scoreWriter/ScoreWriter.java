@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import musicInterface.MusicObject;
@@ -21,6 +22,7 @@ public class ScoreWriter {
 	private GUI gui;
 	private int voiceNumber = 1;
 	private Pointer pointer;
+	private Lyrics lyrics;
 
 	public ScoreWriter() {
 		score = new Score();
@@ -34,8 +36,13 @@ public class ScoreWriter {
 		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
-		Lyric l1 = new Lyric("Hal", n1);
-		Lyric l2 = new Lyric("lo", n2);
+		Syllable s1 = new Syllable("Hal");
+		Syllable s2 = new Syllable("lo");
+		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
+		Lyric l2 = new Lyric(s2, n2, 0, 1, 0);
+		lyrics = new Lyrics();
+		lyrics.addLyric(l1);
+		lyrics.addLyric(l2);
 		n1.addLyric(l1);
 		n2.addLyric(l2);
 		c.setXY(50, 80);
@@ -119,10 +126,7 @@ public class ScoreWriter {
 		if (voiceNumber == 0)
 			return false;
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
-		if (voiceNumber == 1)
-			newNote.setStemDirection(GraphicalNote.STEM_UP);
-		else if (voiceNumber == 2)
-			newNote.setStemDirection(GraphicalNote.STEM_DOWN);
+		newNote.setVoice(voiceNumber);
 		newNote.setStaffIndex(staffNumber);
 		GraphicalStaff staff = gui.getStaff(staffNumber);
 		int position = staff.getPosInStaff(newNote);
@@ -213,7 +217,6 @@ public class ScoreWriter {
 		for (int i = 0; i < score.getStaffCount(); i++) {
 			GraphicalStaff gs = gui.getStaff(i);
 			if (gs.contains(x, y)) {
-				System.out.println("Note inside Staff " + i);
 				return i;
 			}
 		}
@@ -342,63 +345,62 @@ public class ScoreWriter {
 
 	private void moveNote(GraphicalObject n, int x, int y) {
 
-	    int oldX = n.getX();
+		int oldX = n.getX();
 
-	    if (n instanceof GraphicalNote note) {
-	        CurvedConnection curve = note.getCurvedConnection();
+		if (n instanceof GraphicalNote note) {
+			CurvedConnection curve = note.getCurvedConnection();
 
-	        if (curve != null) {
-	            // nota di partenza della curva
-	            if (note.isCurveStart()) {
-	                GraphicalNote start = note;
-	                GraphicalNote end = curve instanceof Tie tie ? score.getNextNote(start)
-	                                  : curve instanceof Slur slur ? slur.getEndNote()
-	                                  : null;
+			if (curve != null) {
+				// nota di partenza della curva
+				if (note.isCurveStart()) {
+					GraphicalNote start = note;
+					GraphicalNote end = curve instanceof Tie tie ? score.getNextNote(start)
+							: curve instanceof Slur slur ? slur.getEndNote() : null;
 
-	                if (end != null && x > end.getX()) x = end.getX();
+					if (end != null && x > end.getX())
+						x = end.getX();
 
-	                start.moveTo(x, y);
-	                if (curve instanceof Tie) {
-	                    // muovi la seconda nota solo verticalmente
-	                    end.moveTo(end.getX(), y);
-	                }
-	                curve.setXY(start.getX(), start.getY());
-	                if (end != null) curve.setX1Y1(end.getX(), end.getY());
-	            }
-	            // nota di arrivo della curva
-	            else if (note.isCurveEnd()) {
-	                GraphicalNote end = note;
-	                GraphicalNote start = curve instanceof Tie tie ? score.getPrevNote(end)
-	                                   : curve instanceof Slur slur ? slur.getStartNote()
-	                                   : null;
+					start.moveTo(x, y);
+					if (curve instanceof Tie) {
+						// muovi la seconda nota solo verticalmente
+						end.moveTo(end.getX(), y);
+					}
+					curve.setXY(start.getX(), start.getY());
+					if (end != null)
+						curve.setX1Y1(end.getX(), end.getY());
+				}
+				// nota di arrivo della curva
+				else if (note.isCurveEnd()) {
+					GraphicalNote end = note;
+					GraphicalNote start = curve instanceof Tie tie ? score.getPrevNote(end)
+							: curve instanceof Slur slur ? slur.getStartNote() : null;
 
-	                if (start != null && x < start.getX()) x = start.getX();
+					if (start != null && x < start.getX())
+						x = start.getX();
 
-	                end.moveTo(x, y);
-	                if (curve instanceof Tie) {
-	                    // muovi la prima nota solo verticalmente
-	                    start.moveTo(start.getX(), y);
-	                }
-	                if (start != null) curve.setXY(start.getX(), start.getY());
-	                curve.setX1Y1(end.getX(), end.getY());
-	            }
-	            else {
-	                // curva presente ma nota interna, solo movimento
-	                n.moveTo(x, y);
-	            }
-	        }
-	        else {
-	            // nota senza curva
-	            n.moveTo(x, y);
-	        }
-	    }
+					end.moveTo(x, y);
+					if (curve instanceof Tie) {
+						// muovi la prima nota solo verticalmente
+						start.moveTo(start.getX(), y);
+					}
+					if (start != null)
+						curve.setXY(start.getX(), start.getY());
+					curve.setX1Y1(end.getX(), end.getY());
+				} else {
+					// curva presente ma nota interna, solo movimento
+					n.moveTo(x, y);
+				}
+			} else {
+				// nota senza curva
+				n.moveTo(x, y);
+			}
+		}
 
-	    int newX = n.getX();
-	    updateGrid(n, oldX, newX);
-	    applyHorizontalSnap(n, y, newX);
-	    updateSlurIfNeeded(n, newX, y);
+		int newX = n.getX();
+		updateGrid(n, oldX, newX);
+		applyHorizontalSnap(n, y, newX);
+		updateSlurIfNeeded(n, newX, y);
 	}
-
 
 	private void updateGrid(GraphicalObject n, int oldX, int newX) {
 		grid.updatePosition(n, oldX, newX);
@@ -649,15 +651,32 @@ public class ScoreWriter {
 		return pointer != null;
 	}
 
-	private void removeLyrics(int staffIndex, int voiceNumber) {
-		Staff s = score.getStaff(staffIndex);
-		Voice v = s.getVoice(voiceNumber);
-		List<GraphicalNote> notes = v.getNotes();
-		for (GraphicalNote n : notes) {
-			n.removeLyric();
-		}
+	private void removeLyrics(int staffIndex, int voiceNumber, int stanza) {
+	    Staff s = score.getStaff(staffIndex);
+	    Voice v = s.getVoice(voiceNumber);
+	    List<GraphicalNote> notes = v.getNotes();
+
+	    for (GraphicalNote n : notes) {
+	        n.removeLyric(stanza);
+	    }
+	    
+	    // rimuovere anche dal contenitore globale
+	    if (lyrics != null) {
+	        lyrics.removeLyrics(staffIndex, voiceNumber, stanza);
+	    }
 	}
 
+	public List<String> getLyricsFor(int staff, int voice, int stanza) {
+		List<Lyric> l = lyrics.getLyrics(staff, voice, stanza);
+	    List<String> list = new ArrayList<>();
+
+	    // Scorre tutte le note del sistema
+	    for (Lyric lyric : l) {
+	            list.add(lyric.getSyllable().getText());
+	    }
+	    return list;
+	}
+	
 	/**
 	 * Determina se una nota deve ricevere la lyric.
 	 * 
@@ -675,48 +694,87 @@ public class ScoreWriter {
 		}
 	}
 
-	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber) {
-		removeLyrics(staffIndex, voiceNumber);
-		Staff s = score.getStaff(staffIndex);
-		Voice v = s.getVoice(voiceNumber);
-		List<GraphicalNote> notes = v.getNotes();
+	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
+	    // --- CONTROLLI ---
+	    if (score == null || score.getStaffCount() == 0) {
+	        JOptionPane.showMessageDialog(null, 
+	            "Nessuno staff disponibile nel punteggio.", 
+	            "Errore Lyrics", 
+	            JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
 
-		int syllableIndex = 0; // indice sillaba
-		int noteIndex = 0; // indice nota
-		boolean connected = false;
+	    if (staffIndex < 0 || staffIndex >= score.getStaffCount()) {
+	        JOptionPane.showMessageDialog(null, 
+	            "Staff selezionato non valido.", 
+	            "Errore Lyrics", 
+	            JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
 
-		while (syllableIndex < syllables.size() && noteIndex < notes.size()) {
-			GraphicalNote note = notes.get(noteIndex);
-			String syllable = syllables.get(syllableIndex);
+	    Staff s = score.getStaff(staffIndex);
 
-			if ("_".equals(syllable)) {
-				// salta nota e sillaba
-				syllableIndex++;
-				noteIndex++;
-				continue;
-			}
+	    if (voiceNumber < 0 || voiceNumber >= s.getVoices().size()) {
+	        JOptionPane.showMessageDialog(null, 
+	            "Voce selezionata non valida.", 
+	            "Errore Lyrics", 
+	            JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
 
-			if ("--".equals(syllable) || "__".equals(syllable)) {
-				// sillaba speciale, non salta la nota
-				syllableIndex++;
-				continue;
-			}
+	    if (stanza < 0 || stanza >= 10) { // supponendo massimo 10 strofe
+	        JOptionPane.showMessageDialog(null, 
+	            "Stanza selezionata non valida.", 
+	            "Errore Lyrics", 
+	            JOptionPane.WARNING_MESSAGE);
+	        return;
+	    }
 
-			// controlla curve
-			if (shouldAssignLyric(note, connected)) {
-				Lyric l = new Lyric(syllable, note);
-				note.addLyric(l);
-				syllableIndex++; // passa alla sillaba successiva
+	    // --- RIMOZIONE VECCHIE LYRICS ---
+	    if (lyrics == null) {
+	        lyrics = new Lyrics();
+	    } else {
+	        removeLyrics(staffIndex, voiceNumber, stanza);
+	    }
 
-				if (note.isCurveStart())
-					connected = true;
-			} else {
-				// dentro curva → skip note
-				if (note.isCurveEnd())
-					connected = false;
-			}
+	    Voice v = s.getVoice(voiceNumber);
+	    List<GraphicalNote> notes = v.getNotes();
 
-			noteIndex++; // passa alla nota successiva solo se non è stato skip
-		}
+	    int syllableIndex = 0; // indice sillaba
+	    int noteIndex = 0;     // indice nota
+	    boolean connected = false;
+
+	    while (syllableIndex < syllables.size() && noteIndex < notes.size()) {
+	        GraphicalNote note = notes.get(noteIndex);
+	        String syllable = syllables.get(syllableIndex);
+
+	        // --- SILLABE SPECIALI ---
+	        if ("_".equals(syllable)) {
+	            syllableIndex++;
+	            noteIndex++;
+	            continue;
+	        }
+	        if ("--".equals(syllable) || "__".equals(syllable)) {
+	            syllableIndex++;
+	            continue;
+	        }
+
+	        // --- CONTROLLA CURVE ---
+	        if (shouldAssignLyric(note, connected)) {
+	            Syllable syl = new Syllable(syllable);
+	            Lyric l = new Lyric(syl, note, staffIndex, voiceNumber, stanza);
+	            lyrics.addLyric(l);
+	            syllableIndex++;
+
+	            if (note.isCurveStart())
+	                connected = true;
+	        } else {
+	            // dentro curva → skip note
+	            if (note.isCurveEnd())
+	                connected = false;
+	        }
+
+	        noteIndex++;
+	    }
 	}
 }
