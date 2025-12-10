@@ -36,21 +36,24 @@ public class ScoreWriter {
 		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
-		Syllable s1 = new Syllable("Hal");
-		Syllable s2 = new Syllable("lo");
-		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
-		Lyric l2 = new Lyric(s2, n2, 0, 1, 0);
-		lyrics = new Lyrics();
-		lyrics.addLyric(l1);
-		lyrics.addLyric(l2);
-		n1.addLyric(l1);
-		n2.addLyric(l2);
+//		Syllable s1 = new Syllable("Hal");
+//		Syllable s2 = new Syllable("lo");
+//		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
+//		Lyric l2 = new Lyric(s2, n2, 0, 1, 1);
+//		lyrics = new Lyrics();
+//		lyrics.addLyric(l1);
+//		lyrics.addLyric(l2);
+//		n1.addLyric(l1);
+//		n2.addLyric(l2);
 		c.setXY(50, 80);
 		n1.setXY(100, 100);
 		n2.setXY(200, 80);
 		score.addObject(c, 0, 0);
 		score.addObject(n1, 0, 1);
 		score.addObject(n2, 0, 1);
+		int[] pos = gui.getStaff(0).getYPosOfLinesAndSpacesExtended(0, 9);
+		GraphicalKeySignature k = new GraphicalKeySignature(230, gui.getStaff(0), 7, -1);
+		score.addObject(k, 0, 0);
 		// export();
 		// System.exit(0);
 	}
@@ -167,7 +170,7 @@ public class ScoreWriter {
 
 	private void insertBar(GraphicalBar bar, int staffNumber) {
 		GraphicalBar b = (GraphicalBar) bar.cloneObject();
-		int firstLine = gui.getStaff(staffNumber).getLineY(1);
+		int firstLine = gui.getStaff(staffNumber).getYPosOfLine(1);
 		b.setY(firstLine);
 		score.addObject(b, staffNumber, 0);
 	}
@@ -177,9 +180,9 @@ public class ScoreWriter {
 		int firstLine = 0;
 		if (clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE)
 				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
-			firstLine = gui.getStaff(staffNumber).getLineY(2);
+			firstLine = gui.getStaff(staffNumber).getYPosOfLine(2);
 		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
-			firstLine = gui.getStaff(staffNumber).getLineY(4);
+			firstLine = gui.getStaff(staffNumber).getYPosOfLine(4);
 		c.setY(firstLine);
 		score.addObject(c, staffNumber, 0);
 	}
@@ -667,6 +670,7 @@ public class ScoreWriter {
 	}
 
 	public List<String> getLyricsFor(int staff, int voice, int stanza) {
+		if (lyrics == null) return null;
 		List<Lyric> l = lyrics.getLyrics(staff, voice, stanza);
 	    List<String> list = new ArrayList<>();
 

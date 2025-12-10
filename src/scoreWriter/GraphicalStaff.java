@@ -47,7 +47,7 @@ class GraphicalStaff implements GraphicalObject {
 		return lineNumber * distanceBetweenLines;
 	}
 
-	public int getDistance() {
+	public int getDistanceBetweenLines() {
 		return distanceBetweenLines;
 	}
 
@@ -60,34 +60,142 @@ class GraphicalStaff implements GraphicalObject {
 	}
 
 	public int getReferenceLine() {
-		return getLineY(0);
+		return getYPosOfLine(0);
 	}
 
 	/**
 	 * @param line
 	 * @return la posizione verticale della linea <i>line</i>
 	 */
-	public int getLineY(int line) {
+	public int getYPosOfLine(int line) {
 		// inverte la numerazione delle linee (la 5 viene considerata la 0)
+		// quindi la 0 è la prima linea in basso
+		// il do in chiave di violino sarebbe la linea -1
+		// e così via.
 		int l = lineNumber - line;
 		return y + (l * distanceBetweenLines);
+	}
+
+	
+	public int[] getYPosOfLines() {
+		int pos[] = new int[lineNumber];
+		for (int i = 1; i <= lineNumber; i++) {
+			pos[i-1] = getYPosOfLine(i);
+		}
+		return pos;
 	}
 
 	/**
 	 * @param space
 	 * @return la posizione verticale dello centro dello spazio <i>space</i>
 	 **/
-	public int getSpaceY(int space) {
+	public int getYPosOfSpace(int space) {
 		// inverte la numerazione delle linee (la 5 viene considerata la 0)
 		int l = lineNumber - space - 1;
 		return y + (l * distanceBetweenLines) + (distanceBetweenLines / 2);
 	}
+	
+	public int[] getYPosOfSpaces() {
+	    int pos[] = new int[lineNumber];
+	    for (int s = 1; s <= lineNumber; s++) {
+	        // lo spazio "s" è sopra la linea "s"
+	        pos[s - 1] = getYPosOfSpace(s);
+	    }
+	    return pos;
+	}
+	
+	/**
+	 * @return array con le posizioni verticali di linee e spazi,
+	 * alternati, partendo dalla linea più bassa.
+	 */
+	public int[] getYPosOfLinesAndSpaces() {
+	    int total = 2 * lineNumber;
+	    int[] pos = new int[total];
+
+	    int idx = 0;
+	    for (int line = 1; line <= lineNumber; line++) {
+	        pos[idx++] = getYPosOfLine(line);  // linea
+
+	        if (line < lineNumber) {            // spazio sopra la linea
+	            pos[idx++] = getYPosOfSpace(line);
+	        }
+	    }
+
+	    return pos;
+	}
+	
+	/**
+	 * Restituisce le posizioni verticali di tutte le linee e spazi del pentagramma,
+	 * includendo eventuali linee/spazi extra sopra e sotto.
+	 * 
+	 * L’array risultante è ordinato dal basso verso l’alto (y più grande → basso, y più piccolo → alto):
+	 * <ul>
+	 *   <li>Gli indici 0..extraLinesBelow-1 corrispondono a spazi/linee sotto il pentagramma.</li>
+	 *   <li>Gli indici successivi (centrali) corrispondono alle linee e spazi del pentagramma:</li>
+	 *     <ul>
+	 *       <li>Linea1 (più bassa) → indice = extraLinesBelow</li>
+	 *       <li>Spazio1 sopra linea1 → indice = extraLinesBelow + 1</li>
+	 *       <li>Linea2 → indice = extraLinesBelow + 2</li>
+	 *       <li>… fino a Linea5 (più alta) → indice = extraLinesBelow + 8 (per pentagramma a 5 linee)</li>
+	 *     </ul>
+	 *   <li>Gli ultimi indici corrispondono a spazi/linee sopra il pentagramma (extraLinesAbove).</li>
+	 * </ul>
+	 * 
+	 * Esempio in chiave di violino (5 linee, nessun extra sotto, 1 extra sopra):
+	 *<br>
+	 * indice 0: Linea1  → Mi4<br>
+	 * indice 1: Spazio1 → Fa4<br>
+	 * indice 2: Linea2  → Sol4<br>
+	 * indice 3: Spazio2 → La4<br>
+	 * indice 4: Linea3  → Si4<br>
+	 * indice 5: Spazio3 → Do5<br>
+	 * indice 6: Linea4  → Re5<br>
+	 * indice 7: Spazio4 → Mi5<br>
+	 * indice 8: Linea5  → Fa5<br>
+	 * indice 9: Spazio sopra Linea5 → Sol5 (diesis in Re maggiore)<br>
+	 * 
+	 * Nota: il Do centrale (C4) in chiave di violino si troverebbe
+	 * 2 spazi sotto la Linea1 e avrebbe un indice negativo se extraLinesBelow = 0.
+	 * Per includere il Do centrale, impostare extraLinesBelow >= 2.
+	 * 
+	  * @param extraLinesBelow numero di spazi/linee aggiuntivi sotto il pentagramma 
+	 * @param extraLinesAbove numero di spazi/linee aggiuntivi sopra il pentagramma
+	 * @return array di interi con le coordinate Y di linee e spazi, ordinati dal basso verso l’alto
+	 */
+	public int[] getYPosOfLinesAndSpacesExtended(int extraLinesBelow, int extraLinesAbove) {
+	    int total = 2 * lineNumber - 1 + 2 * (extraLinesAbove + extraLinesBelow);
+	    int[] pos = new int[total];
+
+	    int idx = 0;
+
+	    // spazi/linee sotto il pentagramma
+	    for (int i = extraLinesBelow; i > 0; i--) {
+	        int delta = i * distanceBetweenLines;
+	        pos[idx++] = y + distanceBetweenLines * lineNumber + delta; // spazio/linea sotto
+	    }
+
+	    // linee+spazi del pentagramma
+	    for (int line = 1; line <= lineNumber; line++) {
+	        pos[idx++] = getYPosOfLine(line);
+	        if (line < lineNumber) {
+	            pos[idx++] = getYPosOfSpace(line);
+	        }
+	    }
+
+	    // spazi sopra il pentagramma
+	    for (int i = 1; i <= extraLinesAbove; i++) {
+	        pos[idx++] = getYPosOfLine(lineNumber) - i * distanceBetweenLines / 2; // spazio sopra
+	    }
+
+	    return pos;
+	}
+
 
 	public ArrayList<Integer> getSnapPoints() {
 		ArrayList<Integer> snapPoints = new ArrayList<>();
 		// da due tagli sotto a due tagli sopra
-		int bottomLine = getLineY(0) + (distanceBetweenLines * 2);
-		int topLine = getLineY(lineNumber) - (distanceBetweenLines * 2);
+		int bottomLine = getYPosOfLine(0) + (distanceBetweenLines * 2);
+		int topLine = getYPosOfLine(lineNumber) - (distanceBetweenLines * 2);
 		for (int i = topLine; i <= bottomLine; i += distanceBetweenLines / 2) {
 			snapPoints.add(i);
 		}

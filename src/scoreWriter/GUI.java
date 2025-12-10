@@ -40,6 +40,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 
 import musicInterface.MusicObject;
 
@@ -445,20 +446,18 @@ public class GUI extends JFrame {
 
 				    // Disegna lyrics: una riga per ogni stanza
 				    if (n.hasLyric()) {
-				        int baseY = staff.getLineY(0) + 30;
+				        int baseY = staff.getYPosOfLine(0) + 30;
 
 				        Font old = g.getFont();
 				        g.setFont(fontLyric);
 
 				        int maxStanze = 10;   // o un valore configurabile
-				        int stanzaIndex = 0;  // riga verticale
 
 				        for (int stanza = 0; stanza < maxStanze; stanza++) {
 				            Lyric lyric = n.getLyric(stanza);
 				            if (lyric != null) {
-				                int y = baseY + (stanzaIndex * (fontLyric.getSize() + 6));
+				                int y = baseY + (stanza * (fontLyric.getSize() + 6));
 				                lyric.draw(g, g.getFontMetrics(), y);
-				                stanzaIndex++;
 				            }
 				        }
 
@@ -480,6 +479,10 @@ public class GUI extends JFrame {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			requestFocusInWindow();
+			if (SwingUtilities.isRightMouseButton(e)) {
+				//Ke
+				return;
+			}
 			boolean ctrl = e.isControlDown();
 
 			if (insertMode) {

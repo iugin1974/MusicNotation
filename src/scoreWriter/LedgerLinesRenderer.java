@@ -13,10 +13,10 @@ public class LedgerLinesRenderer {
     
     public void drawLedgerLines(Graphics g, int x, int y, GraphicalStaff staff) {
     	if (staff == null) return;
-        int top = staff.getLineY(5);     // posizione verticale della linea superiore
-        int bottom = staff.getLineY(1);
+        int top = staff.getYPosOfLine(5);     // posizione verticale della linea superiore
+        int bottom = staff.getYPosOfLine(1);
 
-        int spacing = staff.getDistance(); // distanza tra linee
+        int spacing = staff.getDistanceBetweenLines(); // distanza tra linee
 
         // sopra il pentagramma
         for (; top >= y; top -= spacing) {

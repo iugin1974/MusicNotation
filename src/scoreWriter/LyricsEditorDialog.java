@@ -39,7 +39,7 @@ public class LyricsEditorDialog extends JDialog {
         int stanzaNumber = stanzaCombo.getSelectedIndex();
 
         List<String> syllables = controller.getLyricsFor(staffIndex, voiceNumber, stanzaNumber);
-
+        if (syllables == null) return;
         if (syllables == null || syllables.isEmpty()) {
             lyricsArea.setText("");
             return;
