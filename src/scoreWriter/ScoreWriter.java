@@ -51,8 +51,7 @@ public class ScoreWriter {
 		score.addObject(c, 0, 0);
 		score.addObject(n1, 0, 1);
 		score.addObject(n2, 0, 1);
-		int[] pos = gui.getStaff(0).getYPosOfLinesAndSpacesExtended(0, 9);
-		GraphicalKeySignature k = new GraphicalKeySignature(230, gui.getStaff(0), 7, -1);
+		GraphicalKeySignature k = new GraphicalKeySignature(200, gui.getStaff(0), 7, -1);
 		score.addObject(k, 0, 0);
 		// export();
 		// System.exit(0);
@@ -334,6 +333,8 @@ public class ScoreWriter {
 
 		if (o instanceof GraphicalNote) {
 			moveNote((GraphicalNote) o, x, y);
+		} else if (o instanceof GraphicalKeySignature) {
+			moveKeySignature((GraphicalKeySignature)o, x);
 		} else {
 			moveGenericObject(o, x, y);
 		}
@@ -346,11 +347,10 @@ public class ScoreWriter {
 	// Gestione movimento nota
 	// ------------------------
 
-	private void moveNote(GraphicalObject n, int x, int y) {
+	private void moveNote(GraphicalNote note, int x, int y) {
 
-		int oldX = n.getX();
+		int oldX = note.getX();
 
-		if (n instanceof GraphicalNote note) {
 			CurvedConnection curve = note.getCurvedConnection();
 
 			if (curve != null) {
@@ -391,20 +391,27 @@ public class ScoreWriter {
 					curve.setX1Y1(end.getX(), end.getY());
 				} else {
 					// curva presente ma nota interna, solo movimento
-					n.moveTo(x, y);
+					note.moveTo(x, y);
 				}
 			} else {
 				// nota senza curva
-				n.moveTo(x, y);
+				note.moveTo(x, y);
 			}
-		}
 
-		int newX = n.getX();
-		updateGrid(n, oldX, newX);
-		applyHorizontalSnap(n, y, newX);
-		updateSlurIfNeeded(n, newX, y);
+		int newX = note.getX();
+		updateGrid(note, oldX, newX);
+		applyHorizontalSnap(note, y, newX);
+		updateSlurIfNeeded(note, newX, y);
 	}
 
+	// ------------------------
+	// Gestione movimento keysignature
+	// ------------------------
+	private void moveKeySignature(GraphicalKeySignature ks, int x) {
+		ks.moveTo(x, ks.getY());
+	}
+	
+	
 	private void updateGrid(GraphicalObject n, int oldX, int newX) {
 		grid.updatePosition(n, oldX, newX);
 	}
@@ -780,5 +787,17 @@ public class ScoreWriter {
 
 	        noteIndex++;
 	    }
+	}
+
+	public void setKeySignature(int chosenValue, int x, int y) {
+		int type = 0;
+		if (chosenValue < 0) type = -1;
+		else if (chosenValue > 0) type = 1;
+		int alterationsNumber = Math.abs(chosenValue);
+		int staffIndex = gui.getPointedStaffIndex(x, y);
+		GraphicalStaff staff = gui.getPointedStaff(x, y);
+		GraphicalKeySignature ks = new GraphicalKeySignature(x, staff, alterationsNumber, type);
+		score.addObject(ks, staffIndex, 0);
+		gui.repaintPanel();
 	}
 }

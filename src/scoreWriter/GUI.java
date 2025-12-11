@@ -3,6 +3,7 @@ package scoreWriter;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -29,6 +30,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -38,6 +41,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
@@ -480,9 +484,13 @@ public class GUI extends JFrame {
 		public void mouseClicked(MouseEvent e) {
 			requestFocusInWindow();
 			if (SwingUtilities.isRightMouseButton(e)) {
-				//Ke
-				return;
-			}
+
+		        showKeySignaturePopup(this, e.getX(), e.getY(), chosenValue -> {
+		            // Torna un int da –7 a +7
+		            controller.setKeySignature(chosenValue, e.getX(), e.getY());
+		        });
+return;
+		    }
 			boolean ctrl = e.isControlDown();
 
 			if (insertMode) {
@@ -608,6 +616,44 @@ public class GUI extends JFrame {
 		}
 	}
 
+	public void showKeySignaturePopup(Component parent, int x, int y, IntConsumer callback) {
+
+	    JPopupMenu menu = new JPopupMenu("Tonalità");
+
+	    // Array delle tonalità (da 7♭ a 7♯)
+	    Object[][] items = new Object[][] {
+	        {"7 ♭  (C♭ major / A♭ minor)",  -7},
+	        {"6 ♭  (G♭ major / E♭ minor)",  -6},
+	        {"5 ♭  (D♭ major / B♭ minor)",  -5},
+	        {"4 ♭  (A♭ major / F minor)",   -4},
+	        {"3 ♭  (E♭ major / C minor)",   -3},
+	        {"2 ♭  (B♭ major / G minor)",   -2},
+	        {"1 ♭  (F major / D minor)",    -1},
+	        {"0 ♮  (C major / A minor)",     0},
+	        {"1 ♯  (G major / E minor)",     1},
+	        {"2 ♯  (D major / B minor)",     2},
+	        {"3 ♯  (A major / F♯ minor)",    3},
+	        {"4 ♯  (E major / C♯ minor)",    4},
+	        {"5 ♯  (B major / G♯ minor)",    5},
+	        {"6 ♯  (F♯ major / D♯ minor)",   6},
+	        {"7 ♯  (C♯ major / A♯ minor)",   7},
+	    };
+
+
+	    for (Object[] entry : items) {
+	        String label = (String) entry[0];
+	        int value = (int) entry[1];
+
+	        JMenuItem item = new JMenuItem(label);
+	        item.addActionListener(e -> callback.accept(value));
+
+	        menu.add(item);
+	    }
+
+	    menu.show(parent, x, y);
+	}
+
+	
 	/** Ritorna l'indice dello staff alla posizione mouseX, mouseY
 	 * oppure -1 se no vi è nessuno staff 
 	 * @param mouseX

@@ -1,5 +1,7 @@
 package scoreWriter;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 
 public class GraphicalHelper {
@@ -66,5 +68,37 @@ public class GraphicalHelper {
 	public boolean contains(int x, int y) {
 		return bounds != null && bounds.contains(x, y);
 	}
+	
+	public void drawBounds(Graphics g) {
+	    if (bounds == null) {
+	        return;
+	    }
+
+	    Color old = g.getColor();
+	    g.setColor(selected ? Color.RED : Color.GRAY);
+
+	    int x = bounds.x;
+	    int y = bounds.y;
+	    int w = bounds.width;
+	    int h = bounds.height;
+
+	    // Disegno tratteggiato
+	    final int dash = 4; // lunghezza dei segmenti
+
+	    // Lati orizzontali
+	    for (int i = x; i < x + w; i += dash * 2) {
+	        g.drawLine(i, y, i + dash, y);         // alto
+	        g.drawLine(i, y + h, i + dash, y + h); // basso
+	    }
+
+	    // Lati verticali
+	    for (int i = y; i < y + h; i += dash * 2) {
+	        g.drawLine(x, i, x, i + dash);         // sinistra
+	        g.drawLine(x + w, i, x + w, i + dash); // destra
+	    }
+
+	    g.setColor(old);
+	}
+
 
 }
