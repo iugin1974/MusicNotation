@@ -9,28 +9,6 @@ import java.util.List;
 public class GraphicalKeySignature implements GraphicalObject {
 
 	// -------------------------------------------------------------------
-	// FONT SMuFL (Bravura)
-	// -------------------------------------------------------------------
-	private static Font bravuraFont;
-
-	private static synchronized Font loadBravuraFont(float size) {
-		if (bravuraFont == null) {
-			try {
-				InputStream is = GraphicalKeySignature.class.getResourceAsStream("/fonts/Bravura.otf");
-				Font base = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(40f);
-				bravuraFont = base.deriveFont(size);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				// fallback
-				bravuraFont = new Font("Serif", Font.PLAIN, (int) size);
-			}
-		} else {
-			bravuraFont = bravuraFont.deriveFont(size);
-		}
-		return bravuraFont;
-	}
-
-	// -------------------------------------------------------------------
 	// SMuFL glyphs
 	// -------------------------------------------------------------------
 	private static final String SHARP = "\uE262"; // SMuFL accidentalSharp
@@ -55,8 +33,8 @@ public class GraphicalKeySignature implements GraphicalObject {
 	// tonalità
 	private int[] keySignatureFlatsIndex = { 4, 7, 3, 6, 2, 5, 1 };
 	private ClefType clef;
-
-	private Font musicFont;
+	
+	//private Font musicFont;
 	private int numberOfAlterations;
 	private int typeOfAlterations;
 	private GraphicalStaff staff;
@@ -121,7 +99,7 @@ public class GraphicalKeySignature implements GraphicalObject {
 	@Override
 	public void draw(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		g2.setFont(musicFont);
+		//g2.setFont(musicFont);
 		// Se selezionato, evidenzia
 		if (helper.isSelected())
 			g2.setColor(Color.RED);
@@ -250,4 +228,11 @@ public class GraphicalKeySignature implements GraphicalObject {
 		return "KeySignature(" + typeOfAlterations + ", clef=" + clef + ")";
 	}
 
+	public int getNumberOfAlterations() {
+		return numberOfAlterations;
+	}
+
+	public int getTypeOfAlterations() {
+		return typeOfAlterations;
+	}
 }

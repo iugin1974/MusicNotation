@@ -47,7 +47,6 @@ public class GraphicalBar implements GraphicalObject {
 	@Override
 	public void setX(int x) {
 		helper.setX(x);
-		;
 	}
 
 	@Override

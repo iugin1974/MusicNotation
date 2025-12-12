@@ -2,13 +2,17 @@ package scoreWriter;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.PopupMenu;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
 import musicInterface.MusicObject;
 
-class GraphicalStaff implements GraphicalObject {
+class GraphicalStaff implements GraphicalObject, PopupLauncher {
 	private int id = 0;
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
@@ -306,4 +310,16 @@ class GraphicalStaff implements GraphicalObject {
 		return null;
 	}
 	
+	@Override
+	public JPopupMenu getMenu(int x, int y) {
+		JPopupMenu menu = new JPopupMenu();
+		JMenuItem i1 = new JMenuItem("Key accidentals");
+		JMenuItem i2 = new JMenuItem("Time signature");
+        menu.add(i1);
+        menu.add(i2);
+        i1.addActionListener(e -> controller.setKeySignature(x, y));        
+        i2.addActionListener(e -> controller.setTimeSignature(x, y));        
+        
+        return menu;
+	}
 }

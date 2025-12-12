@@ -85,6 +85,11 @@ public class Exporter {
         if (go.isTiedStart()) sb.append("~");
     }
 
+    private void parseKeySignature(GraphicalKeySignature ks) {
+    	int numberOfAlteration = ks.getNumberOfAlterations();
+    	int typeOfAlterations = ks.getTypeOfAlterations();
+    	// TODO continua
+    }
     /** Esporta una barra di misura */
     private void parseBar(GraphicalBar b) {
 

@@ -32,10 +32,10 @@ public class ScoreWriter {
 
 	private void test() {
 		addStaff();
-		addStaff();
-		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
-		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
-		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
+//		addStaff();
+//		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
+//		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE);
+//		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
 //		Syllable s1 = new Syllable("Hal");
 //		Syllable s2 = new Syllable("lo");
 //		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
@@ -45,16 +45,19 @@ public class ScoreWriter {
 //		lyrics.addLyric(l2);
 //		n1.addLyric(l1);
 //		n2.addLyric(l2);
-		c.setXY(50, 80);
-		n1.setXY(100, 100);
-		n2.setXY(200, 80);
-		score.addObject(c, 0, 0);
-		score.addObject(n1, 0, 1);
-		score.addObject(n2, 0, 1);
-		GraphicalKeySignature k = new GraphicalKeySignature(200, gui.getStaff(0), 7, -1);
-		score.addObject(k, 0, 0);
+//		c.setXY(50, 80);
+//		n1.setXY(100, 100);
+//		n2.setXY(200, 80);
+//		score.addObject(c, 0, 0);
+//		score.addObject(n1, 0, 1);
+//		score.addObject(n2, 0, 1);
+//		GraphicalKeySignature k = new GraphicalKeySignature(200, gui.getStaff(0), 7, -1);
+//		score.addObject(k, 0, 0);
 		// export();
-		// System.exit(0);
+GraphicalTimeSignature ts = new GraphicalTimeSignature(16, 8, gui.getStaff(0));
+ts.setX(100);
+ts.setY(50);
+score.addObject(ts, 0, 0);
 	}
 
 	public void addStaff() {
@@ -89,12 +92,27 @@ public class ScoreWriter {
 		return score.getObjects(staffNumber);
 	}
 
-	private GraphicalObject getObjectAt(int x, int y) {
-		for (GraphicalObject object : score.getAllObjects()) {
-			if (object.contains(x, y))
-				return object;
-		}
-		return null;
+	/**
+	 * Restituisce l'oggetto grafico su cui si è cliccato o <i>null</i>
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public GraphicalObject getObjectAt(int x, int y) {
+
+	    // 1) Prima controlla gli oggetti normali
+	    for (GraphicalObject object : score.getAllObjects()) {
+	        if (object.contains(x, y))
+	            return object;
+	    }
+
+	    // 2) Poi controlla se hai cliccato su uno staff
+	    int staffIndex = gui.getPointedStaffIndex(x, y);
+	    if (staffIndex != -1) {
+	        return gui.getStaff(staffIndex); // o ritorna uno StaffWrapper
+	    }
+
+	    return null;
 	}
 
 	public void selectObjectAtPos(int x, int y, boolean multipleSelection) {
@@ -789,7 +807,13 @@ public class ScoreWriter {
 	    }
 	}
 
-	public void setKeySignature(int chosenValue, int x, int y) {
+	public void setKeySignature(int x, int y) {
+		IntPair pair = KeySignatureDialog.showDialog(gui);
+		if (pair == null) return;
+		setKeySignature(pair.first, x, y);
+	}
+	
+	private void setKeySignature(int chosenValue, int x, int y) {
 		int type = 0;
 		if (chosenValue < 0) type = -1;
 		else if (chosenValue > 0) type = 1;
@@ -798,6 +822,20 @@ public class ScoreWriter {
 		GraphicalStaff staff = gui.getPointedStaff(x, y);
 		GraphicalKeySignature ks = new GraphicalKeySignature(x, staff, alterationsNumber, type);
 		score.addObject(ks, staffIndex, 0);
+		gui.repaintPanel();
+	}
+	
+	public void setTimeSignature(int x, int y) {
+		IntPair pair = TimeSignatureDialog.showDialog(gui);
+		if (pair == null) return;
+		setTimeSignature(pair.first, pair.second, x, y);
+	}
+	
+	private void setTimeSignature(int n, int d, int x, int y) {
+		int staffIndex = gui.getPointedStaffIndex(x, y);
+		GraphicalTimeSignature ts = new GraphicalTimeSignature(n, d, gui.getStaff(staffIndex));
+		ts.setXY(x, y);
+		score.addObject(ts, staffIndex, 0);
 		gui.repaintPanel();
 	}
 }
