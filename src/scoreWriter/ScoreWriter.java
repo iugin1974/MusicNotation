@@ -64,7 +64,7 @@ public class ScoreWriter {
 		score.addObject(c, 0, 0);
 		score.addObject(c, 1, 0);
 		x+=step;
-		KeySignature ks = new KeySignature(3, 1, null);
+		KeySignature ks = new KeySignature(3, 1, Mode.MAJOR);
 		GraphicalKeySignature k = new GraphicalKeySignature(x ,gui.getStaff(0), ks);
 		score.addObject(k, 0, 0);
 		TimeSignature ts = new TimeSignature(4, 3);
@@ -77,6 +77,8 @@ public class ScoreWriter {
 		Note nn2 = new Note();
 		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE, nn1);
 		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE, nn2);
+		n1.setStaffPosition(0);
+		n2.setStaffPosition(4);
 		nn1.setDuration(3);
 		nn2.setDuration(3);
 		Syllable s1 = new Syllable("Hal");
@@ -105,8 +107,8 @@ public class ScoreWriter {
 		x += step;
 		gb.setXY(x, gui.getStaff(0).getYPosOfLine(0));
 		score.addObject(gb, 0, 0);
-		 export();
-		System.exit(0);
+		export();
+	System.exit(0);
 	}
 
 	public void addStaff() {
@@ -279,6 +281,9 @@ public class ScoreWriter {
 	            Note n = new Note(0, 0, symbolToInsert.getDuration());
 	            GraphicalNote gn = new GraphicalNote(symbolToInsert, n);
 	            gn.setXY(x, y);
+	            GraphicalStaff gs = gui.getStaff(staffNumber);
+	            int position = gs.getPosInStaff(gn);
+	    		gn.setStaffPosition(position);
 	            return gn;
 	        }
 

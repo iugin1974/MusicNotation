@@ -14,11 +14,11 @@ public class Staff {
 		voices = new ArrayList<>();
 		voices.add(new Voice(0));
 		voices.add(new Voice(1));
-		voices.add(new Voice(2));
 	}
 	
-	public void addVoice(int type) {
-		
+	public void addVoice() {
+		int i = voices.size();
+		voices.add(new Voice(i));
 	}
 
 	public Voice getVoice(int n) {
