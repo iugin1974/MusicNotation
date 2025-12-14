@@ -1,7 +1,9 @@
 package scoreWriter;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import Measure.Bar;
 import Measure.TimeSignature;
@@ -26,42 +28,59 @@ public class Exporter {
 	private String[] numbers = { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
 			"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
 			"Twenty" };
+	private Score score;
 
 	/** Esporta tutti gli staves e voci in LilyPond */
-	public void export(List<ParsedStaff> parsed) {
-
-		for (int staffIndex = 0; staffIndex < parsed.size(); staffIndex++) {
-
-			ParsedStaff staff = parsed.get(staffIndex);
+	public void export(Score score) {
+		this.score = score;
+		ScoreParser parser = new ScoreParser(score);
+		List<ParsedStaff> parsedStaves = parser.parse();
+		for (ParsedStaff parsedStaff : parsedStaves) {
+			if (!parsedStaff.startsWithClef()) {
+				System.out.println("Manca la chiave in uno staff");
+				return; // TODO -> questo va nel controller
+			}
+		}
+				
+		for (int staffIndex = 0; staffIndex < parsedStaves.size(); staffIndex++) {
+			ParsedStaff staff = parsedStaves.get(staffIndex);
 
 			for (int voiceIndex = 0; voiceIndex < staff.voices.size(); voiceIndex++) {
-
 				List<GraphicalObject> voiceObjs = staff.voices.get(voiceIndex);
 
 				// Se la voce non contiene né note né pause → non esportare
 				if (!hasNotesOrRests(voiceObjs))
 					continue;
 
-				createVoiceHeader(staffIndex, voiceIndex);
-				parseObjects(voiceObjs, staff);
-				exportLyrics(voiceObjs);
-
-				sb.append("\n}\n\n");
+			//	parseVoice(staffIndex, voiceIndex, voiceObjs);	
+				
+				// Nel loop stiamo iterando sui parsedStaves, dove ogni ParsedStaff combina
+				// le informazioni “staff-wide” (voce 0) con le note delle voci successive.
+				// Di conseguenza, la prima voce musicale reale diventa voiceIndex 0 in questo contesto,
+				// mentre le lyrics originali sono memorizzate a partire da voice 1.
+				// Per recuperarle correttamente, dobbiamo quindi usare voiceIndex + 1.
+				for (int j = 0; j < score.getStanzasNumber(staffIndex, voiceIndex + 1); j++) {
+				List<String> l = score.getLyricsFor(staffIndex, voiceIndex + 1, j);
+				exportLyrics(l, staffIndex, 1, j + 1);
+				}
+				sb.append("\n");
 				clef = null;
 			}
 		}
 
-		createScoreBlock(parsed);
+		//createScoreBlock(parsedStaves);
 	}
 
 	/** Inizio della voce in LilyPond */
-	private void createVoiceHeader(int currentStaff, int currentVoice) {
+	private void parseVoice(int currentStaff, int currentVoice, List<GraphicalObject> voiceObjs) {
 		sb.append(getNumber(currentStaff) + getNumber(currentVoice) + " = ");
 		sb.append("\\relative {\n");
+		parseObjects(voiceObjs);
+		sb.append("}\n");
 	}
 
 	/** Analizza tutti gli oggetti della voce */
-	private void parseObjects(List<GraphicalObject> objs, ParsedStaff staff) {
+	private void parseObjects(List<GraphicalObject> objs) {
 
 		for (GraphicalObject go : objs) {
 
@@ -189,9 +208,26 @@ public class Exporter {
 		return false;
 	}
 
-	public void exportLyrics(List<GraphicalObject> voiceObjs) {
+	private void exportLyrics(List<String> list, int staffIndex, int voiceIndex, int stanza) {
+	    if (list == null || list.isEmpty()) return;
 
+	    // Nome della variabile LilyPond basato su staff/voice/stanza
+	    String name = "Lyric" + getNumber(staffIndex) 
+	                             + getNumber(voiceIndex) 
+	                             + getNumber(stanza);
+
+	    sb.append(name).append(" = \\lyricmode {\n");
+
+	    for (String s : list) {
+	        if (s != null && !s.isEmpty()) {
+	            sb.append(s).append(" ");
+	        }
+	    }
+
+	    sb.append("\n}\n\n");
 	}
+
+
 
 	private void createScoreBlock(List<ParsedStaff> parsed) {
 

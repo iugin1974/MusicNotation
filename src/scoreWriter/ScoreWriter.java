@@ -46,7 +46,6 @@ public class ScoreWriter {
 	private GUI gui;
 	private int voiceNumber = 1;
 	private Pointer pointer;
-	private Lyrics lyrics;
 
 	public ScoreWriter() {
 		score = new Score();
@@ -83,13 +82,16 @@ public class ScoreWriter {
 		nn2.setDuration(3);
 		Syllable s1 = new Syllable("Hal");
 		Syllable s2 = new Syllable("lo");
+		Syllable s3 = new Syllable("ola");
 		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
-		Lyric l2 = new Lyric(s2, n2, 0, 1, 1);
-		lyrics = new Lyrics();
-		lyrics.addLyric(l1);
-		lyrics.addLyric(l2);
+		Lyric l2 = new Lyric(s2, n2, 0, 1, 0);
+		Lyric l3 = new Lyric(s3, n2, 0, 1, 1);
+		score.addLyric(l1);
+		score.addLyric(l2);
+		score.addLyric(l3);
 		n1.addLyric(l1);
 		n2.addLyric(l2);
+		n2.addLyric(l3);
 		x += step;
 		
 		n1.setXY(x, 100);
@@ -707,16 +709,9 @@ public class ScoreWriter {
 	}
 
 	public void export() {
-		ScoreParser parser = new ScoreParser(score);
-		List<ParsedStaff> parsedStaves = parser.parse();
-		for (ParsedStaff parsedStaff : parsedStaves) {
-			if (!parsedStaff.startsWithClef()) {
-				System.out.println("Manca la chiave in uno staff");
-				return;
-			}
-		}
+		
 		Exporter x = new Exporter();
-		x.export(parsedStaves);
+		x.export(score);
 		x.printScore();
 	}
 
@@ -772,50 +767,12 @@ public class ScoreWriter {
 		return pointer != null;
 	}
 
-	private void removeLyrics(int staffIndex, int voiceNumber, int stanza) {
-		Staff s = score.getStaff(staffIndex);
-		Voice v = s.getVoice(voiceNumber);
-		List<GraphicalNote> notes = v.getNotes();
-
-		for (GraphicalNote n : notes) {
-			n.removeLyric(stanza);
-		}
-
-		// rimuovere anche dal contenitore globale
-		if (lyrics != null) {
-			lyrics.removeLyrics(staffIndex, voiceNumber, stanza);
-		}
-	}
 
 	public List<String> getLyricsFor(int staff, int voice, int stanza) {
-		if (lyrics == null)
-			return null;
-		List<Lyric> l = lyrics.getLyrics(staff, voice, stanza);
-		List<String> list = new ArrayList<>();
-
-		// Scorre tutte le note del sistema
-		for (Lyric lyric : l) {
-			list.add(lyric.getSyllable().getText());
-		}
-		return list;
+		return score.getLyricsFor(staff, voice, stanza);
 	}
 
-	/**
-	 * Determina se una nota deve ricevere la lyric.
-	 * 
-	 * @param note      La nota corrente
-	 * @param connected Flag che indica se siamo dentro una curva
-	 * @return true se la nota deve ricevere lyric, false altrimenti
-	 */
-	private boolean shouldAssignLyric(GraphicalNote note, boolean connected) {
-		if (!connected) {
-			// Nota singola o inizio curva → lyric sì
-			return true;
-		} else {
-			// Dentro curva → skip
-			return false;
-		}
-	}
+	
 
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
 		// --- CONTROLLI ---
@@ -831,66 +788,8 @@ public class ScoreWriter {
 			return;
 		}
 
-		Staff s = score.getStaff(staffIndex);
-
-		if (voiceNumber < 0 || voiceNumber >= s.getVoices().size()) {
-			JOptionPane.showMessageDialog(null, "Voce selezionata non valida.", "Errore Lyrics",
-					JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-
-		if (stanza < 0 || stanza >= 10) { // supponendo massimo 10 strofe
-			JOptionPane.showMessageDialog(null, "Stanza selezionata non valida.", "Errore Lyrics",
-					JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-
-		// --- RIMOZIONE VECCHIE LYRICS ---
-		if (lyrics == null) {
-			lyrics = new Lyrics();
-		} else {
-			removeLyrics(staffIndex, voiceNumber, stanza);
-		}
-
-		Voice v = s.getVoice(voiceNumber);
-		List<GraphicalNote> notes = v.getNotes();
-
-		int syllableIndex = 0; // indice sillaba
-		int noteIndex = 0; // indice nota
-		boolean connected = false;
-
-		while (syllableIndex < syllables.size() && noteIndex < notes.size()) {
-			GraphicalNote note = notes.get(noteIndex);
-			String syllable = syllables.get(syllableIndex);
-
-			// --- SILLABE SPECIALI ---
-			if ("_".equals(syllable)) {
-				syllableIndex++;
-				noteIndex++;
-				continue;
-			}
-			if ("--".equals(syllable) || "__".equals(syllable)) {
-				syllableIndex++;
-				continue;
-			}
-
-			// --- CONTROLLA CURVE ---
-			if (shouldAssignLyric(note, connected)) {
-				Syllable syl = new Syllable(syllable);
-				Lyric l = new Lyric(syl, note, staffIndex, voiceNumber, stanza);
-				lyrics.addLyric(l);
-				syllableIndex++;
-
-				if (note.isCurveStart())
-					connected = true;
-			} else {
-				// dentro curva → skip note
-				if (note.isCurveEnd())
-					connected = false;
-			}
-
-			noteIndex++;
-		}
+		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
+		
 	}
 
 	public void setKeySignature(int x, int y) {

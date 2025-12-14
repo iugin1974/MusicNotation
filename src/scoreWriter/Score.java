@@ -2,8 +2,12 @@ package scoreWriter;
 
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import graphical.GraphicalNote;
 import graphical.GraphicalObject;
+import model.Lyric;
+import model.Syllable;
 import model.Voice;
 
 import java.util.Collections;
@@ -13,10 +17,11 @@ import java.util.Collection;
 public class Score {
 
 	private List<Staff> staffList;
-	
+	private Lyrics lyrics;
 
 	public Score() {
 		staffList = new ArrayList<>();
+		lyrics = new Lyrics();
 	}
 	
 	public Staff getStaff(int n) {
@@ -28,6 +33,25 @@ public class Score {
 		staffList.add(new Staff());
 	}
 
+	public void addLyric(Lyric l) {
+        lyrics.addLyric(l);
+    }
+	
+    public Lyrics getLyrics() {
+        return lyrics;
+    }
+    
+    public int getStanzasNumber(int staffIndex, int voiceIndex) {
+    	Voice v = getStaff(staffIndex).getVoice(voiceIndex);
+    	int s = 0;
+    	for (GraphicalNote g : v.getNotes()) {
+    		if (g.getNumberOfStanzas() > s) {
+    			s = g.getNumberOfStanzas();
+    		}
+    	}
+    	return s;
+    }
+    
 	/** Aggiunge un oggetto allo staff e alla voce indicata */
 	public void addObject(GraphicalObject obj, int staffNumber, int voiceNumber) {
 		staffList.get(staffNumber).getVoice(voiceNumber).addObject(obj);
@@ -209,6 +233,115 @@ public class Score {
 	    return null;
 	}
 
+	public void removeLyrics(int staffIndex, int voiceNumber, int stanza) {
+		Staff s = getStaff(staffIndex);
+		Voice v = s.getVoice(voiceNumber);
+		List<GraphicalNote> notes = v.getNotes();
+
+		for (GraphicalNote n : notes) {
+			n.removeLyric(stanza);
+		}
+
+		// rimuovere anche dal contenitore globale
+		if (lyrics != null) {
+			lyrics.removeLyrics(staffIndex, voiceNumber, stanza);
+		}
+	}
+	
+	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
+		Staff s = getStaff(staffIndex);
+		if (voiceNumber < 0 || voiceNumber >= s.getVoices().size()) {
+			JOptionPane.showMessageDialog(null, "Voce selezionata non valida.", "Errore Lyrics",
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		if (stanza < 0 || stanza >= 10) { // supponendo massimo 10 strofe
+			JOptionPane.showMessageDialog(null, "Stanza selezionata non valida.", "Errore Lyrics",
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		
+
+		// --- RIMOZIONE VECCHIE LYRICS ---
+		if (lyrics == null) {
+			lyrics = new Lyrics();
+		} else {
+			removeLyrics(staffIndex, voiceNumber, stanza);
+		}
+
+		Voice v = s.getVoice(voiceNumber);
+		List<GraphicalNote> notes = v.getNotes();
+
+		int syllableIndex = 0; // indice sillaba
+		int noteIndex = 0; // indice nota
+		boolean connected = false;
+
+		while (syllableIndex < syllables.size() && noteIndex < notes.size()) {
+			GraphicalNote note = notes.get(noteIndex);
+			String syllable = syllables.get(syllableIndex);
+
+			// --- SILLABE SPECIALI ---
+			if ("_".equals(syllable)) {
+				syllableIndex++;
+				noteIndex++;
+				continue;
+			}
+			if ("--".equals(syllable) || "__".equals(syllable)) {
+				syllableIndex++;
+				continue;
+			}
+
+			// --- CONTROLLA CURVE ---
+			if (shouldAssignLyric(note, connected)) {
+				Syllable syl = new Syllable(syllable);
+				Lyric l = new Lyric(syl, note, staffIndex, voiceNumber, stanza);
+				lyrics.addLyric(l);
+				syllableIndex++;
+
+				if (note.isCurveStart())
+					connected = true;
+			} else {
+				// dentro curva → skip note
+				if (note.isCurveEnd())
+					connected = false;
+			}
+
+			noteIndex++;
+		}
+	}
+	
+	/**
+	 * Determina se una nota deve ricevere la lyric.
+	 * 
+	 * @param note      La nota corrente
+	 * @param connected Flag che indica se siamo dentro una curva
+	 * @return true se la nota deve ricevere lyric, false altrimenti
+	 */
+	private boolean shouldAssignLyric(GraphicalNote note, boolean connected) {
+		if (!connected) {
+			// Nota singola o inizio curva → lyric sì
+			return true;
+		} else {
+			// Dentro curva → skip
+			return false;
+		}
+	}
+	
+	public List<String> getLyricsFor(int staff, int voice, int stanza) {
+		if (lyrics == null)
+			return null;
+		List<Lyric> l = lyrics.getLyrics(staff, voice, stanza);
+		List<String> list = new ArrayList<>();
+
+		// Scorre tutte le note del sistema
+		for (Lyric lyric : l) {
+			list.add(lyric.getSyllable().getText());
+		}
+		return list;
+	}
+	
 	public void sort() {
 	    for (Staff staff : getAllStaves()) {
 	        staff.sort();

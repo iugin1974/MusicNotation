@@ -205,6 +205,10 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		return lyrics.get(stanza);
 	}
 	
+	public int getNumberOfStanzas() {
+		return lyrics.size();
+	}
+	
 	public boolean hasLyric() {
 		return lyrics != null;
 	}
