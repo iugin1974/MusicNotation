@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import graphical.GraphicalObject;
+
 public class SpatialGrid {
 
     private final int cellSize; // es: 20 px

@@ -1,4 +1,4 @@
-package scoreWriter;
+package ui;
 
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -7,14 +7,17 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 
+import model.MusicalSymbol;
+import scoreWriter.ScoreWriter;
+import scoreWriter.StaffInfo;
+
 public class Pointer implements StaffInfo {
 
 	private int x, y;
 	private MusicalSymbol symbol;
 	private ScoreWriter controller;
-	private int staffIndex;
 	
-	Pointer(ScoreWriter controller, MusicalSymbol noteSymbol) {
+	public Pointer(ScoreWriter controller, MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
 		this.controller = controller;
 		init();

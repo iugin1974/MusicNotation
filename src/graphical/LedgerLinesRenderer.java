@@ -1,6 +1,8 @@
-package scoreWriter;
+package graphical;
 
 import java.awt.Graphics;
+
+import ui.Pointer;
 
 public class LedgerLinesRenderer {
 

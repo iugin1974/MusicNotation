@@ -1,4 +1,4 @@
-package scoreWriter;
+package graphical;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -10,18 +10,20 @@ import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import model.MusicalSymbol;
 import musicInterface.MusicObject;
+import scoreWriter.ScoreWriter;
+import ui.PopupLauncher;
 
-class GraphicalStaff implements GraphicalObject, PopupLauncher {
+public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	private int id = 0;
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
 	private final int MAX_LEDGER_LINES = 3; // i tagli addizionali
 	private ScoreWriter controller;
-	private final GraphicalHelper helper = new GraphicalHelper();
 
-	GraphicalStaff(int id, int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
+	public GraphicalStaff(int id, int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -235,41 +237,7 @@ class GraphicalStaff implements GraphicalObject, PopupLauncher {
 		return id;
 	}
 
-	@Override
-	public void setXY(int x, int y) {
-		helper.setXY(x, y);
-	}
-
-	@Override
-	public int getX() {
-		return helper.getX();
-	}
-
-	@Override
-	public void setX(int x) {
-		helper.setX(x);;
-	}
-
-	@Override
-	public int getY() {
-		return helper.getY();
-	}
-
-	@Override
-	public void setY(int y) {
-		helper.setY(y);
-	}
-
-	@Override
-	public boolean isSelected() {
-		return helper.isSelected();
-	}
-
-	@Override
-	public void select(boolean selected) {
-		helper.select(selected);
-	}
-
+	
 	@Override
 	public boolean contains(int px, int py) {
 		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_LEDGER_LINES)
@@ -277,35 +245,11 @@ class GraphicalStaff implements GraphicalObject, PopupLauncher {
 	}
 
 	@Override
-	public void moveTo(int x, int y) {
-		helper.moveTo(x, y);
-		
-	}
-
-	@Override
-	public void moveBy(int dx, int dy) {
-		 helper.moveBy(dx, dy);
-	}
-
-	@Override
 	public GraphicalObject cloneObject() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	@Override
-	public void setBounds(Rectangle bounds) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Rectangle getBounds() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
-	@Override
 	public MusicalSymbol getSymbol() {
 		return null;
 	}

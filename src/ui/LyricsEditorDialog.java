@@ -1,6 +1,9 @@
-package scoreWriter;
+package ui;
 
 import javax.swing.*;
+
+import scoreWriter.ScoreWriter;
+
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;

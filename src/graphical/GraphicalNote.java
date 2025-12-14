@@ -1,4 +1,4 @@
-package scoreWriter;
+package graphical;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -15,27 +15,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import model.Lyric;
+import model.MusicalSymbol;
 import musicEvent.Note;
+import scoreWriter.CurvedConnection;
+import scoreWriter.Slur;
+import scoreWriter.StaffInfo;
+import scoreWriter.Tie;
 
-public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
+public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 	private MusicalSymbol symbol;
 	private Slur slur;
+	private final Note note;
 	private boolean slurStart = false;
 	private boolean slurEnd = false;
 	private boolean tieStart = false;
 	private boolean tieEnd = false;
 	private int voice = 1;
-	private final GraphicalHelper helper = new GraphicalHelper();
 	private Tie tie;
 	private int staffIndex;
 	private int staffPosition; // 0 DO, 1 RE, 2 MI
 	private Map<Integer, Lyric> lyrics = null;
 
-	public GraphicalNote(MusicalSymbol symbol) {
-		super(0); // crea una nota con midi 0
+	public GraphicalNote(MusicalSymbol symbol, Note n) {
 		this.symbol = symbol;
-		duration = symbol.getDuration();
+		this.note = n;
 		setup();
 	}
 
@@ -49,10 +54,6 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 		}
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		ge.registerFont(font);
-	}
-
-	public void setMidiNumber(int midi) {
-		this.midiNumber = midi;
 	}
 
 	public void setVoice(int voice) {
@@ -102,8 +103,18 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 		int descent = fm.getDescent();
 		int height = ascent + descent;
 
-		Rectangle bounds = new Rectangle(helper.getX(), helper.getY() - ascent, width, height);
-		helper.setBounds(bounds);
+		Rectangle bounds = new Rectangle(getX(), getY() - ascent, width, height);
+		setBounds(bounds);
+		
+		setColor(g);
+		if (isSelected()) {
+			g.setColor(Color.RED);
+		}
+		g.drawString(glyph, getX(), getY());
+		setColor(g);
+	}
+
+	private void setColor(Graphics g) {
 		if (voice == 1) {
 			g.setColor(Color.BLACK);
 		} else if (voice == 2) {
@@ -111,87 +122,16 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 		} else {
 			g.setColor(Color.GRAY);
 		}
-		
-		if (helper.isSelected()) {
-			g.setColor(Color.RED);
-		}
-		g.drawString(glyph, helper.getX(), helper.getY());
 	}
-
-	@Override
-	public void setXY(int x, int y) {
-		helper.setXY(x, y);
-	}
-
-	@Override
-	public int getX() {
-		return helper.getX();
-	}
-
-	@Override
-	public void setX(int x) {
-		helper.setX(x);
-	}
-
-	@Override
-	public int getY() {
-		return helper.getY();
-	}
-
-	@Override
-	public void setY(int y) {
-		helper.setY(y);
-	}
-
-	@Override
-	public boolean isSelected() {
-		return helper.isSelected();
-	}
-
-	@Override
-	public void select(boolean selected) {
-		helper.select(selected);
-	}
-
-	@Override
-	public boolean contains(int x, int y) {
-		return helper.contains(x, y);
-	}
-
-	@Override
-	public void moveTo(int x, int y) {
-		helper.moveTo(x, y);
-
-	}
-
-	@Override
-	public void moveBy(int dx, int dy) {
-		helper.moveBy(dx, dy);
-	}
-
-	@Override
+		@Override
 	public GraphicalObject cloneObject() {
-		GraphicalNote n = new GraphicalNote(symbol);
-		n.setMidiNumber(getMidiNumber());
+		GraphicalNote n = new GraphicalNote(symbol, note);
 		n.setX(getX());
 		n.setY(getY());
-		n.setDuration(getDuration());
-		n.setDots(getDots());
 		n.setBounds(getBounds());
 		return n;
 	}
 
-	@Override
-	public void setBounds(Rectangle bounds) {
-		helper.setBounds(bounds);
-	}
-
-	@Override
-	public Rectangle getBounds() {
-		return helper.getBounds();
-	}
-
-	@Override
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
@@ -284,4 +224,7 @@ public class GraphicalNote extends Note implements GraphicalObject, StaffInfo {
 	    }
 	}
 
+	public Note getNote() {
+		return note;
+	}
 }

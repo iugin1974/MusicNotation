@@ -1,4 +1,4 @@
-package scoreWriter;
+package model;
 
 public class Syllable {
 	 private String text;

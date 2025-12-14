@@ -3,6 +3,10 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import model.Voice;
+
 public class Slur extends CurvedConnection {
 
     @Override

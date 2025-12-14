@@ -8,9 +8,11 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.CubicCurve2D;
 
-public abstract class CurvedConnection implements GraphicalObject {
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import model.MusicalSymbol;
 
-    private final GraphicalHelper helper = new GraphicalHelper();
+public abstract class CurvedConnection extends GraphicalObject {
 
     protected GraphicalNote startNote;
     protected GraphicalNote endNote;
@@ -53,57 +55,11 @@ public abstract class CurvedConnection implements GraphicalObject {
         }
     }
 
-    // -----------------------------
-    //       COORDINATE
-    // -----------------------------
-    @Override
-    public void setXY(int x, int y) { helper.setXY(x, y); }
-    
     public void setX1Y1(int x, int y) { x1 = x; y1 = y; }
- 
-    @Override
-    public int getX() { return helper.getX(); }
-
-    @Override
-    public void setX(int x) { helper.setX(x); }
-
-    @Override
-    public int getY() { return helper.getY(); }
-
-    @Override
-    public void setY(int y) { helper.setY(y); }
-
     public int getX1() { return x1; }
-
     public void setX1(int x1) { this.x1 = x1; }
-
     public int getY1() { return y1; }
-
     public void setY1(int y1) { this.y1 = y1; }
-
-    // -----------------------------
-    //   SELEZIONE E MOVIMENTO
-    // -----------------------------
-    @Override
-    public boolean isSelected() { return helper.isSelected(); }
-
-    @Override
-    public void select(boolean selected) { helper.select(selected); }
-
-    @Override
-    public boolean contains(int x, int y) { return helper.contains(x, y); }
-
-    @Override
-    public void moveTo(int x, int y) { helper.moveTo(x, y); }
-
-    @Override
-    public void moveBy(int dx, int dy) { helper.moveBy(dx, dy); }
-
-    @Override
-    public void setBounds(Rectangle bounds) { helper.setBounds(bounds); }
-
-    @Override
-    public Rectangle getBounds() { return helper.getBounds(); }
 
     @Override
     public GraphicalObject cloneObject() {
@@ -117,9 +73,9 @@ public abstract class CurvedConnection implements GraphicalObject {
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
 
-        double dx = x1 - helper.getX();
-        int x = helper.getX();
-        int y = helper.getY();
+        double dx = x1 - getX();
+        int x = getX();
+        int y = getY();
         double height = Math.abs(dx) * 0.25;
 
         double c1x = x + dx * 0.25;
@@ -137,13 +93,12 @@ public abstract class CurvedConnection implements GraphicalObject {
         Stroke old = g2.getStroke();
         g2.setStroke(new BasicStroke(1.4f));
 
-        g2.setColor(helper.isSelected() ? Color.RED : Color.BLACK);
+        g2.setColor(isSelected() ? Color.RED : Color.BLACK);
         g2.draw(curve);
 
         g2.setStroke(old);
     }
 
-    @Override
     public MusicalSymbol getSymbol() {
         return null;
     }

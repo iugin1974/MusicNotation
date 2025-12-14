@@ -1,4 +1,4 @@
-package scoreWriter;
+package ui;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -47,7 +47,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
+import Measure.Bar;
+import graphical.GraphicalBar;
+import graphical.GraphicalClef;
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import graphical.GraphicalRest;
+import graphical.GraphicalStaff;
+import graphical.LedgerLinesRenderer;
+import model.Clef;
+import model.Lyric;
+import model.MusicalSymbol;
 import musicInterface.MusicObject;
+import scoreWriter.ScoreWriter;
+import scoreWriter.SymbolRegistry;
 
 public class GUI extends JFrame {
 
@@ -62,7 +75,7 @@ public class GUI extends JFrame {
 	private ButtonGroup groupButtonsNotes;
 	private ButtonGroup groupButtonsBars;
 	private ButtonGroup groupButtonsClef;
-	private GraphicalObject objectToInsert;
+	private MusicalSymbol objectToInsert;
 	private JScrollPane scrollPane;
 	private ButtonGroup groupButtonsRests;
 	private LedgerLinesRenderer ledger;
@@ -220,7 +233,7 @@ public class GUI extends JFrame {
 	        JToggleButton btn = createIconToggleButton(noteSymbol.getGlyphUp(), iconFont);
 	        btn.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsNotes);
-	            objectToInsert = new GraphicalNote(noteSymbol);
+	            objectToInsert = noteSymbol;
 	            insertMode = true;
 	            controller.setPointer(noteSymbol);
 	        });
@@ -248,8 +261,8 @@ public class GUI extends JFrame {
 	        JToggleButton btn = createIconToggleButton(restSymbol.getGlyph(), iconFont);
 	        btn.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsRests);
-	            objectToInsert = new GraphicalRest(restSymbol);
 	            insertMode = true;
+	            objectToInsert = restSymbol;
 	            controller.setPointer(restSymbol);
 	        });
 	        groupButtonsRests.add(btn);
@@ -276,8 +289,8 @@ public class GUI extends JFrame {
 	        JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
 	        btn.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsClef);
-	            objectToInsert = new GraphicalClef(clefSymbol);
 	            insertMode = true;
+	            objectToInsert = clefSymbol;
 	            controller.setPointer(clefSymbol);
 	        });
 	        groupButtonsClef.add(btn);
@@ -293,9 +306,9 @@ public class GUI extends JFrame {
 	    p.setBackground(new Color(230, 230, 230));
 
 	    MusicalSymbol[] bars = {
-	        SymbolRegistry.SINGLE_BARLINE, SymbolRegistry.DOUBLE_BARLINE,
-	        SymbolRegistry.FINAL_BARLINE, SymbolRegistry.REPEAT_START_BARLINE,
-	        SymbolRegistry.REPEAT_END_BARLINE
+	        SymbolRegistry.BARLINE_SINGLE, SymbolRegistry.BARLINE_DOUBLE,
+	        SymbolRegistry.BARLINE_FINAL, SymbolRegistry.BARLINE_REPEAT_START,
+	        SymbolRegistry.BARLINE_REPEAT_END
 	    };
 
 	    groupButtonsBars = new ButtonGroup();
@@ -304,7 +317,7 @@ public class GUI extends JFrame {
 	        JToggleButton btn = createIconImageToggle(s.getIconPath());
 	        btn.addActionListener(e -> {
 	            removeOtherSelections(groupButtonsBars);
-	            objectToInsert = new GraphicalBar(s);
+	            objectToInsert = s;
 	            insertMode = true;
 	            controller.setPointer(s);
 	        });
@@ -495,7 +508,7 @@ public class GUI extends JFrame {
 			boolean ctrl = e.isControlDown();
 
 			if (insertMode) {
-				controller.insertObject(objectToInsert);
+				controller.insertObject(objectToInsert, e.getX(), e.getY());
 			} else {
 				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
 			}
@@ -683,11 +696,4 @@ public class GUI extends JFrame {
 		repaint();
 	}
 
-	public GraphicalObject getObjectToInsert() {
-		return objectToInsert;
-	}
-
-	public void setObjectToInsert(GraphicalObject objectToInsert) {
-		this.objectToInsert = objectToInsert;
-	}
 }

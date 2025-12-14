@@ -1,4 +1,4 @@
-package scoreWriter;
+package graphical;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -12,11 +12,11 @@ import java.awt.font.GlyphVector;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class GraphicalTimeSignature implements GraphicalObject {
+import Measure.TimeSignature;
+import model.MusicalSymbol;
 
-	private int numerator;
-	private int denominator;
-	private final GraphicalHelper helper = new GraphicalHelper();
+public class GraphicalTimeSignature extends GraphicalObject {
+
 	private GraphicalStaff staff;
 	private static final char[] SMUFL_DIGITS = {
 		    '\uE080', // 0
@@ -31,10 +31,10 @@ public class GraphicalTimeSignature implements GraphicalObject {
 		    '\uE089'  // 9
 		};
 	private Font numberFont;
+	private final TimeSignature timeSignature;
 
-	public GraphicalTimeSignature(int numerator, int denominator, GraphicalStaff staff) {
-		this.numerator = numerator;
-		this.denominator = denominator;
+	public GraphicalTimeSignature(TimeSignature timeSignature, GraphicalStaff staff) {
+		this.timeSignature = timeSignature;
 		this.staff = staff;
 		
 		try (InputStream is1 = getClass().getResourceAsStream("/fonts/BravuraText.otf")) {
@@ -63,8 +63,10 @@ public class GraphicalTimeSignature implements GraphicalObject {
 
 	@Override
 	public void draw(Graphics g) {
+		int numerator = timeSignature.getNumerator();
+		int denominator = timeSignature.getDenominator();
 	    Graphics2D g2 = (Graphics2D) g;
-	    g2.setColor(helper.isSelected() ? Color.RED : Color.BLACK);
+	    g2.setColor(isSelected() ? Color.RED : Color.BLACK);
 
 	    Font oldFont = g2.getFont();
 	    g2.setFont(numberFont);
@@ -72,15 +74,15 @@ public class GraphicalTimeSignature implements GraphicalObject {
 	    int numY = staff.getYPosOfLine(4);
 	    int denY = staff.getYPosOfLine(2);
 
-	    drawDigits(g2, String.valueOf(numerator), helper.getX(), numY);
-	    drawDigits(g2, String.valueOf(denominator), helper.getX(), denY);
+	    drawDigits(g2, String.valueOf(numerator), getX(), numY);
+	    drawDigits(g2, String.valueOf(denominator), getX(), denY);
 
 	    // bounds più precisi
 	    FontMetrics fm = g2.getFontMetrics();
 	    int width = Math.max(fm.stringWidth(String.valueOf(numerator)), fm.stringWidth(String.valueOf(denominator)));
 	    int height = (denY - numY) + fm.getHeight();
-	    Rectangle bounds = new Rectangle(helper.getX() - width / 2, numY - fm.getAscent(), width, height);
-	    helper.setBounds(bounds);
+	    Rectangle bounds = new Rectangle(getX() - width / 2, numY - fm.getAscent(), width, height);
+	    setBounds(bounds);
 
 	    g2.setFont(oldFont);
 	}
@@ -95,83 +97,20 @@ public class GraphicalTimeSignature implements GraphicalObject {
 	}
 	
 	@Override
-	public void setXY(int x, int y) {
-		helper.setXY(x, y);
-	}
-
-	@Override
-	public int getX() {
-		return helper.getX();
-	}
-
-	@Override
-	public void setX(int x) {
-		helper.setX(x);
-		;
-	}
-
-	@Override
-	public int getY() {
-		return helper.getY();
-	}
-
-	@Override
-	public void setY(int y) {
-		helper.setY(y);
-	}
-
-	@Override
-	public boolean isSelected() {
-		return helper.isSelected();
-	}
-
-	@Override
-	public void select(boolean selected) {
-		helper.select(selected);
-	}
-
-	@Override
-	public boolean contains(int x, int y) {
-		return helper.contains(x, y);
-	}
-
-	@Override
-	public void moveTo(int x, int y) {
-		helper.moveTo(x, y);
-
-	}
-
-	@Override
-	public void moveBy(int dx, int dy) {
-		helper.moveBy(dx, dy);
-	}
-
-	@Override
-	public void setBounds(Rectangle bounds) {
-		helper.setBounds(bounds);
-	}
-
-	@Override
-	public Rectangle getBounds() {
-		return helper.getBounds();
-	}
-
-	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(numerator, denominator, staff);
+		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature, staff);
 		timeSig.setX(getX());
 		timeSig.setY(getY());
 		timeSig.setBounds(getBounds());
 		return timeSig;
 	}
 	
-	@Override
 	public MusicalSymbol getSymbol() {
 		return null;
 	}
 	
-	@Override
-	public String toString() {
-		return null;
+	public TimeSignature getTimeSignature() {
+		return timeSignature;
 	}
+	
 }

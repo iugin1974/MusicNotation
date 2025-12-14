@@ -1,7 +1,9 @@
-package scoreWriter;
+package model;
 
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+
+import graphical.GraphicalNote;
 
 public class Lyric {
 	    private Syllable syllable;

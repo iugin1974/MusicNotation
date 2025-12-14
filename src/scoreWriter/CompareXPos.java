@@ -1,5 +1,7 @@
 package scoreWriter;
 
+import graphical.GraphicalObject;
+
 public class CompareXPos implements java.util.Comparator<GraphicalObject> {
 	@Override
 	public int compare(GraphicalObject o1, GraphicalObject o2) {

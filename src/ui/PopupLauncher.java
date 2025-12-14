@@ -1,4 +1,4 @@
-package scoreWriter;
+package ui;
 
 import javax.swing.JPopupMenu;
 

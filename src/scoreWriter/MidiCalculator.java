@@ -1,5 +1,8 @@
 package scoreWriter;
 
+import graphical.GraphicalClef;
+import graphical.GraphicalNote;
+
 public class MidiCalculator {
 
 	public static int calculateMidiNumber(GraphicalNote n, GraphicalClef clef) {
@@ -14,6 +17,6 @@ public class MidiCalculator {
 	    int degree = Math.floorMod(position, 7);      // 0..6
 	    int octaveShift = Math.floorDiv(position, 7); // può essere negativo
 
-	    return clef.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getAlteration();
+	    return clef.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getNote().getAlteration();
 	}
 }

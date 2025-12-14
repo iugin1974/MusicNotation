@@ -1,6 +1,9 @@
-package scoreWriter;
+package ui;
 
 import javax.swing.*;
+
+import scoreWriter.IntPair;
+
 import java.awt.*;
 import java.util.Optional;
 

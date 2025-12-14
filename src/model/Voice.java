@@ -1,7 +1,11 @@
-package scoreWriter;
+package model;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import scoreWriter.CompareXPos;
 
 public class Voice {
 

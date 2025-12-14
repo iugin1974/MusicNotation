@@ -2,6 +2,10 @@ package scoreWriter;
 
 import java.util.List;
 
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import model.Voice;
+
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Collection;

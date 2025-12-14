@@ -1,6 +1,17 @@
 package scoreWriter;
 
 import java.util.List;
+
+import Measure.Bar;
+import Measure.TimeSignature;
+import graphical.GraphicalBar;
+import graphical.GraphicalClef;
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+import graphical.GraphicalRest;
+import graphical.GraphicalTimeSignature;
+import musicEvent.Note;
+import musicLily.LilyBar;
 import musicLily.LilyNote;
 
 public class Exporter {
@@ -31,7 +42,7 @@ public class Exporter {
 
     /** Inizio della voce in LilyPond */
     private void createVoiceHeader(ParsedStaff staff, List<GraphicalObject> voiceObjs) {
-        sb.append("\\relative c' {\n");
+        sb.append("\\relative {\n");
     }
 
     /** Analizza tutti gli oggetti della voce */
@@ -48,10 +59,23 @@ public class Exporter {
             else if (go instanceof GraphicalBar) {
                 parseBar((GraphicalBar) go);
             }
+            else if (go instanceof GraphicalTimeSignature) {
+            	parseTimeSignature((GraphicalTimeSignature) go);
+            }
         }
     }
 
-    /** Esporta una clef LilyPond */
+    private void parseTimeSignature(GraphicalTimeSignature go) {
+		TimeSignature ts = go.getTimeSignature();
+		int n = ts.getNumerator();
+		int d = ts.getDenominator();
+		sb.append("\\time ");
+		sb.append(n + "/" + d);
+		sb.append("\n");
+		
+	}
+
+	/** Esporta una clef LilyPond */
     private void parseClef(GraphicalClef go) {
 
         clef = go;
@@ -74,10 +98,10 @@ public class Exporter {
 
         int midi = MidiCalculator.calculateMidiNumber(go, clef);
         if (midi == -1) return; // chiave mancante
+        Note n = go.getNote();
+        n.setMidiNumber(midi);
 
-        go.setMidiNumber(midi);
-
-        LilyNote ln = new LilyNote(go);
+        LilyNote ln = new LilyNote(n);
         sb.append(ln.draw()).append(" ");
 
         if (go.isSlurStart()) sb.append("(");
@@ -85,20 +109,11 @@ public class Exporter {
         if (go.isTiedStart()) sb.append("~");
     }
 
-    private void parseKeySignature(GraphicalKeySignature ks) {
-    	int numberOfAlteration = ks.getNumberOfAlterations();
-    	int typeOfAlterations = ks.getTypeOfAlterations();
-    	// TODO continua
-    }
     /** Esporta una barra di misura */
     private void parseBar(GraphicalBar b) {
-
-        if (b.getSymbol().equals(SymbolRegistry.SINGLE_BARLINE)) {
-            sb.append(" |\n");
-        }
-        else if (b.getSymbol().equals(SymbolRegistry.DOUBLE_BARLINE)) {
-            sb.append(" \\bar \"||\"\n");
-        }
+    Bar bar = b.getBar();
+    LilyBar lb = new LilyBar(bar.getBar());
+    sb.append(lb.draw());
     }
 
     /** Controlla se una voce contiene almeno una nota o pausa */
@@ -115,6 +130,7 @@ public class Exporter {
     public void exportLyrics(List<GraphicalObject> voiceObjs) {
     	
     }
+    
     public void printScore() {
         System.out.println(sb.toString());
     }

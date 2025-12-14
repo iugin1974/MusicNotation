@@ -1,4 +1,4 @@
-package scoreWriter;
+package model;
 
 public class MusicalSymbol {
 	private final String name;

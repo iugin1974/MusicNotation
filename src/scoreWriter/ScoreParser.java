@@ -3,6 +3,8 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import graphical.GraphicalObject;
+
 public class ScoreParser {
 
 	 private final Score score;

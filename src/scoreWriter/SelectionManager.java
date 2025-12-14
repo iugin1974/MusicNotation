@@ -2,6 +2,9 @@ package scoreWriter;
 
 import java.util.ArrayList;
 
+import graphical.GraphicalNote;
+import graphical.GraphicalObject;
+
 public class SelectionManager {
 
     private ArrayList<ArrayList<GraphicalObject>> selectedPerStaff;

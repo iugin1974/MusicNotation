@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.Lyric;
+
 public class Lyrics {
 	    private List<Lyric> lyrics = new ArrayList<>();
 

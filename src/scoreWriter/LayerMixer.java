@@ -3,6 +3,9 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import graphical.GraphicalObject;
+import model.Voice;
+
 public class LayerMixer {
 
     private final Score score;

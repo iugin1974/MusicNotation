@@ -1,5 +1,8 @@
 package scoreWriter;
 
+import graphical.GraphicalNote;
+import model.Voice;
+
 public class Tie extends CurvedConnection {
 
     @Override
@@ -42,4 +45,5 @@ public class Tie extends CurvedConnection {
         startNote.setTie(null);
         endNote.setTie(null);
     }
+    
 }

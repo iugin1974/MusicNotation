@@ -1,6 +1,7 @@
 package scoreWriter;
 
-import scoreWriter.MusicalSymbol.Type;
+import model.MusicalSymbol;
+import model.SemitoneMap;
 
 public class SymbolRegistry {
 
@@ -103,35 +104,35 @@ public class SymbolRegistry {
  // stanghette di battuta
  	// public MusicalSymbol(String name, String iconPath, String glyph, Type type)
     // Barline symbols
-    public static final MusicalSymbol SINGLE_BARLINE = new MusicalSymbol(
+    public static final MusicalSymbol BARLINE_SINGLE = new MusicalSymbol(
         "Single Barline",
         "/icons/bar_single.png",
         "\uE030",
         MusicalSymbol.Type.BARLINE
     );
 
-    public static final MusicalSymbol DOUBLE_BARLINE = new MusicalSymbol(
+    public static final MusicalSymbol BARLINE_DOUBLE = new MusicalSymbol(
         "Double Barline",
         "/icons/bar_double.png",
         "\uE031",
         MusicalSymbol.Type.BARLINE
     );
 
-    public static final MusicalSymbol FINAL_BARLINE = new MusicalSymbol(
+    public static final MusicalSymbol BARLINE_FINAL = new MusicalSymbol(
         "Final Barline",
         "/icons/bar_end.png",
         "\uE032",
         MusicalSymbol.Type.BARLINE
     );
 
-    public static final MusicalSymbol REPEAT_START_BARLINE = new MusicalSymbol(
+    public static final MusicalSymbol BARLINE_REPEAT_START = new MusicalSymbol(
         "Repeat Start",
         "/icons/bar_startRepeat.png",
         "\uE040",
         MusicalSymbol.Type.BARLINE
     );
 
-    public static final MusicalSymbol REPEAT_END_BARLINE = new MusicalSymbol(
+    public static final MusicalSymbol BARLINE_REPEAT_END = new MusicalSymbol(
             "Repeat End",
             "/icons/bar_endRepeat.png",
             "\uE041",
