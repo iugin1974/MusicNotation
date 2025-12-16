@@ -508,7 +508,13 @@ public class GUI extends JFrame {
 			boolean ctrl = e.isControlDown();
 
 			if (insertMode) {
+				if (controller.pointerExists()) {
+					int x = controller.getPointer().getX();
+					int y = controller.getPointer().getY();
+					controller.insertObject(objectToInsert, x, y);
+				} else {
 				controller.insertObject(objectToInsert, e.getX(), e.getY());
+				}
 			} else {
 				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
 			}

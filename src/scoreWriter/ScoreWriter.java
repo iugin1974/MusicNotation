@@ -25,11 +25,13 @@ import graphical.GraphicalTimeSignature;
 import model.Clef;
 import model.Clef.ClefType;
 import model.KeySignature;
-import model.KeySignature.Mode;
 import model.Lyric;
 import model.MusicalSymbol;
 import model.Syllable;
 import model.Voice;
+import musicEvent.KeyAlteration;
+import musicEvent.Modus;
+import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
@@ -55,62 +57,8 @@ public class ScoreWriter {
 
 	private void test() {
 		addStaff();
-		addStaff();
-		int x = 20;
-		int step = 50;
-		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
-		c.setXY(x, 80);
-		score.addObject(c, 0, 0);
-		score.addObject(c, 1, 0);
-		x+=step;
-		KeySignature ks = new KeySignature(3, 1, Mode.MAJOR);
-		GraphicalKeySignature k = new GraphicalKeySignature(x ,gui.getStaff(0), ks);
-		score.addObject(k, 0, 0);
-		TimeSignature ts = new TimeSignature(4, 3);
-		GraphicalTimeSignature gts = new GraphicalTimeSignature(ts, gui.getStaff(0));
-		x += step;
-		gts.setX(x);
-		gts.setY(50);
-		score.addObject(gts, 0, 0);
-		Note nn1 = new Note();
-		Note nn2 = new Note();
-		GraphicalNote n1 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE, nn1);
-		GraphicalNote n2 = new GraphicalNote(SymbolRegistry.EIGHTH_NOTE, nn2);
-		n1.setStaffPosition(0);
-		n2.setStaffPosition(4);
-		nn1.setDuration(3);
-		nn2.setDuration(3);
-		Syllable s1 = new Syllable("Hal");
-		Syllable s2 = new Syllable("lo");
-		Syllable s3 = new Syllable("ola");
-		Lyric l1 = new Lyric(s1, n1, 0, 1, 0);
-		Lyric l2 = new Lyric(s2, n2, 0, 1, 0);
-		Lyric l3 = new Lyric(s3, n2, 0, 1, 1);
-		score.addLyric(l1);
-		score.addLyric(l2);
-		score.addLyric(l3);
-		n1.addLyric(l1);
-		n2.addLyric(l2);
-		n2.addLyric(l3);
-		x += step;
 		
-		n1.setXY(x, 100);
-		x += step;
-		n2.setXY(x, 80);
 		
-		score.addObject(n1, 0, 1);
-		score.addObject(n2, 0, 1);
-		score.addObject(n1, 1, 1);
-		score.addObject(n2, 1, 1);
-		
-		Bar b = new Bar();
-		b.setEndBar();
-		GraphicalBar gb = new GraphicalBar(SymbolRegistry.BARLINE_DOUBLE, b);
-		x += step;
-		gb.setXY(x, gui.getStaff(0).getYPosOfLine(0));
-		score.addObject(gb, 0, 0);
-		export();
-	System.exit(0);
 	}
 
 	public void addStaff() {
@@ -271,16 +219,49 @@ public class ScoreWriter {
 	    selectionManager.select(obj, staffNumber);
 
 	    // Inserimento nel modello (Score) e/o staff
-	    score.addObject(obj, staffNumber, voiceNumber);
+	    // voice 0 per staff-wide
+	    int v = 0;
+	    if (obj instanceof GraphicalNote ||
+	    		obj instanceof GraphicalRest) {
+	    	v = voiceNumber;
+	    }
+	    // scrivo <= perché una voice (la 0) è staff-wide.
+	    // quindi quando ci sono 2 voci, in realtà ce n'è una sola per note
+	    if (score.getStaff(staffNumber).getNumberOfVoices() <= voiceNumber) {
+	    	score.getStaff(staffNumber).addVoice();
+	    }
+	    score.addObject(obj, staffNumber, v);
 
 	    // Aggiornamento GUI
 	    gui.repaintPanel();
 	}
 	
+	private KeySignature getPreviousKeySignature(GraphicalNote n) {
+
+	    int noteX = n.getX();
+	    int staffIndex = n.getStaffIndex();
+
+	    Staff staff = score.getStaff(staffIndex);
+	    Voice staffVoice = staff.getVoice(0); // staff-wide
+
+	    List<GraphicalObject> objs = staffVoice.getObjects();
+
+	    for (int i = objs.size() - 1; i >= 0; i--) {
+	        GraphicalObject go = objs.get(i);
+
+	        if (go.getX() <= noteX && go instanceof GraphicalKeySignature) {
+	            return ((GraphicalKeySignature) go).getKeySignature();
+	        }
+	    }
+
+	    return null; // nessuna armatura precedente → Do maggiore
+	}
+
 	private GraphicalObject createGraphicalObject(MusicalSymbol symbolToInsert, int x, int y, int staffNumber) {
 	    switch (symbolToInsert.getType()) {
 	        case NOTE: {
-	            Note n = new Note(0, 0, symbolToInsert.getDuration());
+	            Note n = new Note();
+	            n.setDuration(symbolToInsert.getDuration());
 	            GraphicalNote gn = new GraphicalNote(symbolToInsert, n);
 	            gn.setXY(x, y);
 	            GraphicalStaff gs = gui.getStaff(staffNumber);
@@ -301,9 +282,9 @@ public class ScoreWriter {
 	            int firstLine = 0;
 	    		if (clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE)
 	    				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
-	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(2);
+	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(1);
 	    		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
-	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(4);
+	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(3);
 	    		clef.setXY(x, firstLine);
 	            return clef;
 	        }
@@ -311,7 +292,7 @@ public class ScoreWriter {
 	        case BARLINE: {
 	            Bar b = getBar(symbolToInsert);
 	            GraphicalBar gb = new GraphicalBar(symbolToInsert, b);
-	            int firstLine = gui.getStaff(staffNumber).getYPosOfLine(1);
+	            int firstLine = gui.getStaff(staffNumber).getYPosOfLine(0);
 	            gb.setXY(x, firstLine);
 	            return gb;
 	        }
@@ -716,14 +697,7 @@ public class ScoreWriter {
 	}
 
 	public void setCurrentVoice(int i) {
-		switch (i) {
-		case 1:
-			voiceNumber = 1;
-			break;
-		case 2:
-			voiceNumber = 2;
-			break;
-		}
+		voiceNumber = i;
 	}
 
 	/**
@@ -806,7 +780,7 @@ public class ScoreWriter {
 		else if (chosenValue > 0)
 			type = 1;
 		int alterationsNumber = Math.abs(chosenValue);
-		KeySignature ks = new KeySignature(alterationsNumber, type, Mode.MAJOR);
+		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE);
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		GraphicalStaff staff = gui.getPointedStaff(x, y);
 		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);

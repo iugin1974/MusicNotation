@@ -15,8 +15,6 @@ import graphical.GraphicalObject;
 import graphical.GraphicalRest;
 import graphical.GraphicalTimeSignature;
 import model.KeySignature;
-import model.KeySignature.Mode;
-import model.Lyric;
 import musicEvent.Note;
 import musicLily.LilyBar;
 import musicLily.LilyNote;
@@ -29,6 +27,7 @@ public class Exporter {
 			"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
 			"Twenty" };
 	private Score score;
+	private KeySignature ks;
 
 	/** Esporta tutti gli staves e voci in LilyPond */
 	public void export(Score score) {
@@ -52,7 +51,7 @@ public class Exporter {
 				if (!hasNotesOrRests(voiceObjs))
 					continue;
 
-			//	parseVoice(staffIndex, voiceIndex, voiceObjs);	
+				parseVoice(staffIndex, voiceIndex, voiceObjs);	
 				
 				// Nel loop stiamo iterando sui parsedStaves, dove ogni ParsedStaff combina
 				// le informazioni “staff-wide” (voce 0) con le note delle voci successive.
@@ -61,14 +60,14 @@ public class Exporter {
 				// Per recuperarle correttamente, dobbiamo quindi usare voiceIndex + 1.
 				for (int j = 0; j < score.getStanzasNumber(staffIndex, voiceIndex + 1); j++) {
 				List<String> l = score.getLyricsFor(staffIndex, voiceIndex + 1, j);
-				exportLyrics(l, staffIndex, 1, j + 1);
+				exportLyrics(l, staffIndex, voiceIndex, j);
 				}
 				sb.append("\n");
 				clef = null;
 			}
 		}
 
-		//createScoreBlock(parsedStaves);
+		createScoreBlock(parsedStaves);
 	}
 
 	/** Inizio della voce in LilyPond */
@@ -100,7 +99,7 @@ public class Exporter {
 
 	private void parseKeySignature(GraphicalKeySignature go) {
 
-	    KeySignature ks = go.getKeySignature();
+	    ks = go.getKeySignature();
 
 	    String[] majorKeysSharp = {"c", "g", "d", "a", "e", "h", "fis", "cis"};
 	    String[] minorKeysSharp = {"a", "e", "h", "fis", "cis", "gis", "dis", "ais"};
@@ -114,33 +113,33 @@ public class Exporter {
 	    String key;
 
 	    if (n == 0) {
-	        key = (ks.getMode() == Mode.MAJOR) ? "c" : "a";
+	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE) ? "c" : "a";
 	    }
 	    else if (type == 1) { // diesis
-	        key = (ks.getMode() == Mode.MAJOR)
+	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE)
 	                ? majorKeysSharp[n]
 	                : minorKeysSharp[n];
 	    }
 	    else { // bemolle
-	        key = (ks.getMode() == Mode.MAJOR)
+	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE)
 	                ? majorKeysFlat[n]
 	                : minorKeysFlat[n];
 	    }
 
-	    String mode;
+	    String Modus;
 
-	    switch (ks.getMode()) {
-	        case MAJOR:  mode = "\\major";  break;
-	        case MINOR:  mode = "\\minor";  break;
-	        case DORIAN: mode = "\\dorian"; break;
-	     //   case PHRYGIAN: mode = "\\phrygian"; break;
-	     //   case LYDIAN: mode = "\\lydian"; break;
-	     //   case MIXOLYDIAN: mode = "\\mixolydian"; break;
-	     //   case LOCRIAN: mode = "\\locrian"; break;
-	        default: mode = "\\major";
+	    switch (ks.getModus()) {
+	        case MAJOR_SCALE:  Modus = "\\major";  break;
+	        case MINOR_SCALE:  Modus = "\\minor";  break;
+	      //  case DORIAN: Modus = "\\dorian"; break;
+	     //   case PHRYGIAN: Modus = "\\phrygian"; break;
+	     //   case LYDIAN: Modus = "\\lydian"; break;
+	     //   case MIXOLYDIAN: Modus = "\\mixolydian"; break;
+	     //   case LOCRIAN: Modus = "\\locrian"; break;
+	        default: Modus = "\\major";
 	    }
 
-	    sb.append("\\key ").append(key).append(" ").append(mode).append("\n");
+	    sb.append("\\key ").append(key).append(" ").append(Modus).append("\n");
 	}
 
 
@@ -173,12 +172,12 @@ public class Exporter {
 	/** Esporta una nota */
 	private void parseNote(GraphicalNote go) {
 
-		int midi = MidiCalculator.calculateMidiNumber(go, clef);
+		int midi = MidiCalculator.calculateMidiNumber(go, clef, ks);
 		if (midi == -1)
 			return; // chiave mancante
 		Note n = go.getNote();
 		n.setMidiNumber(midi);
-
+		
 		LilyNote ln = new LilyNote(n);
 		sb.append(ln.draw()).append(" ");
 

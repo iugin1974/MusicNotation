@@ -35,7 +35,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	private int voice = 1;
 	private Tie tie;
 	private int staffIndex;
-	private int staffPosition; // 0 DO, 1 RE, 2 MI
+	private int staffPosition; // 0 MI, 1 FA, ecc.
 	private Map<Integer, Lyric> lyrics = null;
 
 	public GraphicalNote(MusicalSymbol symbol, Note n) {
@@ -123,6 +123,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 			g.setColor(Color.GRAY);
 		}
 	}
+
 		@Override
 	public GraphicalObject cloneObject() {
 		GraphicalNote n = new GraphicalNote(symbol, note);
@@ -206,6 +207,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	}
 	
 	public int getNumberOfStanzas() {
+		if (lyrics == null) return 0;
 		return lyrics.size();
 	}
 	

@@ -1,6 +1,7 @@
 package graphical;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.PopupMenu;
 import java.awt.Rectangle;
@@ -70,17 +71,24 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	}
 
 	/**
-	 * @param line
-	 * @return la posizione verticale della linea <i>line</i>
+	 * Restituisce la posizione verticale della linea i-esima del pentagramma.
+	 * Convenzione:
+	 * - 0 = prima linea in basso
+	 * - 1 = seconda linea
+	 * - ...
+	 * - lineNumber-1 = prima linea in alto
+	 * - valori negativi = linee/linee aggiuntive sotto il pentagramma
+	 * 
+	 * @param line indice della linea (0 = prima linea in basso)
+	 * @return coordinata Y della linea
 	 */
 	public int getYPosOfLine(int line) {
-		// inverte la numerazione delle linee (la 5 viene considerata la 0)
-		// quindi la 0 è la prima linea in basso
-		// il do in chiave di violino sarebbe la linea -1
-		// e così via.
-		int l = lineNumber - line;
-		return y + (l * distanceBetweenLines);
+	    // line 0 = prima linea in basso
+	    // y aumenta verso il basso
+	    int l = lineNumber - 1 - line; 
+	    return y + (l * distanceBetweenLines);
 	}
+
 
 	
 	public int[] getYPosOfLines() {
@@ -132,69 +140,28 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	
 	/**
 	 * Restituisce le posizioni verticali di tutte le linee e spazi del pentagramma,
-	 * includendo eventuali linee/spazi extra sopra e sotto.
-	 * 
-	 * L’array risultante è ordinato dal basso verso l’alto (y più grande → basso, y più piccolo → alto):
-	 * <ul>
-	 *   <li>Gli indici 0..extraLinesBelow-1 corrispondono a spazi/linee sotto il pentagramma.</li>
-	 *   <li>Gli indici successivi (centrali) corrispondono alle linee e spazi del pentagramma:</li>
-	 *     <ul>
-	 *       <li>Linea1 (più bassa) → indice = extraLinesBelow</li>
-	 *       <li>Spazio1 sopra linea1 → indice = extraLinesBelow + 1</li>
-	 *       <li>Linea2 → indice = extraLinesBelow + 2</li>
-	 *       <li>… fino a Linea5 (più alta) → indice = extraLinesBelow + 8 (per pentagramma a 5 linee)</li>
-	 *     </ul>
-	 *   <li>Gli ultimi indici corrispondono a spazi/linee sopra il pentagramma (extraLinesAbove).</li>
-	 * </ul>
-	 * 
-	 * Esempio in chiave di violino (5 linee, nessun extra sotto, 1 extra sopra):
-	 *<br>
-	 * indice 0: Linea1  → Mi4<br>
-	 * indice 1: Spazio1 → Fa4<br>
-	 * indice 2: Linea2  → Sol4<br>
-	 * indice 3: Spazio2 → La4<br>
-	 * indice 4: Linea3  → Si4<br>
-	 * indice 5: Spazio3 → Do5<br>
-	 * indice 6: Linea4  → Re5<br>
-	 * indice 7: Spazio4 → Mi5<br>
-	 * indice 8: Linea5  → Fa5<br>
-	 * indice 9: Spazio sopra Linea5 → Sol5 (diesis in Re maggiore)<br>
-	 * 
-	 * Nota: il Do centrale (C4) in chiave di violino si troverebbe
-	 * 2 spazi sotto la Linea1 e avrebbe un indice negativo se extraLinesBelow = 0.
-	 * Per includere il Do centrale, impostare extraLinesBelow >= 2.
-	 * 
-	  * @param extraLinesBelow numero di spazi/linee aggiuntivi sotto il pentagramma 
-	 * @param extraLinesAbove numero di spazi/linee aggiuntivi sopra il pentagramma
-	 * @return array di interi con le coordinate Y di linee e spazi, ordinati dal basso verso l’alto
+	 * inclusi eventuali spazi/linee extra sopra e sotto.
+	 *
+	 * Lo staffPosition 0 corrisponde alla prima linea in basso.
+	 * Positivi → verso l’alto sul pentagramma, negativi → sotto la prima linea.
+	 *
+	 * @param extraBelow numero di spazi/linee aggiuntivi sotto il pentagramma
+	 * @param extraAbove numero di spazi/linee aggiuntivi sopra il pentagramma
+	 * @return array di coordinate Y ordinate dal basso verso l’alto
 	 */
-	public int[] getYPosOfLinesAndSpacesExtended(int extraLinesBelow, int extraLinesAbove) {
-	    int total = 2 * lineNumber - 1 + 2 * (extraLinesAbove + extraLinesBelow);
-	    int[] pos = new int[total];
-
-	    int idx = 0;
-
-	    // spazi/linee sotto il pentagramma
-	    for (int i = extraLinesBelow; i > 0; i--) {
-	        int delta = i * distanceBetweenLines;
-	        pos[idx++] = y + distanceBetweenLines * lineNumber + delta; // spazio/linea sotto
-	    }
-
-	    // linee+spazi del pentagramma
-	    for (int line = 1; line <= lineNumber; line++) {
-	        pos[idx++] = getYPosOfLine(line);
-	        if (line < lineNumber) {
-	            pos[idx++] = getYPosOfSpace(line);
-	        }
-	    }
-
-	    // spazi sopra il pentagramma
-	    for (int i = 1; i <= extraLinesAbove; i++) {
-	        pos[idx++] = getYPosOfLine(lineNumber) - i * distanceBetweenLines / 2; // spazio sopra
-	    }
-
+	public int[] getYPosOfLinesAndSpacesExtended(int extraBelow, int extraAbove) {
+		int min = getYPosOfLine(-extraBelow);
+		int max = getYPosOfLine(extraAbove + lineNumber);
+		int step = distanceBetweenLines / 2;
+		int dim = ((min - max) / 2) +2;
+		int[] pos = new int[dim];
+		int c = 0;
+		for (int i = min; i > max; i -= step) {
+			pos[c++] = i;
+		}
 	    return pos;
 	}
+
 
 
 	public ArrayList<Integer> getSnapPoints() {
@@ -209,15 +176,22 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	}
 
 	/**
-	 * Indica la posizione della nota nel pentagramma, dove 0 è il do centrale in
-	 * chiave di violino, 1 il re e così via
+	 * Indica la posizione della nota nel pentagramma, dove 0 è la prima linea in basso
+	 * 1 lo spazio successivo e così via
 	 * 
 	 * @param y
 	 */
 	public int getPosInStaff(GraphicalNote n) {
-		ArrayList<Integer> snapPoints = getSnapPoints();
-		// 14 è il do centrale nell'arraylist
-		return -(snapPoints.indexOf(n.getY()) - 14);
+		int l = 2; // le ledges lines sopra e sotto
+		 int[] pos = getYPosOfLinesAndSpacesExtended(l, l);
+
+		    for (int i = 0; i < pos.length; i++) {
+		        if (pos[i] == n.getY()) {
+		        	// TODO commenta -> funziona, credimi
+		            return i - (l * 2); // posizione pura nello staff
+		        }
+		    }
+		    return -1;
 	}
 
 	@Override

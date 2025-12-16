@@ -54,6 +54,7 @@ public class Score {
     
 	/** Aggiunge un oggetto allo staff e alla voce indicata */
 	public void addObject(GraphicalObject obj, int staffNumber, int voiceNumber) {
+		System.out.println("Object added at Staff "+staffNumber+" and voice "+voiceNumber);
 		staffList.get(staffNumber).getVoice(voiceNumber).addObject(obj);
 	}
 

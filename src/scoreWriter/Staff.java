@@ -19,10 +19,15 @@ public class Staff {
 	public void addVoice() {
 		int i = voices.size();
 		voices.add(new Voice(i));
+		System.out.println("Voice added. Now " + voices.size() + "voices");
 	}
 
 	public Voice getVoice(int n) {
 		return voices.get(n);
+	}
+	
+	public int getNumberOfVoices() {
+		return voices.size();
 	}
 	
 	public List<GraphicalObject> getObjects(int voiceNumber) {
