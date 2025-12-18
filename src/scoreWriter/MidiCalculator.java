@@ -7,24 +7,51 @@ import musicEvent.Modus;
 
 public class MidiCalculator {
 
-	public static int calculateMidiNumber(GraphicalNote n, GraphicalClef clef, KeySignature ks) {
+	public static boolean setMidiNumberAndAlteration(GraphicalNote n, GraphicalClef clef, KeySignature ks) {
 		if (clef == null) {
-			System.out.println("Export ist no possible. No clef");
-			return -1;
+			System.out.println("Export ist not possible. No clef");
+			return false;
 		}
-	    int[] scale = clef.getSemitoneMap();
-	    int position = n.getStaffPosition();
-	    // Aggiungi lo shift per partire da Do centrale come 0
-	    position += 2;  // Aggiungi lo shift (staffPosition 0 = Do centrale)
-	    // degree con supporto per numeri negativi
-	    int degree = Math.floorMod(position, 7);      // 0..6
-	    int octaveShift = Math.floorDiv(position, 7); // può essere negativo
+		int[] scale = clef.getSemitoneMap();
+		int position = n.getStaffPosition();
 
-	    if (ks == null) ks = new KeySignature(0, 0, Modus.MAJOR_SCALE);
-	    int typeOfAlterations = ks.getTypeOfAlterations();
-	    int[] keySignatureIndex;
-	    if (typeOfAlterations == 1) keySignatureIndex = ks.getSharpsIndex();
-	    else keySignatureIndex = ks.getFlatsIndex();
-	    return clef.getMidiOffset() + scale[degree] + (octaveShift * 12) + n.getNote().getAlteration();
+		// posizione musicale della nota (indipendente dall’ottava)
+		int notePosMod7 = Math.floorMod(position, 7); // 0..6
+		int octaveShift = Math.floorDiv(position, 7); // può essere negativo
+
+		if (ks == null)
+			ks = new KeySignature(0, 0, Modus.MAJOR_SCALE);
+		int typeOfAlterations = ks.getTypeOfAlterations();
+		int[] keySignatureIndex;
+		if (typeOfAlterations == 1)
+			keySignatureIndex = ks.getSharpsIndex();
+		else
+			keySignatureIndex = ks.getFlatsIndex();
+		int keyAlteration = 0;
+
+		boolean found = false;
+
+		for (int i = 0; i < ks.getNumberOfAlterations(); i++) {
+			int keyPosMod7 = Math.floorMod(keySignatureIndex[i], 7);
+
+			int midiN;
+			if (keyPosMod7 == notePosMod7) {
+				// coincide con una nota alterata in chiave
+				keyAlteration = typeOfAlterations;
+				midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12) + keyAlteration;
+				n.getNote().setAlteration(typeOfAlterations);
+				n.getNote().setMidiNumber(midiN);
+				found = true;
+				break;
+			}
+			if (!found) {
+				midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);
+				n.getNote().setAlteration(0);
+				n.getNote().setMidiNumber(midiN);
+			}
+
+		}
+		return true;
+
 	}
 }

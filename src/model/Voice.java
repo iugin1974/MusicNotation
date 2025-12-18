@@ -50,6 +50,10 @@ public class Voice {
     	}
     	return notes;
     }
+    
+    public GraphicalObject get(int i) {
+    	return objects.get(i);
+    }
 
     /** Pulisce tutti gli oggetti dal layer */
     public void clear() {
@@ -62,5 +66,9 @@ public class Voice {
 
 	public boolean isEmpty() {
 		return objects.isEmpty();
+	}
+	
+	public int size() {
+		return objects.size();
 	}
 }

@@ -55,7 +55,6 @@ import graphical.GraphicalObject;
 import graphical.GraphicalRest;
 import graphical.GraphicalStaff;
 import graphical.LedgerLinesRenderer;
-import model.Clef;
 import model.Lyric;
 import model.MusicalSymbol;
 import musicInterface.MusicObject;

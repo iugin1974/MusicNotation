@@ -62,7 +62,7 @@ public class GraphicalRest extends GraphicalObject {
 		GraphicalRest n = new GraphicalRest(symbol, rest);
 		n.setX(getX());
 		n.setY(getY());
-		setBounds(getBounds());
+		n.setBounds(getBounds());
 		return n;
 	}
 

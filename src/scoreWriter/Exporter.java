@@ -172,13 +172,11 @@ public class Exporter {
 	/** Esporta una nota */
 	private void parseNote(GraphicalNote go) {
 
-		int midi = MidiCalculator.calculateMidiNumber(go, clef, ks);
-		if (midi == -1)
+		boolean success = MidiCalculator.setMidiNumberAndAlteration(go, clef, ks);
+		if (!success)
 			return; // chiave mancante
-		Note n = go.getNote();
-		n.setMidiNumber(midi);
 		
-		LilyNote ln = new LilyNote(n);
+		LilyNote ln = new LilyNote(go.getNote());
 		sb.append(ln.draw()).append(" ");
 
 		if (go.isSlurStart())

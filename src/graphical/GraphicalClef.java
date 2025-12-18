@@ -10,7 +10,6 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 
-import model.Clef;
 import model.MusicalSymbol;
 
 public class GraphicalClef extends GraphicalObject {
@@ -36,10 +35,10 @@ public class GraphicalClef extends GraphicalObject {
 	
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalClef c = new GraphicalClef(symbol);
+		GraphicalClef c = new GraphicalClef(getSymbol());
 		c.setX(getX());
 		c.setY(getY());
-		setBounds(getBounds());
+		c.setBounds(getBounds());
 		return c;
 	}
 

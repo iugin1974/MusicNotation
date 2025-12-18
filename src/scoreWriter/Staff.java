@@ -3,7 +3,10 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import graphical.GraphicalClef;
+import graphical.GraphicalKeySignature;
 import graphical.GraphicalObject;
+import model.KeySignature;
 import model.Voice;
 
 public class Staff {
@@ -57,6 +60,26 @@ public class Staff {
 		return false;
 	}
 
+	public KeySignature getLastKeySignature() {
+		Voice v = voices.get(0);
+		for (int i = v.size() - 1; i >= 0; i--) {
+			if (v.get(i) instanceof GraphicalKeySignature) {
+				return ((GraphicalKeySignature)v.get(i)).getKeySignature();
+			}
+		}
+		return null;
+	}
+	
+	public GraphicalClef getLastClef() {
+		Voice v = voices.get(0);
+		for (int i = v.size() - 1; i >= 0; i--) {
+			if (v.get(i) instanceof GraphicalClef) {
+				return ((GraphicalClef)v.get(i));
+			}
+		}
+		return null;
+	}
+	
 	public void clearVoice(int voiceNumber) {
 		getVoice(voiceNumber).clear();
 	}

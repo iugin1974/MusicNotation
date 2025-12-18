@@ -1,18 +1,12 @@
 package graphical;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.PopupMenu;
-import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import model.MusicalSymbol;
-import musicInterface.MusicObject;
 import scoreWriter.ScoreWriter;
 import ui.PopupLauncher;
 

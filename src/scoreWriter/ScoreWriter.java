@@ -22,8 +22,6 @@ import graphical.GraphicalObject;
 import graphical.GraphicalRest;
 import graphical.GraphicalStaff;
 import graphical.GraphicalTimeSignature;
-import model.Clef;
-import model.Clef.ClefType;
 import model.KeySignature;
 import model.Lyric;
 import model.MusicalSymbol;
@@ -35,6 +33,7 @@ import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
+import notation.Clef;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.Pointer;
@@ -57,8 +56,23 @@ public class ScoreWriter {
 
 	private void test() {
 		addStaff();
+		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
+		c.setXY(80, 80);
+		score.addObject(c, 0, 0);
 		
+		GraphicalKeySignature k = new GraphicalKeySignature(120, gui.getStaff(0), new KeySignature(3, 1, Modus.MAJOR_SCALE));
+		score.addObject(k, 0, 0);
+		int[] xpos = {200,220,240,260,280,300,320};
+		int[] ypos = {100,95,90,85,80,75,70,65};
+		for (int i = 0; i<7; i++) {
+		GraphicalNote n = new GraphicalNote(SymbolRegistry.QUARTER_NOTE, new Note());
+		n.setXY(xpos[i], ypos[i]);
+		n.setStaffPosition(-2+i);
+		score.addObject(n, 0, 1);
 		
+		}
+		export();
+	//	System.exit(0);
 	}
 
 	public void addStaff() {
@@ -780,9 +794,10 @@ public class ScoreWriter {
 		else if (chosenValue > 0)
 			type = 1;
 		int alterationsNumber = Math.abs(chosenValue);
-		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE);
+		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); //TODO
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		GraphicalStaff staff = gui.getPointedStaff(x, y);
+		
 		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);
 		score.addObject(gks, staffIndex, 0);
 		gui.repaintPanel();
@@ -805,17 +820,15 @@ public class ScoreWriter {
 	}
 
 	public Clef createClef(MusicalSymbol clefSymbol) {
-		ClefType type;
 		if (clefSymbol.equals(SymbolRegistry.CLEF_TREBLE)) {
-			type = Clef.ClefType.TREBLE;
+			return Clef.TREBLE;
 		} else if (clefSymbol.equals(SymbolRegistry.CLEF_BASS)) {
-			type = Clef.ClefType.BASS;
+			return Clef.BASS;
 		} else if (clefSymbol.equals(SymbolRegistry.CLEF_TREBLE_8)) {
-			type = Clef.ClefType.TREBLE_8;
+			return Clef.TREBLE_8;
 		} else {
 			throw new IllegalArgumentException("Clef non supportata");
 		}
-		return new Clef(type);
 	}
 
 	public Bar getBar(MusicalSymbol barSymbol) {

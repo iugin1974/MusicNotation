@@ -8,6 +8,7 @@ import java.util.List;
 
 import model.KeySignature;
 import model.MusicalSymbol;
+import scoreWriter.SymbolRegistry;
 
 public class GraphicalKeySignature extends GraphicalObject {
 
@@ -23,20 +24,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 	private int nextAlteration;
 	int pos[];
 	private final KeySignature keySignature;
-	private ClefType clef;
 	
 	//private Font musicFont;
 	
 	private GraphicalStaff staff;
 	
-
-	// -------------------------------------------------------------------
-	// ENUM
-	// -------------------------------------------------------------------
-
-	public enum ClefType {
-		TREBLE, BASS
-	}
 
 	// -------------------------------------------------------------------
 	// COSTRUTTORE
@@ -145,7 +137,7 @@ public class GraphicalKeySignature extends GraphicalObject {
 		GraphicalKeySignature ks = new GraphicalKeySignature(getX(), staff, keySignature);
 		ks.setX(getX());
 		ks.setY(getY());
-		setBounds(getBounds());
+		ks.setBounds(getBounds());
 		return ks;
 	}
 
