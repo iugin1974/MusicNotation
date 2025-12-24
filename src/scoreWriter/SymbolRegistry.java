@@ -1,6 +1,6 @@
 package scoreWriter;
 
-import model.MusicalSymbol;
+import graphical.MusicalSymbol;
 import notation.SemitoneMap;
 
 public class SymbolRegistry {

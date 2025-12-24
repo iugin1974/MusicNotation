@@ -10,14 +10,17 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 
-import model.MusicalSymbol;
+import notation.Clef;
+import scoreWriter.SymbolRegistry;
 
 public class GraphicalClef extends GraphicalObject {
 
 	private MusicalSymbol symbol;
+	private Clef clef;
 	
-	public GraphicalClef(MusicalSymbol symbol) {
-		this.symbol = symbol;
+	public GraphicalClef(Clef clef) {
+		this.clef = clef;
+		symbol = setSymbol();
 		setup();
 	}
 	
@@ -35,7 +38,7 @@ public class GraphicalClef extends GraphicalObject {
 	
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalClef c = new GraphicalClef(getSymbol());
+		GraphicalClef c = new GraphicalClef(this.clef);
 		c.setX(getX());
 		c.setY(getY());
 		c.setBounds(getBounds());
@@ -74,6 +77,20 @@ public class GraphicalClef extends GraphicalObject {
 	 
 	 public int getMidiOffset() {
 		 return symbol.getMidiOffset();
+	 }
+
+	 @Override
+	 protected MusicalSymbol setSymbol() {
+		 switch (clef.getType()) {
+         case TREBLE:
+             return SymbolRegistry.CLEF_TREBLE;
+         case BASS:
+             return SymbolRegistry.CLEF_BASS;
+         case TREBLE_8:
+             return SymbolRegistry.CLEF_TREBLE_8;
+         default:
+             return SymbolRegistry.CLEF_TREBLE; // fallback
+     }
 	 }
 	 
 	}

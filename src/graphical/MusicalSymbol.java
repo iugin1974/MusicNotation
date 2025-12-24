@@ -1,4 +1,4 @@
-package model;
+package graphical;
 
 import scoreWriter.SymbolId;
 

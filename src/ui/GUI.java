@@ -53,19 +53,24 @@ import graphical.GraphicalClef;
 import graphical.GraphicalNote;
 import graphical.GraphicalObject;
 import graphical.GraphicalRest;
+import graphical.GraphicalScore;
 import graphical.GraphicalStaff;
 import graphical.LedgerLinesRenderer;
-import model.Lyric;
-import model.MusicalSymbol;
+import graphical.MusicalSymbol;
+import musicEvent.Note;
 import musicInterface.MusicObject;
+import notation.ScoreEvent;
+import notation.ScoreListener;
+import notation.Staff;
+import scoreWriter.Controller;
 import scoreWriter.ScoreWriter;
 import scoreWriter.SymbolRegistry;
 
-public class GUI extends JFrame {
+public class GUI extends JFrame implements ScoreListener {
 
 	private final int DISTANCE_BETWEEN_STAVES = 50;
 	private final int TOP_MARGIN = 50;
-	private ScoreWriter controller;
+	private Controller controller;
 	private Font musicFont, iconFont;
 	private int mouseX, mouseY;
 	private boolean insertMode = false;
@@ -79,7 +84,11 @@ public class GUI extends JFrame {
 	private ButtonGroup groupButtonsRests;
 	private LedgerLinesRenderer ledger;
 	private Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
-
+	protected GraphicalScore gScore;
+	private MusicObject pendingObject;
+	private int pendingX;
+	private int pendingY;
+	private int pendingVoice;
 
 	private void initFont() {
 		try {
@@ -102,8 +111,9 @@ public class GUI extends JFrame {
 		}
 	}
 
-	public GUI(ScoreWriter controller) {
+	public GUI(Controller controller, GraphicalScore gScore) {
 		this.controller = controller;
+		this.gScore = gScore;
 		ledger = new LedgerLinesRenderer();
 		initFont();
 		setTitle("Editor Musicale");
@@ -168,20 +178,19 @@ public class GUI extends JFrame {
 
 		JMenu lyricsMenu = new JMenu("Lyrics");
 		JMenuItem addLyricsMenu = new JMenuItem("add Lyrics");
-		
+
 		addLyricsMenu.addActionListener(new ActionListener() {
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		        // 'MainFrame.this' passa il JFrame principale alla dialog
-		        LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
-		        led.setVisible(true); // mostra la finestra modale
-		        repaintPanel();
-		    }
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 'MainFrame.this' passa il JFrame principale alla dialog
+				LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
+				led.setVisible(true); // mostra la finestra modale
+				repaintPanel();
+			}
 		});
 
 		lyricsMenu.add(addLyricsMenu);
-		
-		
+
 		menuBar.add(fileMenu);
 		menuBar.add(modificaMenu);
 		menuBar.add(lyricsMenu);
@@ -217,199 +226,169 @@ public class GUI extends JFrame {
 	}
 
 	private JPanel noteToolbar() {
-	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-	    p.setBackground(new Color(230, 230, 230));
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+		p.setBackground(new Color(230, 230, 230));
 
-	    MusicalSymbol[] notes = {
-	        SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
-	        SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE,
-	        SymbolRegistry.THIRTY_SECOND_NOTE, SymbolRegistry.SIXTY_FOURTH_NOTE
-	    };
+		MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
+				SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
+				SymbolRegistry.SIXTY_FOURTH_NOTE };
 
-	    groupButtonsNotes = new ButtonGroup();
+		groupButtonsNotes = new ButtonGroup();
 
-	    for (MusicalSymbol noteSymbol : notes) {
-	        JToggleButton btn = createIconToggleButton(noteSymbol.getGlyphUp(), iconFont);
-	        btn.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsNotes);
-	            objectToInsert = noteSymbol;
-	            insertMode = true;
-	            controller.setPointer(noteSymbol);
-	        });
-	        groupButtonsNotes.add(btn);
-	        p.add(btn);
-	    }
+		for (MusicalSymbol noteSymbol : notes) {
+			JToggleButton btn = createIconToggleButton(noteSymbol.getGlyphUp(), iconFont);
+			btn.addActionListener(e -> {
+				removeOtherSelections(groupButtonsNotes);
+				objectToInsert = noteSymbol;
+				insertMode = true;
+				controller.setPointer(noteSymbol);
+			});
+			groupButtonsNotes.add(btn);
+			p.add(btn);
+		}
 
-	    return p;
+		return p;
 	}
-
 
 	private JPanel restToolbar() {
-	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-	    p.setBackground(new Color(230, 230, 230));
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+		p.setBackground(new Color(230, 230, 230));
 
-	    MusicalSymbol[] rests = {
-	        SymbolRegistry.WHOLE_REST, SymbolRegistry.HALF_REST, SymbolRegistry.QUARTER_REST,
-	        SymbolRegistry.EIGHTH_REST, SymbolRegistry.SIXTEENTH_REST,
-	        SymbolRegistry.THIRTY_SECOND_REST, SymbolRegistry.SIXTY_FOURTH_REST
-	    };
+		MusicalSymbol[] rests = { SymbolRegistry.WHOLE_REST, SymbolRegistry.HALF_REST, SymbolRegistry.QUARTER_REST,
+				SymbolRegistry.EIGHTH_REST, SymbolRegistry.SIXTEENTH_REST, SymbolRegistry.THIRTY_SECOND_REST,
+				SymbolRegistry.SIXTY_FOURTH_REST };
 
-	    groupButtonsRests = new ButtonGroup();
+		groupButtonsRests = new ButtonGroup();
 
-	    for (MusicalSymbol restSymbol : rests) {
-	        JToggleButton btn = createIconToggleButton(restSymbol.getGlyph(), iconFont);
-	        btn.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsRests);
-	            insertMode = true;
-	            objectToInsert = restSymbol;
-	            controller.setPointer(restSymbol);
-	        });
-	        groupButtonsRests.add(btn);
-	        p.add(btn);
-	    }
+		for (MusicalSymbol restSymbol : rests) {
+			JToggleButton btn = createIconToggleButton(restSymbol.getGlyph(), iconFont);
+			btn.addActionListener(e -> {
+				removeOtherSelections(groupButtonsRests);
+				insertMode = true;
+				objectToInsert = restSymbol;
+				controller.setPointer(restSymbol);
+			});
+			groupButtonsRests.add(btn);
+			p.add(btn);
+		}
 
-	    return p;
+		return p;
 	}
-
 
 	private JPanel clefToolbar() {
-	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-	    p.setBackground(new Color(230, 230, 230));
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+		p.setBackground(new Color(230, 230, 230));
 
-	    MusicalSymbol[] clefs = {
-	        SymbolRegistry.CLEF_TREBLE,
-	        SymbolRegistry.CLEF_BASS,
-	        SymbolRegistry.CLEF_TREBLE_8
-	    };
+		MusicalSymbol[] clefs = { SymbolRegistry.CLEF_TREBLE, SymbolRegistry.CLEF_BASS, SymbolRegistry.CLEF_TREBLE_8 };
 
-	    groupButtonsClef = new ButtonGroup();
+		groupButtonsClef = new ButtonGroup();
 
-	    for (MusicalSymbol clefSymbol : clefs) {
-	        JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
-	        btn.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsClef);
-	            insertMode = true;
-	            objectToInsert = clefSymbol;
-	            controller.setPointer(clefSymbol);
-	        });
-	        groupButtonsClef.add(btn);
-	        p.add(btn);
-	    }
+		for (MusicalSymbol clefSymbol : clefs) {
+			JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
+			btn.addActionListener(e -> {
+				removeOtherSelections(groupButtonsClef);
+				insertMode = true;
+				objectToInsert = clefSymbol;
+				controller.setPointer(clefSymbol);
+			});
+			groupButtonsClef.add(btn);
+			p.add(btn);
+		}
 
-	    return p;
+		return p;
 	}
 
-
 	private JPanel barlineToolbar() {
-	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-	    p.setBackground(new Color(230, 230, 230));
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+		p.setBackground(new Color(230, 230, 230));
 
-	    MusicalSymbol[] bars = {
-	        SymbolRegistry.BARLINE_SINGLE, SymbolRegistry.BARLINE_DOUBLE,
-	        SymbolRegistry.BARLINE_FINAL, SymbolRegistry.BARLINE_REPEAT_START,
-	        SymbolRegistry.BARLINE_REPEAT_END
-	    };
+		MusicalSymbol[] bars = { SymbolRegistry.BARLINE_SINGLE, SymbolRegistry.BARLINE_DOUBLE,
+				SymbolRegistry.BARLINE_FINAL, SymbolRegistry.BARLINE_REPEAT_START, SymbolRegistry.BARLINE_REPEAT_END };
 
-	    groupButtonsBars = new ButtonGroup();
+		groupButtonsBars = new ButtonGroup();
 
-	    for (MusicalSymbol s : bars) {
-	        JToggleButton btn = createIconImageToggle(s.getIconPath());
-	        btn.addActionListener(e -> {
-	            removeOtherSelections(groupButtonsBars);
-	            objectToInsert = s;
-	            insertMode = true;
-	            controller.setPointer(s);
-	        });
-	        groupButtonsBars.add(btn);
-	        p.add(btn);
-	    }
+		for (MusicalSymbol s : bars) {
+			JToggleButton btn = createIconImageToggle(s.getIconPath());
+			btn.addActionListener(e -> {
+				removeOtherSelections(groupButtonsBars);
+				objectToInsert = s;
+				insertMode = true;
+				controller.setPointer(s);
+			});
+			groupButtonsBars.add(btn);
+			p.add(btn);
+		}
 
-	    return p;
+		return p;
 	}
 
 	private JPanel voiceToolbar() {
-	    JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
-	    p.setBackground(new Color(230, 230, 230));
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
+		p.setBackground(new Color(230, 230, 230));
 
-	    JToggleButton voice1 = new JToggleButton("Voce 1");
-	    JToggleButton voice2 = new JToggleButton("Voce 2");
+		JToggleButton voice1 = new JToggleButton("Voce 1");
+		JToggleButton voice2 = new JToggleButton("Voce 2");
 
-	    ButtonGroup g = new ButtonGroup();
-	    g.add(voice1);
-	    g.add(voice2);
+		ButtonGroup g = new ButtonGroup();
+		g.add(voice1);
+		g.add(voice2);
 
-	    voice1.setSelected(true);
+		voice1.setSelected(true);
 
-	    ActionListener listener = e -> {
-	        controller.setCurrentVoice( voice1.isSelected() ? 1 : 2 );
-	    };
+		ActionListener listener = e -> {
+			controller.setCurrentVoice(voice1.isSelected() ? 1 : 2);
+		};
 
-	    voice1.addActionListener(listener);
-	    voice2.addActionListener(listener);
+		voice1.addActionListener(listener);
+		voice2.addActionListener(listener);
 
-	    p.add(voice1);
-	    p.add(voice2);
+		p.add(voice1);
+		p.add(voice2);
 
-	    return p;
+		return p;
 	}
 
 	private JToggleButton createIconToggleButton(String textOrGlyph, Font font) {
-	    JToggleButton btn = new JToggleButton(textOrGlyph);
-	    btn.setFont(font);
-	    btn.setFocusPainted(false);
-	    btn.setContentAreaFilled(true);
-	    btn.setBackground(new Color(245, 245, 245));
-	    btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+		JToggleButton btn = new JToggleButton(textOrGlyph);
+		btn.setFont(font);
+		btn.setFocusPainted(false);
+		btn.setContentAreaFilled(true);
+		btn.setBackground(new Color(245, 245, 245));
+		btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
-	    btn.addChangeListener(e -> {
-	        if (btn.isSelected()) {
-	            btn.setBackground(new Color(200, 220, 255));
-	            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
-	        } else {
-	            btn.setBackground(new Color(245, 245, 245));
-	            btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-	        }
-	    });
-	    return btn;
+		btn.addChangeListener(e -> {
+			if (btn.isSelected()) {
+				btn.setBackground(new Color(200, 220, 255));
+				btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
+			} else {
+				btn.setBackground(new Color(245, 245, 245));
+				btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+			}
+		});
+		return btn;
 	}
 
 	private JToggleButton createIconImageToggle(String iconPath) {
-	    JToggleButton btn = new JToggleButton(new ImageIcon(getClass().getResource(iconPath)));
-	    btn.setFocusPainted(false);
-	    btn.setContentAreaFilled(true);
-	    btn.setBackground(new Color(245, 245, 245));
-	    btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+		JToggleButton btn = new JToggleButton(new ImageIcon(getClass().getResource(iconPath)));
+		btn.setFocusPainted(false);
+		btn.setContentAreaFilled(true);
+		btn.setBackground(new Color(245, 245, 245));
+		btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
-	    btn.addChangeListener(e -> {
-	        if (btn.isSelected()) {
-	            btn.setBackground(new Color(200, 220, 255));
-	            btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
-	        } else {
-	            btn.setBackground(new Color(245, 245, 245));
-	            btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-	        }
-	    });
-	    return btn;
-	}
-
-	private int calculateNextY() {
-		int yPos = TOP_MARGIN;
-		for (GraphicalStaff s : staffList) {
-			yPos += s.getHeight() + DISTANCE_BETWEEN_STAVES;
-		}
-		return yPos;
+		btn.addChangeListener(e -> {
+			if (btn.isSelected()) {
+				btn.setBackground(new Color(200, 220, 255));
+				btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
+			} else {
+				btn.setBackground(new Color(245, 245, 245));
+				btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+			}
+		});
+		return btn;
 	}
 
 	public GraphicalStaff getStaff(int i) {
 		return staffList.get(i);
-	}
-
-	public void addStaff(int id) {
-		if (staffList == null)
-			staffList = new ArrayList<>();
-		int yPos = calculateNextY();
-		GraphicalStaff gs = new GraphicalStaff(id, 0, yPos, mainPanel.getWidth(), 5, 10, controller);
-		staffList.add(gs);
 	}
 
 	public void repaintPanel() {
@@ -420,6 +399,10 @@ public class GUI extends JFrame {
 		mainPanel.setPreferredSize(new Dimension(w, h));
 		mainPanel.revalidate();
 
+	}
+
+	public JPanel getMainPanel() {
+		return mainPanel;
 	}
 
 	class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
@@ -449,46 +432,14 @@ public class GUI extends JFrame {
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setFont(musicFont);
-			if (staffList == null)
-				return;
-			drawStaves(g);
-			for (GraphicalObject object : controller.getAllObjects()) {
-				object.draw(g);
-				if (object instanceof GraphicalNote) {
-				    GraphicalNote n = (GraphicalNote) object;
-				    GraphicalStaff staff = getStaff(n.getStaffIndex());
-
-				    // Ledger lines
-				    ledger.drawLedgerLines(g, n, staff);
-
-				    // Disegna lyrics: una riga per ogni stanza
-				    if (n.hasLyric()) {
-				        int baseY = staff.getYPosOfLine(0) + 30;
-
-				        Font old = g.getFont();
-				        g.setFont(fontLyric);
-
-				        int maxStanze = 10;   // o un valore configurabile
-
-				        for (int stanza = 0; stanza < maxStanze; stanza++) {
-				            Lyric lyric = n.getLyric(stanza);
-				            if (lyric != null) {
-				                int y = baseY + (stanza * (fontLyric.getSize() + 6));
-				                lyric.draw(g, g.getFontMetrics(), y);
-				            }
-				        }
-
-				        g.setFont(old);
-				    }
-				}
-
-			}
+			gScore.draw(g);
 
 			if (insertMode && mouseX > 0 && mouseY > 0) {
 				Pointer pointer = controller.getPointer();
 				pointer.draw(g);
 				GraphicalStaff staff = getPointedStaff(mouseX, mouseY);
-				if (staff == null) return;
+				if (staff == null)
+					return;
 				ledger.drawLedgerLines(g, pointer, staff);
 			}
 		}
@@ -499,10 +450,10 @@ public class GUI extends JFrame {
 			if (SwingUtilities.isRightMouseButton(e)) {
 				GraphicalObject o = controller.getObjectAt(e.getX(), e.getY());
 				if (o instanceof PopupLauncher) {
-					JPopupMenu menu = ((PopupLauncher)o).getMenu(e.getX(), e.getY());
+					JPopupMenu menu = ((PopupLauncher) o).getMenu(e.getX(), e.getY());
 					menu.show(this, e.getX(), e.getY());
 				}
-				
+
 			}
 			boolean ctrl = e.isControlDown();
 
@@ -512,7 +463,7 @@ public class GUI extends JFrame {
 					int y = controller.getPointer().getY();
 					controller.insertObject(objectToInsert, x, y);
 				} else {
-				controller.insertObject(objectToInsert, e.getX(), e.getY());
+					controller.insertObject(objectToInsert, e.getX(), e.getY());
 				}
 			} else {
 				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
@@ -548,7 +499,8 @@ public class GUI extends JFrame {
 			int mouseY = e.getY();
 			// 1) Trova lo staff sotto il mouse
 			int staffNumber = getPointedStaffIndex(mouseX, mouseY);
-			if (staffNumber == -1) return;
+			if (staffNumber == -1)
+				return;
 			GraphicalStaff targetStaff = staffList.get(staffNumber);
 
 			if (e.isControlDown()) {
@@ -584,16 +536,18 @@ public class GUI extends JFrame {
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			if (staffList != null && controller.pointerExists()) {
+			if (gScore.hasStaves() && controller.pointerExists()) {
 				mouseX = e.getX();
 				mouseY = e.getY();
 				// in quale Staff è il puntatore?
-				int staffN = getPointedStaffIndex(mouseX, mouseY);
-				if (staffN == -1)
-					return;
-				int snapY = mouseY;
-				snapY = getSnapY(staffList.get(staffN), mouseY);
-				controller.movePointerTo(mouseX, snapY);
+				GraphicalStaff s = getPointedStaff(mouseX, mouseY);
+				if (s == null) {
+					controller.movePointerTo(mouseX, mouseY);
+				} else {
+					int snapY = mouseY;
+					snapY = getSnapY(s, mouseY);
+					controller.movePointerTo(mouseX, snapY);
+				}
 				repaint();
 			}
 		}
@@ -635,29 +589,31 @@ public class GUI extends JFrame {
 		}
 	}
 
-
-	
-	/** Ritorna l'indice dello staff alla posizione mouseX, mouseY
-	 * oppure -1 se no vi è nessuno staff 
+	/**
+	 * Ritorna l'indice dello staff alla posizione mouseX, mouseY oppure -1 se no vi
+	 * è nessuno staff
+	 * 
 	 * @param mouseX
 	 * @param mouseY
 	 * @return
 	 */
-	public int getPointedStaffIndex(int mouseX, int mouseY) {
-		int staffN = -1;
-		for (int i = 0; i < staffList.size(); i++) {
-			if (staffList.get(i).contains(mouseX, mouseY)) {
-				staffN = i;
-				break;
-			}
-		}
-		return staffN;
-	}
+//	public int getPointedStaffIndex(int mouseX, int mouseY) {
+//		int staffN = -1;
+//		for (int i = 0; i < staffList.size(); i++) {
+//			if (staffList.get(i).hitTest(mouseX, mouseY) != null) {
+//				staffN = i;
+//				break;
+//			}
+//		}
+//		return staffN;
+//	}
 
 	public GraphicalStaff getPointedStaff(int mouseX, int mouseY) {
-		int pos = getPointedStaffIndex(mouseX, mouseY);
-		if (pos == -1) return null;
-		return staffList.get(pos);
+		for (GraphicalStaff s : gScore.getStaves()) {
+			if (s.getBounds().contains(mouseX, mouseY))
+				return s;
+		}
+		return null;
 	}
 
 	public ArrayList<GraphicalStaff> getStaffList() {
@@ -701,4 +657,34 @@ public class GUI extends JFrame {
 		repaint();
 	}
 
+	@Override
+	public void scoreChanged(ScoreEvent e) {
+
+	    switch (e.getType()) {
+	    case STAFF_ADDED:
+	    	gScore.createGraphicalStaff(0, e, getWidth());
+	    	break;
+	        case NOTE_ADDED:
+	        case REST_ADDED:
+	        case BARLINE_ADDED:
+
+	            gScore.createGraphicalObject(
+	                e, pendingX, pendingY);
+	            
+	            break;
+		default:
+			break;
+	    }
+		clearPendingInsertion();
+	    mainPanel.repaint();
+	}
+	
+	public void prepareGraphicalInsertion(int x, int y) {
+	    this.pendingX = x;
+	    this.pendingY = y;
+	}
+	
+	private void clearPendingInsertion() {
+	    pendingX = pendingY = -1;
+	}
 }

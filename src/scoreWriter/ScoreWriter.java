@@ -22,26 +22,23 @@ import graphical.GraphicalObject;
 import graphical.GraphicalRest;
 import graphical.GraphicalStaff;
 import graphical.GraphicalTimeSignature;
-import model.KeySignature;
-import model.Lyric;
-import model.MusicalSymbol;
-import model.Syllable;
-import model.Voice;
-import musicEvent.KeyAlteration;
+import graphical.MusicalSymbol;
+import graphical.StaffActionListener;
 import musicEvent.Modus;
 import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
+import notation.Staff;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.Pointer;
 import ui.TimeSignatureDialog;
 
-public class ScoreWriter {
+public class ScoreWriter implements StaffActionListener {
 
-	private Score score;
+	private notation.Score score;
 	private SpatialGrid grid;
 	private SelectionManager selectionManager;
 	private GUI gui;
@@ -49,13 +46,13 @@ public class ScoreWriter {
 	private Pointer pointer;
 
 	public ScoreWriter() {
-		score = new Score();
+		score = new notation.Score();
 		selectionManager = new SelectionManager();
 		grid = new SpatialGrid(20);
 	}
 
 	private void test() {
-		addStaff();
+/*		addStaff();
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
 		c.setXY(80, 80);
 		score.addObject(c, 0, 0);
@@ -71,14 +68,12 @@ public class ScoreWriter {
 		score.addObject(n, 0, 1);
 		
 		}
-		export();
+		export();*/
 	//	System.exit(0);
 	}
 
 	public void addStaff() {
 		score.addStaff();
-		selectionManager.addStaff();
-		gui.addStaff(score.getStaffCount() - 1);
 		gui.repaint();
 	}
 
@@ -86,7 +81,7 @@ public class ScoreWriter {
 		return voiceNumber;
 	}
 
-	public List<Staff> getStaffList() {
+	public List<notation.Staff> getStaffList() {
 		return score.getAllStaves();
 	}
 
@@ -95,15 +90,15 @@ public class ScoreWriter {
 	}
 
 	/** restituisce una lista con tutti gli oggetti di tutti gli staves */
-	public List<GraphicalObject> getAllObjects() {
+	public List<MusicObject> getAllObjects() {
 		return score.getAllObjects();
 	}
 
-	public List<GraphicalObject> getVoice(int staffNumber, int voiceNumber) {
+	public List<MusicObject> getVoice(int staffNumber, int voiceNumber) {
 		return score.getObjects(staffNumber, voiceNumber);
 	}
 
-	public List<GraphicalObject> getVoices(int staffNumber) {
+	public List<MusicObject> getVoices(int staffNumber) {
 		return score.getObjects(staffNumber);
 	}
 
@@ -118,7 +113,7 @@ public class ScoreWriter {
 
 		// 1) Prima controlla gli oggetti normali
 		for (GraphicalObject object : score.getAllObjects()) {
-			if (object.contains(x, y))
+			if (object.hitTest(x, y))
 				return object;
 		}
 
@@ -327,7 +322,7 @@ public class ScoreWriter {
 
 		for (int i = 0; i < score.getStaffCount(); i++) {
 			GraphicalStaff gs = gui.getStaff(i);
-			if (gs.contains(x, y)) {
+			if (gs.hitTest(x, y)) {
 				return i;
 			}
 		}
@@ -346,13 +341,14 @@ public class ScoreWriter {
 
 	private void slurOrTie() {
 		for (int i = 0; i < selectionManager.getNumberOfStaves(); i++) {
-			ArrayList<GraphicalNote> selectedNotes = selectionManager.getSelectedNotesFromStaff(i);
+			List<GraphicalNote> selectedGraphicalNotes = selectionManager.getSelectedNotesFromStaff(i);
+			List<Note> selectedNotes = getNotesFromGraphicalList(selectedGraphicalNotes);
 			if (selectedNotes.isEmpty())
 				continue;
 
 			if (selectedNotes.size() == 1) {
-				GraphicalNote n1 = selectedNotes.get(0);
-				GraphicalNote n2 = score.getNextNote(n1);
+				Note n1 = selectedNotes.get(0);
+				Note n2 = score.getNextNote(n1);
 				if (n2 == null)
 					continue;
 
@@ -849,6 +845,26 @@ public class ScoreWriter {
 		}
 
 		return bar;
+	}
+	
+	private List<Note> getNotesFromGraphicalList(List<GraphicalNote> l) {
+		List<Note> list = new ArrayList<>();
+		for (GraphicalNote g : l) {
+			list.add(g.getNote());
+		}
+		return list;
+	}
+
+	@Override
+	public void requestKeySignature(Staff staff) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void requestTimeSignature(Staff staff) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

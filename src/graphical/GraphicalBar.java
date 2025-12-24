@@ -6,16 +6,17 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 import Measure.Bar;
-import model.MusicalSymbol;
+import Measure.Bar.Type;
+import scoreWriter.SymbolRegistry;
 
 public class GraphicalBar extends GraphicalObject {
 
 	private MusicalSymbol symbol;
 	private final Bar bar;
 
-	public GraphicalBar(MusicalSymbol barlineSymbol, Bar bar) {
-		this.symbol = barlineSymbol;
+	public GraphicalBar(Bar bar) {
 		this.bar = bar;
+		symbol = setSymbol();
 	}
 
 	@Override
@@ -39,7 +40,7 @@ public class GraphicalBar extends GraphicalObject {
 
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalBar newBar = new GraphicalBar(symbol, bar);
+		GraphicalBar newBar = new GraphicalBar(bar);
 		newBar.setX(getX());
 		newBar.setY(getY());
 		newBar.setBounds(getBounds());
@@ -52,5 +53,24 @@ public class GraphicalBar extends GraphicalObject {
 	
 	public Bar getBar() {
 		return bar;
+	}
+
+	@Override
+	protected MusicalSymbol setSymbol() {
+		Type t = bar.getType();
+		 switch (t) {
+         case NORMAL:
+             return SymbolRegistry.BARLINE_SINGLE;
+         case DOUBLE:
+             return SymbolRegistry.BARLINE_DOUBLE;
+         case END:
+             return SymbolRegistry.BARLINE_FINAL;
+         case BEGIN_REPEAT:
+             return SymbolRegistry.BARLINE_REPEAT_START;
+         case END_REPEAT:
+             return SymbolRegistry.BARLINE_REPEAT_END;
+         default:
+             return SymbolRegistry.BARLINE_SINGLE; // fallback
+     }
 	}
 }

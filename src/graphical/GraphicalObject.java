@@ -2,13 +2,13 @@ package graphical;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import model.MusicalSymbol;
 public abstract class GraphicalObject {
 	
 	private boolean selected = false;
 	private int x = 0;
 	private int y = 0;
-	private Rectangle bounds = null;
+	protected Rectangle bounds = null;
+	protected GraphicalObject parent;
 	
 	public int getX() {
 		return x;
@@ -57,8 +57,11 @@ public abstract class GraphicalObject {
 		return bounds;
 	}
 	
-	public boolean contains(int x, int y) {
-		return bounds != null && bounds.contains(x, y);
+	public GraphicalObject hitTest(int x, int y) {
+	    if (bounds != null && bounds.contains(x, y)) {
+	        return this;
+	    }
+	    return null;
 	}
 	
 	public void drawBounds(Graphics g) {
@@ -86,6 +89,11 @@ public abstract class GraphicalObject {
 	    g.setColor(old);
 	}
 		
+	public GraphicalObject getParent() {
+	    return parent;
+	}
+	
 	public abstract void draw(Graphics g);
 	public abstract GraphicalObject cloneObject();
+	protected abstract MusicalSymbol setSymbol();
 }

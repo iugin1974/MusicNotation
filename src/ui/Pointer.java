@@ -7,7 +7,8 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 
-import model.MusicalSymbol;
+import graphical.MusicalSymbol;
+import scoreWriter.Controller;
 import scoreWriter.ScoreWriter;
 import scoreWriter.StaffInfo;
 
@@ -15,9 +16,9 @@ public class Pointer implements StaffInfo {
 
 	private int x, y;
 	private MusicalSymbol symbol;
-	private ScoreWriter controller;
+	private Controller controller;
 	
-	public Pointer(ScoreWriter controller, MusicalSymbol noteSymbol) {
+	public Pointer(Controller controller, MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
 		this.controller = controller;
 		init();
@@ -49,7 +50,7 @@ public class Pointer implements StaffInfo {
 	}
 
 	public void draw(Graphics g) {
-		int voiceNumber = controller.getVoiceType();
+		int voiceNumber = 1;//controller.getVoiceType();
 		// se il costruttore ha solo un glifo, prende quello.
 		String glyph = null;
 				// TODO riscrivi la funzione. Le pause hanno lo stesso glifo per one e two

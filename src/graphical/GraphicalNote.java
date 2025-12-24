@@ -10,37 +10,27 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-
-import model.Lyric;
-import model.MusicalSymbol;
 import musicEvent.Note;
-import scoreWriter.CurvedConnection;
-import scoreWriter.Slur;
+import notation.Lyric;
 import scoreWriter.StaffInfo;
-import scoreWriter.Tie;
+import scoreWriter.SymbolRegistry;
 
 public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 	private MusicalSymbol symbol;
-	private Slur slur;
 	private final Note note;
 	private boolean slurStart = false;
 	private boolean slurEnd = false;
 	private boolean tieStart = false;
 	private boolean tieEnd = false;
-	private int voice = 1;
-	private Tie tie;
 	private int staffIndex;
 	private int staffPosition; // 0 MI, 1 FA, ecc.
 	private Map<Integer, Lyric> lyrics = null;
 
-	public GraphicalNote(MusicalSymbol symbol, Note n) {
-		this.symbol = symbol;
+	public GraphicalNote(Note n) {
 		this.note = n;
+		this.symbol = setSymbol();
 		setup();
 	}
 
@@ -56,32 +46,6 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		ge.registerFont(font);
 	}
 
-	public void setVoice(int voice) {
-		this.voice = voice;
-	}
-
-	public void setSlur(Slur slur) {
-		this.slur = slur;
-	}
-
-	public void setTie(Tie tie) {
-		this.tie = tie;
-	}
-
-	public Slur getSlur() {
-		return slur;
-	}
-
-	public Tie getTie() {
-		return tie;
-	}
-
-	public CurvedConnection getCurvedConnection() {
-		if (tie != null)
-			return tie;
-		return slur; // che può essere null. Quindi ritorna null se entrambi non esistono
-	}
-
 	public boolean isCurveStart() {
 		return isTiedStart() || isSlurStart();
 	}
@@ -90,9 +54,25 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		return isTiedEnd() || isSlurEnd();
 	}
 
+	protected MusicalSymbol setSymbol() {
+		int dur = note.getDuration(); // 0 = whole, 1 = half, 2 = quarter, ecc.
+
+	    return switch (dur) {
+	        case 0 -> SymbolRegistry.WHOLE_NOTE;
+	        case 1 -> SymbolRegistry.HALF_NOTE;
+	        case 2 -> SymbolRegistry.QUARTER_NOTE;
+	        case 3 -> SymbolRegistry.EIGHTH_NOTE;
+	        case 4 -> SymbolRegistry.SIXTEENTH_NOTE;
+	        case 5 -> SymbolRegistry.THIRTY_SECOND_NOTE;
+	        case 6 -> SymbolRegistry.SIXTY_FOURTH_NOTE;
+	        default -> SymbolRegistry.QUARTER_NOTE; // fallback
+	    };
+	}
+	
 	@Override
 	public void draw(Graphics g) {
 		String glyph;
+		int voice = note.getVoice();
 		if (voice == 1)
 			glyph = symbol.getGlyphUp();
 		else
@@ -106,15 +86,15 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		Rectangle bounds = new Rectangle(getX(), getY() - ascent, width, height);
 		setBounds(bounds);
 		
-		setColor(g);
-		if (isSelected()) {
-			g.setColor(Color.RED);
-		}
+		setColor(g, voice);		
 		g.drawString(glyph, getX(), getY());
-		setColor(g);
 	}
 
-	private void setColor(Graphics g) {
+	private void setColor(Graphics g, int voice) {
+		if (isSelected()) {
+			g.setColor(Color.RED);
+			return;
+		}
 		if (voice == 1) {
 			g.setColor(Color.BLACK);
 		} else if (voice == 2) {
@@ -126,7 +106,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 		@Override
 	public GraphicalObject cloneObject() {
-		GraphicalNote n = new GraphicalNote(symbol, note);
+		GraphicalNote n = new GraphicalNote(note);
 		n.setX(getX());
 		n.setY(getY());
 		n.setBounds(getBounds());

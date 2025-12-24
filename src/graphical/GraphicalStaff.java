@@ -2,32 +2,51 @@ package graphical;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import model.MusicalSymbol;
+import notation.Staff;
 import scoreWriter.ScoreWriter;
 import ui.PopupLauncher;
 
 public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
+	
+	private Staff staff;
 	private int id = 0;
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
 	private final int MAX_LEDGER_LINES = 3; // i tagli addizionali
-	private ScoreWriter controller;
+	private StaffActionListener actionListener;
 
-	public GraphicalStaff(int id, int x, int y, int width, int lineNumber, int distanceBetweenLines, ScoreWriter controller) {
+	public GraphicalStaff(Staff staff, int id, int x, int y, int width, int lineNumber, int distanceBetweenLines) {
+		this.staff = staff;
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.lineNumber = lineNumber;
 		this.distanceBetweenLines = distanceBetweenLines;
-		this.controller = controller;
 		this.id = id;
+		setBounds();
+		
+	}
+	
+	private void setBounds() {
+		int rectX = x;
+		int rectY = y - (distanceBetweenLines * MAX_LEDGER_LINES);
+		int rectWidth = width;
+		int rectHeight = (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_LEDGER_LINES * 2);
+		bounds = new Rectangle(rectX, rectY, rectWidth, rectHeight);
 	}
 
+	public void setActionListener(StaffActionListener listener) {
+	    this.actionListener = listener;
+	}
+	
 	public void setWidth(int width) {
 		this.width = width;
 	}
@@ -205,13 +224,6 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		return id;
 	}
 
-	
-	@Override
-	public boolean contains(int px, int py) {
-		return px >= x && px <= (x + width) && py >= y - (distanceBetweenLines * MAX_LEDGER_LINES)
-				&& py <= (y + (lineNumber * distanceBetweenLines) + (distanceBetweenLines * MAX_LEDGER_LINES));
-	}
-
 	@Override
 	public GraphicalObject cloneObject() {
 		// TODO Auto-generated method stub
@@ -229,9 +241,24 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		JMenuItem i2 = new JMenuItem("Time signature");
         menu.add(i1);
         menu.add(i2);
-        i1.addActionListener(e -> controller.setKeySignature(x, y));        
-        i2.addActionListener(e -> controller.setTimeSignature(x, y));        
+        i1.addActionListener(e -> {
+            if (actionListener != null) {
+                actionListener.requestKeySignature(staff);
+            }
+        });
+
+        i2.addActionListener(e -> {
+            if (actionListener != null) {
+                actionListener.requestTimeSignature(staff);
+            }
+        });
+
         
         return menu;
+	}
+
+	@Override
+	protected MusicalSymbol setSymbol() {
+		return null;
 	}
 }

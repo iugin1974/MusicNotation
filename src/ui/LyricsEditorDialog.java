@@ -2,6 +2,7 @@ package ui;
 
 import javax.swing.*;
 
+import scoreWriter.Controller;
 import scoreWriter.ScoreWriter;
 
 import java.awt.*;
@@ -17,9 +18,9 @@ public class LyricsEditorDialog extends JDialog {
     private JButton pasteButton;
     private JButton cancelButton;
 
-    private final ScoreWriter controller;
+    private final Controller controller;
 
-    public LyricsEditorDialog(JFrame parent, ScoreWriter controller) {
+    public LyricsEditorDialog(JFrame parent, Controller controller) {
         super(parent, "Inserisci Lyrics", true);
         this.controller = controller;
 

@@ -1,60 +1,31 @@
-package scoreWriter;
+package graphical;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.CubicCurve2D;
 
-import graphical.GraphicalNote;
-import graphical.GraphicalObject;
-import model.MusicalSymbol;
+import notation.CurvedConnection;
 
-public abstract class CurvedConnection extends GraphicalObject {
+public abstract class GraphicalCurvedConnection extends GraphicalObject {
 
     protected GraphicalNote startNote;
     protected GraphicalNote endNote;
+    protected CurvedConnection model;
 
     private int x1, y1;
     boolean slurAbove = true;
 
-    public abstract void assignToNotes(GraphicalNote startNote, GraphicalNote endNote);
-
-    // -----------------------------
-    //     GETTER PER LE NOTE
-    // -----------------------------
-    public GraphicalNote getStartNote() {
-        return startNote;
+    protected GraphicalCurvedConnection(CurvedConnection model) {
+        this.model = model;
     }
 
-    public GraphicalNote getEndNote() {
-        return endNote;
+    public CurvedConnection getModel() {
+        return model;
     }
-
-    public void removeFromNotes() {
-        if (this instanceof Slur) {
-            if (startNote != null) {
-                startNote.setSlur(null);
-                startNote.slurNone();
-            }
-            if (endNote != null) {
-                endNote.setSlur(null);
-                endNote.slurNone();
-            }
-        } else if (this instanceof Tie) {
-            if (startNote != null) {
-                startNote.setTie(null);
-                startNote.tieNone();
-            }
-            if (endNote != null) {
-                endNote.setTie(null);
-                endNote.tieNone();
-            }
-        }
-    }
-
+    
     public void setX1Y1(int x, int y) { x1 = x; y1 = y; }
     public int getX1() { return x1; }
     public void setX1(int x1) { this.x1 = x1; }
@@ -102,4 +73,6 @@ public abstract class CurvedConnection extends GraphicalObject {
     public MusicalSymbol getSymbol() {
         return null;
     }
+
+
 }

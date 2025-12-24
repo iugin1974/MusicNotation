@@ -1,14 +1,7 @@
 package graphical;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import model.KeySignature;
-import model.MusicalSymbol;
-import scoreWriter.SymbolRegistry;
+import notation.KeySignature;
 
 public class GraphicalKeySignature extends GraphicalObject {
 
@@ -51,8 +44,9 @@ public class GraphicalKeySignature extends GraphicalObject {
 	private void computeLayout() {
 		int numberOfAlterations = keySignature.getNumberOfAlterations();
 		int typeOfAlterations = keySignature.getTypeOfAlterations();
-		int[] keySignatureSharpsIndex = keySignature.getSharpsIndex();
-		int[] keySignatureFlatsIndex = keySignature.getFlatsIndex();
+		int[] keySignatureSharpsIndex = { 8, 5, 9, 6, 3, 7, 4 };
+		int[] keySignatureFlatsIndex = { 4, 7, 3, 6, 2, 5, 1 };
+
 		// Array che conterrà le coordinate Y di tutte le alterazioni da disegnare
 		pos = new int[numberOfAlterations];
 
@@ -148,6 +142,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 	
 	public KeySignature getKeySignature() {
 		return keySignature;
+	}
+
+	@Override
+	protected MusicalSymbol setSymbol() {
+		return null;
 	}
 
 }
