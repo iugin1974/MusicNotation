@@ -9,6 +9,7 @@ import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import musicInterface.MusicObject;
 import notation.Staff;
 import scoreWriter.ScoreWriter;
 import ui.PopupLauncher;
@@ -49,6 +50,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	
 	public void setWidth(int width) {
 		this.width = width;
+		setBounds();
 	}
 	
 	public int getWidth() {
@@ -259,6 +261,11 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 
 	@Override
 	protected MusicalSymbol setSymbol() {
+		return null;
+	}
+
+	@Override
+	public MusicObject getModelObject() {
 		return null;
 	}
 }

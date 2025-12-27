@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 
 import Measure.Bar;
 import Measure.Bar.Type;
+import musicInterface.MusicObject;
 import scoreWriter.SymbolRegistry;
 
 public class GraphicalBar extends GraphicalObject {
@@ -19,6 +20,7 @@ public class GraphicalBar extends GraphicalObject {
 		symbol = setSymbol();
 	}
 
+	
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyph();
@@ -73,4 +75,11 @@ public class GraphicalBar extends GraphicalObject {
              return SymbolRegistry.BARLINE_SINGLE; // fallback
      }
 	}
+
+
+	@Override
+	public Bar getModelObject() {
+		return bar;
+	}
+
 }

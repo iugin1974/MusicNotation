@@ -1,6 +1,8 @@
 package graphical;
 
 import java.awt.*;
+
+import musicInterface.MusicObject;
 import notation.KeySignature;
 
 public class GraphicalKeySignature extends GraphicalObject {
@@ -147,6 +149,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 	@Override
 	protected MusicalSymbol setSymbol() {
 		return null;
+	}
+
+	@Override
+	public KeySignature getModelObject() {
+		return keySignature;
 	}
 
 }

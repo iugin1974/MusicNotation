@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.CubicCurve2D;
 
+import musicInterface.MusicObject;
 import notation.CurvedConnection;
 
 public abstract class GraphicalCurvedConnection extends GraphicalObject {
@@ -74,5 +75,8 @@ public abstract class GraphicalCurvedConnection extends GraphicalObject {
         return null;
     }
 
-
+    @Override
+	public MusicObject getModelObject() {
+		return null;
+	}
 }

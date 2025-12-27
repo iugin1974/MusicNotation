@@ -63,18 +63,6 @@ public class Pointer implements StaffInfo {
 	}
 
 	@Override
-	public void setStaffIndex(int i) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int getStaffIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public void setStaffPosition(int p) {
 		// TODO Auto-generated method stub
 		

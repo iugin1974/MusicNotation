@@ -13,6 +13,7 @@ import javax.swing.plaf.synth.SynthPopupMenuUI;
 import Measure.Bar;
 import musicEvent.Note;
 import musicEvent.Rest;
+import notation.Clef;
 import notation.Score;
 import notation.ScoreEvent;
 import notation.ScoreEvent.Type;
@@ -25,7 +26,8 @@ public class GraphicalScore {
 	private Score score;
 	private ScoreWriter controller;
 	private List<GraphicalStaff> staves = new ArrayList<>();
-	private List<GraphicalObject> objects = new ArrayList<>();
+	private Map<MusicObject, GraphicalObject> objects = new HashMap<>();
+	protected final LedgerLinesRenderer ledgerRenderer = new LedgerLinesRenderer();
 
 	private final int DISTANCE_BETWEEN_STAVES = 50;
 	private final int TOP_MARGIN = 50;
@@ -38,21 +40,64 @@ public class GraphicalScore {
 	}
 
 	public GraphicalObject hitTest(int x, int y) {
-		for (GraphicalStaff staff : staves) {
-			GraphicalObject hit = staff.hitTest(x, y);
-			if (hit != null)
-				return hit;
-		}
-		return null; // niente colpito
+
+	    // 1️⃣ oggetti grafici (note, pause, ecc.) – dal più in alto al più in basso
+	    List<GraphicalObject> objs =
+	            new ArrayList<>(objects.values());
+
+	    for (int i = objs.size() - 1; i >= 0; i--) {
+	        GraphicalObject obj = objs.get(i);
+	        GraphicalObject hit = obj.hitTest(x, y);
+	        if (hit != null)
+	            return hit;
+	    }
+
+	    // 2️⃣ pentagrammi
+	    for (GraphicalStaff staff : staves) {
+	        GraphicalObject hit = staff.hitTest(x, y);
+	        if (hit != null)
+	            return hit;
+	    }
+
+	    return null;
 	}
 
+
+	public boolean removeObject(GraphicalObject go) {
+	    if (go == null)
+	        return false;
+
+	    MusicObject mo = go.getModelObject();
+	    if (mo == null)
+	        return false;
+
+	    GraphicalObject removed = objects.remove(mo);
+	    if (removed != null) {
+	        return true;
+	    }
+	    return false;
+	}
+
+	
+	public boolean removeObject(MusicObject mo) {
+	    if (mo == null)
+	        return false;
+
+	    GraphicalObject removed = objects.remove(mo);
+	    if (removed != null) {
+	        return true;
+	    }
+	    return false;
+	}
+
+	
 	public void setWidth(int w) {
 		width = w;
 	}
 
 	public void createGraphicalStaff(int id, ScoreEvent e, int width) {
 		int yPos = calculateNextY();
-		Staff staff = (Staff) e.getSource();
+		Staff staff = e.getStaff();
 		GraphicalStaff s = new GraphicalStaff(staff, id, 0, yPos, width, LINE_NUMBER, DISTANCE_BETWEEN_LINES);
 		staves.add(s);
 	}
@@ -69,9 +114,9 @@ public class GraphicalScore {
 		for (GraphicalStaff s : staves) {
 			s.draw(g);
 		}
-		for (GraphicalObject obj : objects) {
-			obj.draw(g);
-		}
+	    for (GraphicalObject obj : objects.values()) {
+	        obj.draw(g);
+	    }
 	}
 
 	public boolean hasStaves() {
@@ -82,6 +127,14 @@ public class GraphicalScore {
 		return staves;
 	}
 
+	public int getStaffCount() {
+		return staves.size();
+	}
+	
+	public GraphicalStaff getStaff(int i) {
+		return staves.get(i);
+	}
+	
 	public int getStaffIndex(GraphicalStaff s) {
 		for (int i = 0; i < staves.size(); i++) {
 			if (staves.get(i) == s)
@@ -97,24 +150,33 @@ public class GraphicalScore {
 		switch (e.getType()) {
 
 		case Type.NOTE_ADDED:
-			gObj = new GraphicalNote((Note) e.getSource());
+			gObj = new GraphicalNote((Note) e.getMusicObject(), this);
 			gObj.setXY(x, y);
 			break;
 
 		case Type.REST_ADDED:
-			gObj = new GraphicalRest((Rest) e.getSource());
+			gObj = new GraphicalRest((Rest) e.getMusicObject());
 			break;
 
 		case Type.BARLINE_ADDED:
-			gObj = new GraphicalBar((Bar) e.getSource());
+			gObj = new GraphicalBar((Bar) e.getMusicObject());
+			gObj.setXY(x, y);
+			break;
+			
+		case Type.CLEF_ADDED:
+			gObj = new GraphicalClef((Clef) e.getMusicObject());
 			gObj.setXY(x, y);
 			break;
 		default:
 			break;
 		}
 
-		objects.add(gObj);
+		objects.put(e.getMusicObject(), gObj);
 		return gObj;
+	}
+	
+	public GraphicalObject getObject(MusicObject o) {
+		return objects.get(o);
 	}
 
 }

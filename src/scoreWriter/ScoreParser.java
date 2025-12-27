@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import graphical.GraphicalObject;
+import notation.Score;
+import notation.Staff;
 
 public class ScoreParser {
 

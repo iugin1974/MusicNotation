@@ -2,13 +2,19 @@ package graphical;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import musicInterface.MusicObject;
+
 public abstract class GraphicalObject {
 	
 	private boolean selected = false;
 	private int x = 0;
 	private int y = 0;
 	protected Rectangle bounds = null;
-	protected GraphicalObject parent;
+	protected GraphicalScore gScore;
+	
+	public void setGraphicalScore(GraphicalScore gScore) {
+		this.gScore = gScore;
+	}
 	
 	public int getX() {
 		return x;
@@ -57,12 +63,22 @@ public abstract class GraphicalObject {
 		return bounds;
 	}
 	
-	public GraphicalObject hitTest(int x, int y) {
-	    if (bounds != null && bounds.contains(x, y)) {
-	        return this;
-	    }
-	    return null;
+	public int getWidth() {
+		return bounds.width;
 	}
+	
+	public int getHeight() {
+		return bounds.height;
+	}
+	
+    public boolean contains(int x, int y) {
+        return bounds != null && bounds.contains(x, y);
+    }
+
+    /** override se serve */
+    public GraphicalObject hitTest(int x, int y) {
+        return contains(x, y) ? this : null;
+    }
 	
 	public void drawBounds(Graphics g) {
 	    if (bounds == null) {
@@ -89,11 +105,8 @@ public abstract class GraphicalObject {
 	    g.setColor(old);
 	}
 		
-	public GraphicalObject getParent() {
-	    return parent;
-	}
-	
 	public abstract void draw(Graphics g);
 	public abstract GraphicalObject cloneObject();
 	protected abstract MusicalSymbol setSymbol();
+	public abstract MusicObject getModelObject();
 }

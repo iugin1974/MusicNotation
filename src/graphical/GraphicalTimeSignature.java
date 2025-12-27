@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import Measure.TimeSignature;
+import musicInterface.MusicObject;
 
 public class GraphicalTimeSignature extends GraphicalObject {
 
@@ -115,6 +116,11 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	@Override
 	protected MusicalSymbol setSymbol() {
 		return null;
+	}
+
+	@Override
+	public TimeSignature getModelObject() {
+		return timeSignature;
 	}
 	
 }

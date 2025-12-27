@@ -3,8 +3,10 @@ package scoreWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import graphical.GraphicalObject;
-import model.Voice;
+import musicInterface.MusicObject;
+import notation.Score;
+import notation.Staff;
+import notation.Voice;
 
 public class LayerMixer {
 
@@ -14,17 +16,18 @@ public class LayerMixer {
         this.score = score;
     }
 
-    public List<List<GraphicalObject>> mixStaff(int StaffNumber) {
+    public List<List<MusicObject>> mixStaff(int StaffNumber) {
     	Staff staff = score.getStaff(StaffNumber);
     	return mixStaff(staff);
     }
-    public List<List<GraphicalObject>> mixStaff(Staff staff) {
+    
+    public List<List<MusicObject>> mixStaff(Staff staff) {
 
         // Lista risultato: una lista per ogni voce (tranne STAFF_WIDE)
-        List<List<GraphicalObject>> result = new ArrayList<>();
+        List<List<MusicObject>> result = new ArrayList<>();
 
         // Oggetti staff-wide (comuni a ogni lista)
-        List<GraphicalObject> wide = score.getStaffWideObjects(staff);
+        List<MusicObject> wide = score.getStaffWideObjects(staff);
 
         // Per ogni voice dello staff
         for (Voice vl : staff.getVoices()) {
@@ -34,7 +37,7 @@ public class LayerMixer {
                 continue;
 
             // Crea lista combinata: staff-wide + questa voice
-            List<GraphicalObject> combined = new ArrayList<>();
+            List<MusicObject> combined = new ArrayList<>();
             combined.addAll(wide);
             combined.addAll(score.getObjects(staff, vl.getVoiceType()));
 

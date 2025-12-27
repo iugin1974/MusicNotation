@@ -4,6 +4,7 @@ import java.util.List;
 
 import graphical.GraphicalClef;
 import graphical.GraphicalObject;
+import notation.Staff;
 
 public class ParsedStaff {
     public final List<List<GraphicalObject>> voices; // tutte le voci + wide combinate

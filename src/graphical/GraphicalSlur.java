@@ -17,5 +17,5 @@ public class GraphicalSlur extends GraphicalCurvedConnection {
 	protected MusicalSymbol setSymbol() {
 		return null;
 	}
-	
+
 }

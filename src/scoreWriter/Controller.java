@@ -2,26 +2,43 @@ package scoreWriter;
 
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import Measure.Bar;
+import Measure.TimeSignature;
 import graphical.GraphicalBar;
+import graphical.GraphicalKeySignature;
 import graphical.GraphicalNote;
 import graphical.GraphicalObject;
 import graphical.GraphicalRest;
 import graphical.GraphicalScore;
 import graphical.GraphicalStaff;
+import graphical.GraphicalTimeSignature;
 import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
+import graphical.StaffActionListener;
+import musicEvent.Modus;
 import musicEvent.Note;
+import musicInterface.MusicObject;
+import notation.Clef;
+import notation.CurvedConnection;
+import notation.KeySignature;
 import notation.Score;
+import notation.SemitoneMap;
+import notation.Staff;
+import notation.Tie;
 import ui.GUI;
+import ui.KeySignatureDialog;
 import ui.Pointer;
+import ui.TimeSignatureDialog;
 
-public class Controller {
-	
+public class Controller implements StaffActionListener {
+
 	public Score score = new Score();
 	private GraphicalScore graphicalScore;
 	private GUI gui;
@@ -31,7 +48,7 @@ public class Controller {
 	private Point lastClick;
 
 	private void test() {
-		score.addStaff();
+		addStaff();
 	}
 
 	public static void main(String[] args) {
@@ -41,6 +58,7 @@ public class Controller {
 	private void registerListeners() {
 		score.addListener(gui);
 	}
+
 	private void go() {
 		graphicalScore = new GraphicalScore(score);
 		gui = new GUI(this, graphicalScore);
@@ -54,7 +72,7 @@ public class Controller {
 		});
 
 	}
-	
+
 	public void setPointer(MusicalSymbol symbol) {
 		pointer = new Pointer(this, symbol);
 	}
@@ -62,19 +80,51 @@ public class Controller {
 	public void addStaff() {
 		score.addStaff();
 	}
-	
+
 	public void export() {
-		
+
 	}
 
 	public void setCurrentVoice(int i) {
 		currentVoice = i;
-		
+
 	}
 
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void keyPressed(KeyEvent keyEvent) {
+		if (keyEvent.getKeyCode() == KeyEvent.VK_ESCAPE) {
+			gui.exitInsertMode();
+		} else if (keyEvent.getKeyCode() == KeyEvent.VK_DELETE) {
+			deleteSelectedObject();
+		} else if (keyEvent.getKeyChar() == 's') {
+			slurOrTie();
+		}
+
+	}
+
+	private void deleteSelectedObject() {
+
+		List<GraphicalObject> selectedObjects = selectionManager.getSelected();
+		if (selectedObjects.isEmpty())
+			return;
+
+		// TODO elimina solo la slur se selezionata
+		// prima puliamo le note se l'oggetto è curva
+		/*
+		 * for (GraphicalObject obj : selectedObjects) { if (obj instanceof
+		 * CurvedConnection) { ((CurvedConnection) obj).removeFromNotes(); } }
+		 */
+
+		for (GraphicalObject o : selectedObjects) {
+			MusicObject mo = o.getModelObject();
+			score.removeObject(mo);
+		}
+		// rimuovi dal grid solo le note
+		for (GraphicalObject obj : selectedObjects) {
+			if (obj instanceof GraphicalNote)
+				;
+			// grid.remove((GraphicalNote) obj);
+		}
+
 	}
 
 	public Pointer getPointer() {
@@ -82,8 +132,7 @@ public class Controller {
 	}
 
 	public GraphicalObject getObjectAt(int x, int y) {
-		// TODO Auto-generated method stub
-		return null;
+		return graphicalScore.hitTest(x, y);
 	}
 
 	public boolean pointerExists() {
@@ -92,34 +141,80 @@ public class Controller {
 
 	public void insertObject(MusicalSymbol objectToInsert, int x, int y) {
 		GraphicalStaff s = gui.getPointedStaff(x, y);
-	    if (s == null) return;
+		if (s == null)
+			return;
+		selectionManager.deselectAll();
+		if (objectToInsert.getType() == Type.NOTE)
+			insertNote(objectToInsert.getDuration(), s, x, y);
+		else if (objectToInsert.getType() == Type.BARLINE)
+			insertBar(objectToInsert, s, x, y);
+		else if (objectToInsert.getType() == Type.CLEF)
+			insertClef(objectToInsert, s, x, y);
+		
+		resizeStavesIfNeeded(x);
 
-	    selectionManager.deselectAll();
-	    if (objectToInsert.getType() == Type.NOTE) insertNote(objectToInsert.getDuration(), s, x, y);
-	    else if (objectToInsert.getType() == Type.BARLINE) insertBar(objectToInsert, s, x, y);
-	   
 	}
 
-	private void insertBar(MusicalSymbol objectToInsert,  GraphicalStaff s, int x, int y) {
+	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x, int y) {
 		Bar bar = getBar(objectToInsert);
-		 int staffIndex = graphicalScore.getStaffIndex(s);
-		 gui.prepareGraphicalInsertion(x, s.getYPosOfLine(0));
-		 score.addObject(bar, staffIndex, currentVoice);
+		bar.setTick(x);
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		gui.prepareGraphicalInsertion(x, s.getYPosOfLine(0));
+		score.addObject(bar, staffIndex, currentVoice);
 	}
 
 	private void insertNote(int duration, GraphicalStaff s, int x, int y) {
-	    Note n = createNote(duration);
-	    int staffIndex = graphicalScore.getStaffIndex(s);
-	    gui.prepareGraphicalInsertion(x, y);
-	    score.addObject(n, staffIndex, currentVoice);
+		Note n = createNote(duration);
+		n.setTick(x);
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		gui.prepareGraphicalInsertion(x, y);
+		score.addObject(n, staffIndex, currentVoice);
 	}
-	
+
+	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x, int y) {
+		Clef c = createClef(clefSymbol);
+		if (c == null)
+			return;
+		c.setTick(x);
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		gui.prepareGraphicalInsertion(x, y);
+		score.addObject(c, staffIndex, 0);
+	}
+
 	private Note createNote(int duration) {
 		Note n = new Note();
 		n.setDuration(duration);
 		return n;
 	}
-	
+
+	private Clef createClef(MusicalSymbol symbol) {
+		if (symbol.equals(SymbolRegistry.CLEF_TREBLE)) {
+			return Clef.treble();
+		}
+		if (symbol.equals(SymbolRegistry.CLEF_TREBLE_8))
+			return Clef.treble8();
+
+		if (symbol.equals(SymbolRegistry.CLEF_BASS))
+			return Clef.bass();
+
+		/*
+		 * if (symbol.equals(SymbolRegistry.CLEF_ALTO)) return Clef.ALTO;
+		 * 
+		 * if (symbol.equals(SymbolRegistry.CLEF_TENOR)) return Clef.TENOR;
+		 * 
+		 * if (symbol.equals(SymbolRegistry.CLEF_SOPRANO)) return Clef.SOPRANO;
+		 * 
+		 * if (symbol.equals(SymbolRegistry.CLEF_MEZZO_SOPRANO)) return
+		 * Clef.MEZZO_SOPRANO;
+		 * 
+		 * if (symbol.equals(SymbolRegistry.CLEF_BARITONE)) return Clef.BARITONE;
+		 * 
+		 * if (symbol.equals(SymbolRegistry.CLEF_PERCUSSION)) return Clef.PERCUSSION;
+		 */
+
+		return null;
+	}
+
 	public Bar getBar(MusicalSymbol barSymbol) {
 		Bar bar = new Bar();
 
@@ -139,26 +234,34 @@ public class Controller {
 
 		return bar;
 	}
+
+	public void selectObjectAtPos(int x, int y, boolean multipleSelection) {
+		if (score.getStaffCount() == 0)
+			return;
+		if (!multipleSelection)
+			selectionManager.deselectAll();
+		GraphicalObject o = getObjectAt(x, y);
+		if (o == null)
+			return;
+		selectionManager.select(o);
+	}
 	
-	
-	public void selectObjectAtPos(int x, int y, boolean ctrl) {
-		// TODO Auto-generated method stub
-		
+	private void resizeStavesIfNeeded(int x) {
+		if (x < gui.getWidth() - 100) return;
+		List<GraphicalStaff> staves = graphicalScore.getStaves();
+		int w = staves.get(0).getWidth();
+		//int w = gui.getStaffList().get(0).getWidth();
+		for (GraphicalStaff s : staves) {
+			s.setWidth(w + 200);
+		}
+		gui.resizePanel(w + 200, gui.getHeight()); // TODO l'altezza deve essere in base agli staves
+		// anche nella guissa
+		gui.repaintPanel();
 	}
 
-	public HashMap<GraphicalObject, Integer> getStartXPositions(int x, int y) {
+	public void moveObjects(int mouseX, int mouseY) {
 		// TODO Auto-generated method stub
-		return null;
-	}
 
-	public void shiftHorizontal(int mouseX, HashMap<GraphicalObject, Integer> startPositions, int staffNumber) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void moveObjects(int mouseX, int snapY) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public void movePointerTo(int mouseX, int snapY) {
@@ -167,5 +270,136 @@ public class Controller {
 
 	public Point getLastClick() {
 		return lastClick;
+	}
+
+	public void destroyPointer() {
+		pointer = null;
+	}
+
+	private void slurOrTie() {
+		List<GraphicalObject> l = selectionManager.getSelected();
+		List<Note> selectedNotes = new ArrayList<>();
+		for (GraphicalObject g : l) {
+			if (g instanceof GraphicalNote) {
+				selectedNotes.add(((GraphicalNote) g).getModelObject());
+			}
+		}
+		if (selectedNotes.isEmpty())
+			return;
+		if (selectedNotes.size() == 1) {
+			Note n1 = selectedNotes.get(0);
+			Note n2 = (Note) score.getNextNote(n1);
+			if (n2 == null)
+				continue;
+			if (n1.getMidiNumber() == n2.getMidiNumber()) {
+				Tie t = new Tie();
+				n1.isTiedStart();
+				n2.isTiedEnd();
+			}
+		}
+
+		for (int i = 0; i < selectionManager.getSelected().size(); i++) {
+			if (selectedNotes.size() == 1) {
+				Note n1 = selectedNotes.get(0);
+
+				if (n1.getY() == n2.getY())
+					tie(n1, n2, i);
+				else
+					slur(n1, n2, i);
+
+				continue; // passa al prossimo staff
+			}
+
+			for (int j = 0; j < selectedNotes.size() - 1; j++) {
+				GraphicalNote n1 = selectedNotes.get(j);
+				GraphicalNote n2 = selectedNotes.get(j + 1);
+
+				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2))
+					tie(n1, n2, i); // usa i invece di j
+				else
+					slur(n1, n2, i);
+			}
+		}
+		gui.repaintPanel();
+	}
+	
+	public void setKeySignature(int x, int y) {
+		IntPair pair = KeySignatureDialog.showDialog(gui);
+		if (pair == null)
+			return;
+		setKeySignature(pair.first, x, y);
+	}
+
+	private void setKeySignature(int chosenValue, int x, int y) {
+		int type = 0;
+		if (chosenValue < 0)
+			type = -1;
+		else if (chosenValue > 0)
+			type = 1;
+		int alterationsNumber = Math.abs(chosenValue);
+		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); //TODO
+		int staffIndex = gui.getPointedStaffIndex(x, y);
+		GraphicalStaff staff = gui.getPointedStaff(x, y);
+		
+		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);
+		score.addObject(gks, staffIndex, 0);
+	}
+
+	public void setTimeSignature(int x, int y) {
+		IntPair pair = TimeSignatureDialog.showDialog(gui);
+		if (pair == null)
+			return;
+		setTimeSignature(pair.first, pair.second, x, y);
+	}
+
+	private void setTimeSignature(int n, int d, int x, int y) {
+		TimeSignature ts = new TimeSignature(n, d);
+		int staffIndex = gui.getPointedStaffIndex(x, y);
+		GraphicalTimeSignature gts = new GraphicalTimeSignature(ts, gui.getStaff(staffIndex));
+		gts.setXY(x, y);
+		score.addObject(gts, staffIndex, 0);
+	}
+	
+
+	@Override
+	public void requestKeySignature(Staff staff) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void requestTimeSignature(Staff staff) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public List<String> getLyricsFor(int staff, int voice, int stanza) {
+		return score.getLyricsFor(staff, voice, stanza);
+	}
+
+	public int getStaffCount() {
+		return graphicalScore.getStaffCount();
+	}
+	
+	public Score getScore() {
+		return score;
+	}
+	
+	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
+		// --- CONTROLLI ---
+		if (score == null || score.getStaffCount() == 0) {
+			JOptionPane.showMessageDialog(null, "Nessuno staff disponibile nella score.", "Errore Lyrics",
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		if (staffIndex < 0 || staffIndex >= score.getStaffCount()) {
+			JOptionPane.showMessageDialog(null, "Staff selezionato non valido.", "Errore Lyrics",
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
+		
 	}
 }

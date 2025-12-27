@@ -30,6 +30,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -75,7 +76,6 @@ public class GUI extends JFrame implements ScoreListener {
 	private int mouseX, mouseY;
 	private boolean insertMode = false;
 	private MainPanel mainPanel;
-	private ArrayList<GraphicalStaff> staffList;
 	private ButtonGroup groupButtonsNotes;
 	private ButtonGroup groupButtonsBars;
 	private ButtonGroup groupButtonsClef;
@@ -387,10 +387,6 @@ public class GUI extends JFrame implements ScoreListener {
 		return btn;
 	}
 
-	public GraphicalStaff getStaff(int i) {
-		return staffList.get(i);
-	}
-
 	public void repaintPanel() {
 		mainPanel.repaint();
 	}
@@ -423,12 +419,6 @@ public class GUI extends JFrame implements ScoreListener {
 			setFocusable(true);
 		}
 
-		private void drawStaves(Graphics g) {
-			for (GraphicalStaff gs : staffList) {
-				gs.draw(g);
-			}
-		}
-
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setFont(musicFont);
@@ -446,39 +436,55 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			requestFocusInWindow();
-			if (SwingUtilities.isRightMouseButton(e)) {
-				GraphicalObject o = controller.getObjectAt(e.getX(), e.getY());
-				if (o instanceof PopupLauncher) {
-					JPopupMenu menu = ((PopupLauncher) o).getMenu(e.getX(), e.getY());
-					menu.show(this, e.getX(), e.getY());
-				}
+		    // Richiede il focus al componente
+		    requestFocusInWindow();
 
-			}
-			boolean ctrl = e.isControlDown();
+		    // --- Gestione click destro (popup menu) ---
+		    if (SwingUtilities.isRightMouseButton(e)) {
+		        GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
 
-			if (insertMode) {
-				if (controller.pointerExists()) {
-					int x = controller.getPointer().getX();
-					int y = controller.getPointer().getY();
-					controller.insertObject(objectToInsert, x, y);
-				} else {
-					controller.insertObject(objectToInsert, e.getX(), e.getY());
-				}
-			} else {
-				controller.selectObjectAtPos(e.getX(), e.getY(), ctrl);
-			}
+		        if (object instanceof PopupLauncher) {
+		            PopupLauncher launcher = (PopupLauncher) object;
+		            JPopupMenu menu = launcher.getMenu(e.getX(), e.getY());
+		            menu.show(this, e.getX(), e.getY());
+		        }
+		    }
 
-			repaint();
+		    // Verifica se CTRL è premuto
+		    boolean ctrlPressed = e.isControlDown();
+
+		    // --- Modalità inserimento oggetto ---
+		    if (insertMode) {
+		        insertObject(e);
+		        return;
+		    }
+
+		    // --- Modalità selezione ---
+		    controller.selectObjectAtPos(e.getX(), e.getY(), ctrlPressed);
+		    mainPanel.repaint();
+		}
+
+		/**
+		 * Inserisce un oggetto usando il puntatore se esiste,
+		 * altrimenti usa la posizione del mouse.
+		 */
+		private void insertObject(MouseEvent e) {
+		    int x;
+		    int y;
+
+		    if (controller.pointerExists()) {
+		        x = controller.getPointer().getX();
+		        y = controller.getPointer().getY();
+		    } else {
+		        x = e.getX();
+		        y = e.getY();
+		    }
+
+		    controller.insertObject(objectToInsert, x, y);
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.isControlDown())
-				startPositions = controller.getStartXPositions(e.getX(), e.getY());
-			else {
-				controller.selectObjectAtPos(e.getX(), e.getY(), false);
-			}
 		}
 
 		@Override
@@ -494,45 +500,7 @@ public class GUI extends JFrame implements ScoreListener {
 		}
 
 		@Override
-		public void mouseDragged(MouseEvent e) {
-			int mouseX = e.getX();
-			int mouseY = e.getY();
-			// 1) Trova lo staff sotto il mouse
-			int staffNumber = getPointedStaffIndex(mouseX, mouseY);
-			if (staffNumber == -1)
-				return;
-			GraphicalStaff targetStaff = staffList.get(staffNumber);
-
-			if (e.isControlDown()) {
-				controller.shiftHorizontal(mouseX, startPositions, staffNumber);
-			} else {
-				int snapY = mouseY; // di default nessuno snap
-
-				// 2) Se abbiamo trovato lo staff: snap verticale
-				if (targetStaff != null) {
-					ArrayList<Integer> snapPoints = targetStaff.getSnapPoints();
-
-					// Trova lo snap point più vicino
-					int nearest = snapPoints.get(0);
-					int minDist = Math.abs(mouseY - nearest);
-
-					for (int y : snapPoints) {
-						int d = Math.abs(mouseY - y);
-						if (d < minDist) {
-							minDist = d;
-							nearest = y;
-						}
-					}
-
-					snapY = nearest;
-				}
-
-				// 3) Muovi l'oggetto (qui avviene lo snap orizzontale tra pentagrammi)
-				controller.moveObjects(mouseX, snapY);
-
-			}
-			repaint();
-		}
+		public void mouseDragged(MouseEvent e) {}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
@@ -554,11 +522,11 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			if (staffList == null)
+			if (!gScore.hasStaves())
 				return;
 			int w = this.getWidth();
 			int h = this.getHeight();
-			for (GraphicalStaff s : staffList) {
+			for (GraphicalStaff s : gScore.getStaves()) {
 				if (s.getWidth() > w)
 					return; // setta la lunghezza solo se è inferiore a quella della finestra
 				s.setWidth(w);
@@ -597,16 +565,17 @@ public class GUI extends JFrame implements ScoreListener {
 	 * @param mouseY
 	 * @return
 	 */
-//	public int getPointedStaffIndex(int mouseX, int mouseY) {
-//		int staffN = -1;
-//		for (int i = 0; i < staffList.size(); i++) {
-//			if (staffList.get(i).hitTest(mouseX, mouseY) != null) {
-//				staffN = i;
-//				break;
-//			}
-//		}
-//		return staffN;
-//	}
+	public int getPointedStaffIndex(int mouseX, int mouseY) {
+		int staffN = -1;
+		List<GraphicalStaff> staffList = gScore.getStaves();
+		for (int i = 0; i < staffList.size(); i++) {
+			if (staffList.get(i).hitTest(mouseX, mouseY) != null) {
+				staffN = i;
+				break;
+			}
+		}
+		return staffN;
+	}
 
 	public GraphicalStaff getPointedStaff(int mouseX, int mouseY) {
 		for (GraphicalStaff s : gScore.getStaves()) {
@@ -614,10 +583,6 @@ public class GUI extends JFrame implements ScoreListener {
 				return s;
 		}
 		return null;
-	}
-
-	public ArrayList<GraphicalStaff> getStaffList() {
-		return staffList;
 	}
 
 	private int getSnapY(GraphicalStaff staff, int mouseY) {
@@ -660,31 +625,32 @@ public class GUI extends JFrame implements ScoreListener {
 	@Override
 	public void scoreChanged(ScoreEvent e) {
 
-	    switch (e.getType()) {
-	    case STAFF_ADDED:
-	    	gScore.createGraphicalStaff(0, e, getWidth());
-	    	break;
-	        case NOTE_ADDED:
-	        case REST_ADDED:
-	        case BARLINE_ADDED:
-
-	            gScore.createGraphicalObject(
-	                e, pendingX, pendingY);
-	            
-	            break;
+		switch (e.getType()) {
+		case STAFF_ADDED:
+			gScore.createGraphicalStaff(0, e, getWidth());
+			break;
+		case NOTE_ADDED:
+		case REST_ADDED:
+		case BARLINE_ADDED:
+			case CLEF_ADDED:
+			gScore.createGraphicalObject(e, pendingX, pendingY);
+			break;
+		case OBJECT_REMOVED:
+			gScore.removeObject(e.getMusicObject());
+			break;
 		default:
 			break;
-	    }
+		}
 		clearPendingInsertion();
-	    mainPanel.repaint();
+		mainPanel.repaint();
 	}
-	
+
 	public void prepareGraphicalInsertion(int x, int y) {
-	    this.pendingX = x;
-	    this.pendingY = y;
+		this.pendingX = x;
+		this.pendingY = y;
 	}
-	
+
 	private void clearPendingInsertion() {
-	    pendingX = pendingY = -1;
+		pendingX = pendingY = -1;
 	}
 }

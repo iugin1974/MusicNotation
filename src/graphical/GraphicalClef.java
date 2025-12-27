@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 
+import musicInterface.MusicObject;
 import notation.Clef;
 import scoreWriter.SymbolRegistry;
 
@@ -91,6 +92,11 @@ public class GraphicalClef extends GraphicalObject {
          default:
              return SymbolRegistry.CLEF_TREBLE; // fallback
      }
+	 }
+
+	 @Override
+	 public Clef getModelObject() {
+		return clef;
 	 }
 	 
 	}

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import musicEvent.Rest;
+import musicInterface.MusicObject;
 import scoreWriter.SymbolRegistry;
 
 public class GraphicalRest extends GraphicalObject {
@@ -88,6 +89,11 @@ public class GraphicalRest extends GraphicalObject {
             case 6 -> SymbolRegistry.SIXTY_FOURTH_REST;
             default -> SymbolRegistry.QUARTER_REST; // fallback
         };
+	}
+
+	@Override
+	public Rest getModelObject() {
+		return rest;
 	}
 
 }
