@@ -2,9 +2,11 @@ package scoreWriter;
 
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -46,6 +48,9 @@ public class Controller implements StaffActionListener {
 	private int currentVoice = 1;
 	private SelectionManager selectionManager = new SelectionManager();
 	private Point lastClick;
+	private boolean dragging = false;
+	private Point dragStart;
+	private Map<GraphicalObject, Point> dragStartPositions;
 
 	private void test() {
 		addStaff();
@@ -82,7 +87,9 @@ public class Controller implements StaffActionListener {
 	}
 
 	public void export() {
-
+		Exporter x = new Exporter();
+		x.export(score);
+		x.printScore();
 	}
 
 	public void setCurrentVoice(int i) {
@@ -150,7 +157,7 @@ public class Controller implements StaffActionListener {
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
-		
+
 		resizeStavesIfNeeded(x);
 
 	}
@@ -245,12 +252,13 @@ public class Controller implements StaffActionListener {
 			return;
 		selectionManager.select(o);
 	}
-	
+
 	private void resizeStavesIfNeeded(int x) {
-		if (x < gui.getWidth() - 100) return;
+		if (x < gui.getWidth() - 100)
+			return;
 		List<GraphicalStaff> staves = graphicalScore.getStaves();
 		int w = staves.get(0).getWidth();
-		//int w = gui.getStaffList().get(0).getWidth();
+		// int w = gui.getStaffList().get(0).getWidth();
 		for (GraphicalStaff s : staves) {
 			s.setWidth(w + 200);
 		}
@@ -259,9 +267,89 @@ public class Controller implements StaffActionListener {
 		gui.repaintPanel();
 	}
 
-	public void moveObjects(int mouseX, int mouseY) {
-		// TODO Auto-generated method stub
+	public void mousePressed(MouseEvent e) {
+		if (!SwingUtilities.isLeftMouseButton(e))
+			return;
 
+		// controlla se si è cliccato su un oggetto
+		GraphicalObject o = getObjectAt(e.getX(), e.getY());
+		if (o == null || !selectionManager.hasSelectedObjects())
+			return;
+
+		// se vi sono oggetti selezionati inizia il trascinamento
+		// salva le poisizioni del mouse e di tutti gli oggetti.
+		dragging = true;
+		dragStart = e.getPoint();
+		dragStartPositions = new HashMap<>();
+
+		for (GraphicalObject obj : selectionManager.getSelected()) {
+			dragStartPositions.put(obj, new Point(obj.getX(), obj.getY()));
+		}
+	}
+
+	public void moveObjects(MouseEvent e) {
+		if (!dragging)
+			return;
+
+		int dx = e.getX() - dragStart.x;
+		int dy = e.getY() - dragStart.y;
+
+		// Oggetto di riferimento per lo snap verticale
+		GraphicalObject anchor = dragStartPositions.keySet().iterator().next();
+		Point anchorStart = dragStartPositions.get(anchor);
+
+		int targetY = anchorStart.y + dy;
+		int snappedY = targetY;
+
+		if (anchor instanceof GraphicalNote note) {
+			GraphicalStaff staff = graphicalScore.getStaff(note.getNote().getStaffIndex());
+			if (staff != null) {
+				snappedY = gui.getSnapY(staff, targetY); // allineamento verticale
+			}
+		}
+
+		int snapDy = snappedY - anchorStart.y;
+
+		// Applica la stessa delta a tutti gli oggetti selezionati
+		for (Map.Entry<GraphicalObject, Point> entry : dragStartPositions.entrySet()) {
+			GraphicalObject o = entry.getKey();
+			Point p = entry.getValue();
+
+			// solo le note si possono muovere in tutte le direzioni.
+			// Altri oggetti solo in orizzontale
+			if (o instanceof GraphicalNote) {
+				o.moveTo(p.x + dx, p.y + snapDy); // X libera, Y snap
+			} else {
+				o.moveTo(p.x + dx, p.y);
+			}
+		}
+
+		gui.repaintPanel();
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		if (!dragging)
+			return;
+
+		dragging = false;
+
+		for (GraphicalObject obj : selectionManager.getSelected()) {
+			MusicObject mo = obj.getModelObject();
+
+			score.changeTick(mo, obj.getX());
+
+			if (mo instanceof Note note && obj instanceof GraphicalNote gNote) {
+				note.setStaffPosition(gNote.getStaffPosition());
+
+				// aggiorna tie/slur se presente
+				// CurvedConnection curve = note.getCurvedConnection();
+				// if (curve != null) {
+				// curve.updateFromGraphical(); // metodo che aggiorna curve dal grafico
+				// }
+			}
+		}
+		dragStart = null;
+		dragStartPositions = null;
 	}
 
 	public void movePointerTo(int mouseX, int snapY) {
@@ -322,7 +410,7 @@ public class Controller implements StaffActionListener {
 		}
 		gui.repaintPanel();
 	}
-	
+
 	public void setKeySignature(int x, int y) {
 		IntPair pair = KeySignatureDialog.showDialog(gui);
 		if (pair == null)
@@ -337,10 +425,10 @@ public class Controller implements StaffActionListener {
 		else if (chosenValue > 0)
 			type = 1;
 		int alterationsNumber = Math.abs(chosenValue);
-		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); //TODO
+		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); // TODO
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		GraphicalStaff staff = gui.getPointedStaff(x, y);
-		
+
 		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);
 		score.addObject(gks, staffIndex, 0);
 	}
@@ -359,20 +447,19 @@ public class Controller implements StaffActionListener {
 		gts.setXY(x, y);
 		score.addObject(gts, staffIndex, 0);
 	}
-	
 
 	@Override
 	public void requestKeySignature(Staff staff) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void requestTimeSignature(Staff staff) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public List<String> getLyricsFor(int staff, int voice, int stanza) {
 		return score.getLyricsFor(staff, voice, stanza);
 	}
@@ -380,11 +467,11 @@ public class Controller implements StaffActionListener {
 	public int getStaffCount() {
 		return graphicalScore.getStaffCount();
 	}
-	
+
 	public Score getScore() {
 		return score;
 	}
-	
+
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
 		// --- CONTROLLI ---
 		if (score == null || score.getStaffCount() == 0) {
@@ -400,6 +487,6 @@ public class Controller implements StaffActionListener {
 		}
 
 		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
-		
+
 	}
 }

@@ -436,59 +436,60 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-		    // Richiede il focus al componente
-		    requestFocusInWindow();
+			// Richiede il focus al componente
+			requestFocusInWindow();
 
-		    // --- Gestione click destro (popup menu) ---
-		    if (SwingUtilities.isRightMouseButton(e)) {
-		        GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
+			// --- Gestione click destro (popup menu) ---
+			if (SwingUtilities.isRightMouseButton(e)) {
+				GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
 
-		        if (object instanceof PopupLauncher) {
-		            PopupLauncher launcher = (PopupLauncher) object;
-		            JPopupMenu menu = launcher.getMenu(e.getX(), e.getY());
-		            menu.show(this, e.getX(), e.getY());
-		        }
-		    }
+				if (object instanceof PopupLauncher) {
+					PopupLauncher launcher = (PopupLauncher) object;
+					JPopupMenu menu = launcher.getMenu(e.getX(), e.getY());
+					menu.show(this, e.getX(), e.getY());
+				}
+			}
 
-		    // Verifica se CTRL è premuto
-		    boolean ctrlPressed = e.isControlDown();
+			// --- Modalità inserimento oggetto ---
+			if (insertMode) {
+				insertObject(e);
+				return;
+			}
 
-		    // --- Modalità inserimento oggetto ---
-		    if (insertMode) {
-		        insertObject(e);
-		        return;
-		    }
-
-		    // --- Modalità selezione ---
-		    controller.selectObjectAtPos(e.getX(), e.getY(), ctrlPressed);
-		    mainPanel.repaint();
+			// Verifica se CTRL è premuto
+			boolean ctrlPressed = e.isControlDown();
+			// --- Modalità selezione ---
+			controller.selectObjectAtPos(e.getX(), e.getY(), ctrlPressed);
+			mainPanel.repaint();
 		}
 
 		/**
-		 * Inserisce un oggetto usando il puntatore se esiste,
-		 * altrimenti usa la posizione del mouse.
+		 * Inserisce un oggetto usando il puntatore se esiste, altrimenti usa la
+		 * posizione del mouse.
 		 */
 		private void insertObject(MouseEvent e) {
-		    int x;
-		    int y;
+			int x;
+			int y;
 
-		    if (controller.pointerExists()) {
-		        x = controller.getPointer().getX();
-		        y = controller.getPointer().getY();
-		    } else {
-		        x = e.getX();
-		        y = e.getY();
-		    }
+			if (controller.pointerExists()) {
+				x = controller.getPointer().getX();
+				y = controller.getPointer().getY();
+			} else {
+				x = e.getX();
+				y = e.getY();
+			}
 
-		    controller.insertObject(objectToInsert, x, y);
+			controller.insertObject(objectToInsert, x, y);
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
+			controller.mousePressed(e);
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			controller.mouseReleased(e);
 		}
 
 		@Override
@@ -500,7 +501,9 @@ public class GUI extends JFrame implements ScoreListener {
 		}
 
 		@Override
-		public void mouseDragged(MouseEvent e) {}
+		public void mouseDragged(MouseEvent e) {
+			controller.moveObjects(e);
+		}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
@@ -585,7 +588,7 @@ public class GUI extends JFrame implements ScoreListener {
 		return null;
 	}
 
-	private int getSnapY(GraphicalStaff staff, int mouseY) {
+	public int getSnapY(GraphicalStaff staff, int mouseY) {
 		ArrayList<Integer> snapPoints = staff.getSnapPoints();
 		int nearest = snapPoints.get(0);
 		int minDist = Math.abs(mouseY - nearest);
@@ -632,7 +635,7 @@ public class GUI extends JFrame implements ScoreListener {
 		case NOTE_ADDED:
 		case REST_ADDED:
 		case BARLINE_ADDED:
-			case CLEF_ADDED:
+		case CLEF_ADDED:
 			gScore.createGraphicalObject(e, pendingX, pendingY);
 			break;
 		case OBJECT_REMOVED:

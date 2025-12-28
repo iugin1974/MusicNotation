@@ -2,12 +2,14 @@ package scoreWriter;
 
 import graphical.GraphicalClef;
 import graphical.GraphicalNote;
-import model.KeySignature;
 import musicEvent.Modus;
+import musicEvent.Note;
+import notation.Clef;
+import notation.KeySignature;
 
 public class MidiCalculator {
 
-	public static boolean setMidiNumberAndAlteration(GraphicalNote n, GraphicalClef clef, KeySignature ks) {
+	public static boolean setMidiNumberAndAlteration(Note n, Clef clef, KeySignature ks) {
 		if (clef == null) {
 			System.out.println("Export ist not possible. No clef");
 			return false;
@@ -30,27 +32,24 @@ public class MidiCalculator {
 		int keyAlteration = 0;
 
 		boolean found = false;
+		int midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);
 
 		for (int i = 0; i < ks.getNumberOfAlterations(); i++) {
-			int keyPosMod7 = Math.floorMod(keySignatureIndex[i], 7);
+		    int keyPosMod7 = Math.floorMod(keySignatureIndex[i], 7);
 
-			int midiN;
-			if (keyPosMod7 == notePosMod7) {
-				// coincide con una nota alterata in chiave
-				keyAlteration = typeOfAlterations;
-				midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12) + keyAlteration;
-				n.getNote().setAlteration(typeOfAlterations);
-				n.getNote().setMidiNumber(midiN);
-				found = true;
-				break;
-			}
-			if (!found) {
-				midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);
-				n.getNote().setAlteration(0);
-				n.getNote().setMidiNumber(midiN);
-			}
-
+		    if (keyPosMod7 == notePosMod7) {
+		        midiN += typeOfAlterations;
+		        n.setAlteration(typeOfAlterations);
+		        found = true;
+		        break;
+		    }
 		}
+
+		if (!found) {
+		    n.setAlteration(0);
+		}
+
+		n.setMidiNumber(midiN);
 		return true;
 
 	}

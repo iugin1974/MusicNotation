@@ -13,6 +13,9 @@ public class SelectionManager {
         if (!selected.contains(o)) {
             selected.add(o);
             o.select(true);
+        } else {
+        	selected.remove(o);
+        	o.select(false);
         }
     }
 
@@ -31,5 +34,9 @@ public class SelectionManager {
 
     public List<GraphicalObject> getSelected() {
         return selected;
+    }
+    
+    public boolean hasSelectedObjects() {
+    	return selected != null && selected.size() > 0;
     }
 }

@@ -1,28 +1,24 @@
 package scoreWriter;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
 import Measure.Bar;
 import Measure.TimeSignature;
-import graphical.GraphicalBar;
 import graphical.GraphicalClef;
-import graphical.GraphicalKeySignature;
-import graphical.GraphicalNote;
-import graphical.GraphicalObject;
-import graphical.GraphicalRest;
-import graphical.GraphicalTimeSignature;
-import model.KeySignature;
 import musicEvent.Note;
+import musicEvent.Rest;
+import musicInterface.MusicObject;
 import musicLily.LilyBar;
 import musicLily.LilyNote;
+import notation.Clef;
+import notation.KeySignature;
+import notation.ParsedStaff;
+import notation.Score;
+import notation.ScoreParser;
 
 public class Exporter {
 
 	private final StringBuilder sb = new StringBuilder();
-	private GraphicalClef clef;
+	private Clef currentClef;
 	private String[] numbers = { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
 			"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
 			"Twenty" };
@@ -45,7 +41,7 @@ public class Exporter {
 			ParsedStaff staff = parsedStaves.get(staffIndex);
 
 			for (int voiceIndex = 0; voiceIndex < staff.voices.size(); voiceIndex++) {
-				List<GraphicalObject> voiceObjs = staff.voices.get(voiceIndex);
+				List<MusicObject> voiceObjs = staff.voices.get(voiceIndex);
 
 				// Se la voce non contiene né note né pause → non esportare
 				if (!hasNotesOrRests(voiceObjs))
@@ -63,7 +59,7 @@ public class Exporter {
 				exportLyrics(l, staffIndex, voiceIndex, j);
 				}
 				sb.append("\n");
-				clef = null;
+				currentClef = null;
 			}
 		}
 
@@ -71,7 +67,10 @@ public class Exporter {
 	}
 
 	/** Inizio della voce in LilyPond */
-	private void parseVoice(int currentStaff, int currentVoice, List<GraphicalObject> voiceObjs) {
+	private void parseVoice(int currentStaff, int currentVoice, List<MusicObject> voiceObjs) {
+		ks = null;
+		currentClef = null;
+
 		sb.append(getNumber(currentStaff) + getNumber(currentVoice) + " = ");
 		sb.append("\\relative {\n");
 		parseObjects(voiceObjs);
@@ -79,27 +78,27 @@ public class Exporter {
 	}
 
 	/** Analizza tutti gli oggetti della voce */
-	private void parseObjects(List<GraphicalObject> objs) {
+	private void parseObjects(List<MusicObject> objs) {
 
-		for (GraphicalObject go : objs) {
+		for (MusicObject go : objs) {
 
-			if (go instanceof GraphicalClef) {
-				parseClef((GraphicalClef) go);
-			} else if (go instanceof GraphicalNote) {
-				parseNote((GraphicalNote) go);
-			} else if (go instanceof GraphicalBar) {
-				parseBar((GraphicalBar) go);
-			} else if (go instanceof GraphicalTimeSignature) {
-				parseTimeSignature((GraphicalTimeSignature) go);
-			} else if (go instanceof GraphicalKeySignature) {
-				parseKeySignature((GraphicalKeySignature)go);
+			if (go instanceof Clef) {
+				parseClef((Clef) go);
+			} else if (go instanceof Note) {
+				parseNote((Note) go);
+			} else if (go instanceof Bar) {
+				parseBar((Bar) go);
+			} else if (go instanceof TimeSignature) {
+				parseTimeSignature((TimeSignature) go);
+			} else if (go instanceof KeySignature) {
+				parseKeySignature((KeySignature)go);
 			}
 		}
 	}
 
-	private void parseKeySignature(GraphicalKeySignature go) {
+	private void parseKeySignature(KeySignature ks) {
 
-	    ks = go.getKeySignature();
+	    this.ks = ks;
 
 	    String[] majorKeysSharp = {"c", "g", "d", "a", "e", "h", "fis", "cis"};
 	    String[] minorKeysSharp = {"a", "e", "h", "fis", "cis", "gis", "dis", "ais"};
@@ -143,8 +142,7 @@ public class Exporter {
 	}
 
 
-	private void parseTimeSignature(GraphicalTimeSignature go) {
-		TimeSignature ts = go.getTimeSignature();
+	private void parseTimeSignature(TimeSignature ts) {
 		int n = ts.getNumerator();
 		int d = ts.getDenominator();
 		sb.append("\\time ");
@@ -154,51 +152,47 @@ public class Exporter {
 	}
 
 	/** Esporta una clef LilyPond */
-	private void parseClef(GraphicalClef go) {
+	private void parseClef(Clef clef) {
+	    this.currentClef = clef;
 
-		clef = go;
-
-		if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE) {
-			sb.append("\\clef \"treble\"");
-		} else if (go.getSymbol() == SymbolRegistry.CLEF_TREBLE_8) {
-			sb.append("\\clef \"treble_8\"");
-		} else if (go.getSymbol() == SymbolRegistry.CLEF_BASS) {
-			sb.append("\\clef \"bass\"");
-		}
-
-		sb.append("\n");
+	    switch (clef.getType()) {
+	        case TREBLE -> sb.append("\\clef treble");
+	        case TREBLE_8 -> sb.append("\\clef \"treble_8\"");
+	        case BASS -> sb.append("\\clef bass");
+	    }
+	    sb.append("\n");
 	}
 
-	/** Esporta una nota */
-	private void parseNote(GraphicalNote go) {
 
-		boolean success = MidiCalculator.setMidiNumberAndAlteration(go, clef, ks);
+	/** Esporta una nota */
+	private void parseNote(Note note) {
+
+		boolean success = MidiCalculator.setMidiNumberAndAlteration(note, currentClef, ks);
 		if (!success)
 			return; // chiave mancante
 		
-		LilyNote ln = new LilyNote(go.getNote());
+		LilyNote ln = new LilyNote(note);
 		sb.append(ln.draw()).append(" ");
 
-		if (go.isSlurStart())
+		if (note.isSlurStart())
 			sb.append("(");
-		if (go.isSlurEnd())
+		if (note.isSlurEnd())
 			sb.append(")");
-		if (go.isTiedStart())
+		if (note.isTiedStart())
 			sb.append("~");
 	}
 
 	/** Esporta una barra di misura */
-	private void parseBar(GraphicalBar b) {
-		Bar bar = b.getBar();
+	private void parseBar(Bar bar) {
 		LilyBar lb = new LilyBar(bar.getBar());
 		sb.append(lb.draw());
 		sb.append("\n");
 	}
 
 	/** Controlla se una voce contiene almeno una nota o pausa */
-	private boolean hasNotesOrRests(List<GraphicalObject> voice) {
-		for (GraphicalObject obj : voice) {
-			if (obj instanceof GraphicalNote || obj instanceof GraphicalRest) {
+	private boolean hasNotesOrRests(List<MusicObject> voice) {
+		for (MusicObject obj : voice) {
+			if (obj instanceof Note || obj instanceof Rest) {
 				return true;
 			}
 		}
