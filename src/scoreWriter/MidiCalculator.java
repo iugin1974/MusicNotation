@@ -1,7 +1,5 @@
 package scoreWriter;
 
-import graphical.GraphicalClef;
-import graphical.GraphicalNote;
 import musicEvent.Modus;
 import musicEvent.Note;
 import notation.Clef;

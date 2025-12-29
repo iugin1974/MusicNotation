@@ -159,6 +159,7 @@ public class Exporter {
 	        case TREBLE -> sb.append("\\clef treble");
 	        case TREBLE_8 -> sb.append("\\clef \"treble_8\"");
 	        case BASS -> sb.append("\\clef bass");
+		default -> throw new IllegalArgumentException("Unexpected value: " + clef.getType());
 	    }
 	    sb.append("\n");
 	}

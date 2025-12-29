@@ -173,6 +173,8 @@ public class Controller implements StaffActionListener {
 	private void insertNote(int duration, GraphicalStaff s, int x, int y) {
 		Note n = createNote(duration);
 		n.setTick(x);
+		int staffPosition = s.getPosInStaff(y);
+		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(n, staffIndex, currentVoice);

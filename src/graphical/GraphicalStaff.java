@@ -209,6 +209,26 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		    return -1;
 	}
 
+	
+	/**
+	 * Indica la posizione di Y pentagramma, dove 0 è la prima linea in basso
+	 * 1 lo spazio successivo e così via
+	 * 
+	 * @param y
+	 */
+	public int getPosInStaff(int y) {
+		int l = 2; // le ledges lines sopra e sotto
+		 int[] pos = getYPosOfLinesAndSpacesExtended(l, l);
+
+		    for (int i = 0; i < pos.length; i++) {
+		        if (pos[i] == y) {
+		        	// TODO commenta -> funziona, credimi
+		            return i - (l * 2); // posizione pura nello staff
+		        }
+		    }
+		    return -1;
+	}
+
 	@Override
 	public void draw(Graphics g) {
 		if (selected) {
