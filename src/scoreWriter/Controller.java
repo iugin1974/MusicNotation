@@ -53,7 +53,37 @@ public class Controller implements StaffActionListener {
 	private Map<GraphicalObject, Point> dragStartPositions;
 
 	private void test() {
-		addStaff();
+		score.addStaff();
+	/*	Note n1 = new Note();
+		Note n2 = new Note();
+		n1.setDuration(2);
+		n2.setDuration(3);
+		score.addObject(n1, 0, 1);
+		score.addObject(n2, 0, 1);
+		TimeSignature ts = new TimeSignature(4, 4);
+		score.addObject(ts, 0, 0);
+		KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
+		score.addObject(ks, 0, 0);
+		Note n3 = new Note();
+		Note n4 = new Note();
+		n3.setDuration(4);
+		n4.setDuration(4);
+		score.addObject(n3, 0, 2);
+		score.addObject(n4, 0, 2);
+		Clef c = Clef.treble();
+		score.addObject(c, 0, 0);
+		Bar bar = new Bar();
+		bar.setEndBar();
+		score.addObject(bar, 0, 0);
+		c.setTick(10);
+		ks.setTick(20);
+		ts.setTick(30);
+		n1.setTick(40);
+		n2.setTick(50);
+		n3.setTick(40);
+		n4.setTick(50);
+		bar.setTick(60);
+	*/	
 	}
 
 	public static void main(String[] args) {
@@ -434,6 +464,7 @@ public class Controller implements StaffActionListener {
 			type = 1;
 		int alterationsNumber = Math.abs(chosenValue);
 		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); // TODO
+		ks.setTick(x);
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(ks, staffIndex, 0);
@@ -449,6 +480,7 @@ public class Controller implements StaffActionListener {
 
 	private void setTimeSignature(int n, int d, int x, int y) {
 		TimeSignature ts = new TimeSignature(n, d);
+		ts.setTick(x);
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(ts, staffIndex, 0);
@@ -483,5 +515,9 @@ public class Controller implements StaffActionListener {
 
 		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
 
+	}
+	
+	public int getCurrentVoice() {
+		return currentVoice;
 	}
 }

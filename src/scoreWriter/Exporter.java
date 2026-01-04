@@ -31,6 +31,7 @@ public class Exporter {
 		ScoreParser parser = new ScoreParser(score);
 		List<ParsedStaff> parsedStaves = parser.parse();
 		for (ParsedStaff parsedStaff : parsedStaves) {
+			
 			if (!parsedStaff.startsWithClef()) {
 				System.out.println("Manca la chiave in uno staff");
 				return; // TODO -> questo va nel controller

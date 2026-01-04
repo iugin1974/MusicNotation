@@ -50,7 +50,7 @@ public class Pointer implements StaffInfo {
 	}
 
 	public void draw(Graphics g) {
-		int voiceNumber = 1;//controller.getVoiceType();
+		int voiceNumber = controller.getCurrentVoice();
 		// se il costruttore ha solo un glifo, prende quello.
 		String glyph = null;
 				// TODO riscrivi la funzione. Le pause hanno lo stesso glifo per one e two

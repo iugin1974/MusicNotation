@@ -89,6 +89,8 @@ public class GUI extends JFrame implements ScoreListener {
 	private int pendingX;
 	private int pendingY;
 	private int pendingVoice;
+	private JToggleButton voice1;
+	private JToggleButton voice2;
 
 	private void initFont() {
 		try {
@@ -326,8 +328,8 @@ public class GUI extends JFrame implements ScoreListener {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
 
-		JToggleButton voice1 = new JToggleButton("Voce 1");
-		JToggleButton voice2 = new JToggleButton("Voce 2");
+		voice1 = new JToggleButton("Voce 1");
+		voice2 = new JToggleButton("Voce 2");
 
 		ButtonGroup g = new ButtonGroup();
 		g.add(voice1);
@@ -658,4 +660,5 @@ public class GUI extends JFrame implements ScoreListener {
 	private void clearPendingInsertion() {
 		pendingX = pendingY = -1;
 	}
+
 }
