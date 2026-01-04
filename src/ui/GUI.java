@@ -636,6 +636,8 @@ public class GUI extends JFrame implements ScoreListener {
 		case REST_ADDED:
 		case BARLINE_ADDED:
 		case CLEF_ADDED:
+		case TIME_SIGNATURE_ADDED:
+		case KEY_SIGNATURE_ADDED:
 			gScore.createGraphicalObject(e, pendingX, pendingY);
 			break;
 		case OBJECT_REMOVED:

@@ -65,7 +65,7 @@ public class Controller implements StaffActionListener {
 	}
 
 	private void go() {
-		graphicalScore = new GraphicalScore(score);
+		graphicalScore = new GraphicalScore(score, this);
 		gui = new GUI(this, graphicalScore);
 		registerListeners();
 		SwingUtilities.invokeLater(new Runnable() {
@@ -157,7 +157,7 @@ public class Controller implements StaffActionListener {
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
-
+	
 		resizeStavesIfNeeded(x);
 
 	}
@@ -190,6 +190,10 @@ public class Controller implements StaffActionListener {
 		score.addObject(c, staffIndex, 0);
 	}
 
+	private void insertKeySignature(GraphicalStaff s, int x, int y) {
+		
+	}
+	
 	private Note createNote(int duration) {
 		Note n = new Note();
 		n.setDuration(duration);
@@ -250,6 +254,7 @@ public class Controller implements StaffActionListener {
 		if (!multipleSelection)
 			selectionManager.deselectAll();
 		GraphicalObject o = getObjectAt(x, y);
+		System.out.println(o);
 		if (o == null)
 			return;
 		selectionManager.select(o);
@@ -337,7 +342,7 @@ public class Controller implements StaffActionListener {
 
 		for (GraphicalObject obj : selectionManager.getSelected()) {
 			MusicObject mo = obj.getModelObject();
-
+			if (mo == null) continue;
 			score.changeTick(mo, obj.getX());
 
 			if (mo instanceof Note note && obj instanceof GraphicalNote gNote) {
@@ -413,7 +418,8 @@ public class Controller implements StaffActionListener {
 		gui.repaintPanel();
 	}
 
-	public void setKeySignature(int x, int y) {
+	@Override
+	public void openKeySignatureDialog(int x, int y) {
 		IntPair pair = KeySignatureDialog.showDialog(gui);
 		if (pair == null)
 			return;
@@ -429,13 +435,12 @@ public class Controller implements StaffActionListener {
 		int alterationsNumber = Math.abs(chosenValue);
 		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); // TODO
 		int staffIndex = gui.getPointedStaffIndex(x, y);
-		GraphicalStaff staff = gui.getPointedStaff(x, y);
-
-		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);
-		score.addObject(gks, staffIndex, 0);
+		gui.prepareGraphicalInsertion(x, y);
+		score.addObject(ks, staffIndex, 0);
 	}
 
-	public void setTimeSignature(int x, int y) {
+	@Override
+	public void openTimeSignatureDialog(int x, int y) {
 		IntPair pair = TimeSignatureDialog.showDialog(gui);
 		if (pair == null)
 			return;
@@ -445,21 +450,8 @@ public class Controller implements StaffActionListener {
 	private void setTimeSignature(int n, int d, int x, int y) {
 		TimeSignature ts = new TimeSignature(n, d);
 		int staffIndex = gui.getPointedStaffIndex(x, y);
-		GraphicalTimeSignature gts = new GraphicalTimeSignature(ts, gui.getStaff(staffIndex));
-		gts.setXY(x, y);
-		score.addObject(gts, staffIndex, 0);
-	}
-
-	@Override
-	public void requestKeySignature(Staff staff) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void requestTimeSignature(Staff staff) {
-		// TODO Auto-generated method stub
-
+		gui.prepareGraphicalInsertion(x, y);
+		score.addObject(ts, staffIndex, 0);
 	}
 
 	public List<String> getLyricsFor(int staff, int voice, int stanza) {
@@ -473,6 +465,7 @@ public class Controller implements StaffActionListener {
 	public Score getScore() {
 		return score;
 	}
+	
 
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
 		// --- CONTROLLI ---

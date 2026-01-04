@@ -4,6 +4,6 @@ import notation.Staff;
 
 public interface StaffActionListener {
 
-    void requestKeySignature(Staff staff);
-    void requestTimeSignature(Staff staff);
+    void openKeySignatureDialog(int x, int y);
+    void openTimeSignatureDialog(int x, int y);
 }

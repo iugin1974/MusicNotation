@@ -11,9 +11,11 @@ import javax.swing.JPanel;
 import javax.swing.plaf.synth.SynthPopupMenuUI;
 
 import Measure.Bar;
+import Measure.TimeSignature;
 import musicEvent.Note;
 import musicEvent.Rest;
 import notation.Clef;
+import notation.KeySignature;
 import notation.Score;
 import notation.ScoreEvent;
 import notation.ScoreEvent.Type;
@@ -34,9 +36,11 @@ public class GraphicalScore {
 	private final int LINE_NUMBER = 5;
 	private final int DISTANCE_BETWEEN_LINES = 10;
 	private int width;
+	private StaffActionListener staffActionListener;
 
-	public GraphicalScore(Score score) {
+	public GraphicalScore(Score score, StaffActionListener staffActionListener) {
 		this.score = score;
+		this.staffActionListener = staffActionListener;
 	}
 
 	public GraphicalObject hitTest(int x, int y) {
@@ -99,6 +103,7 @@ public class GraphicalScore {
 		int yPos = calculateNextY();
 		Staff staff = e.getStaff();
 		GraphicalStaff s = new GraphicalStaff(staff, id, 0, yPos, width, LINE_NUMBER, DISTANCE_BETWEEN_LINES);
+		s.setActionListener(staffActionListener);
 		staves.add(s);
 	}
 
@@ -135,6 +140,13 @@ public class GraphicalScore {
 		return staves.get(i);
 	}
 	
+	public GraphicalStaff getStaffAtPos(int x, int y) {
+		for (GraphicalStaff s : staves) {
+			if (s.contains(x, y)) return s;
+		}
+		return null;
+	}
+	
 	public int getStaffIndex(GraphicalStaff s) {
 		for (int i = 0; i < staves.size(); i++) {
 			if (staves.get(i) == s)
@@ -146,7 +158,7 @@ public class GraphicalScore {
 	public GraphicalObject createGraphicalObject(ScoreEvent e, int x, int y) {
 
 		GraphicalObject gObj = null;
-
+		GraphicalStaff s;
 		switch (e.getType()) {
 
 		case Type.NOTE_ADDED:
@@ -167,6 +179,19 @@ public class GraphicalScore {
 			gObj = new GraphicalClef((Clef) e.getMusicObject());
 			gObj.setXY(x, y);
 			break;
+			
+		case Type.KEY_SIGNATURE_ADDED:
+			s = getStaffAtPos(x, y);
+			if (s == null) return null;
+			gObj = new GraphicalKeySignature(x, s, (KeySignature) e.getMusicObject());
+			break;
+			
+		case Type.TIME_SIGNATURE_ADDED:
+			s = getStaffAtPos(x, y);
+			if (s == null) return null;
+			gObj = new GraphicalTimeSignature((TimeSignature) e.getMusicObject(), s, x);
+			break;
+			
 		default:
 			break;
 		}

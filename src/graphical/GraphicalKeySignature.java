@@ -28,9 +28,6 @@ public class GraphicalKeySignature extends GraphicalObject {
 	// -------------------------------------------------------------------
 	// COSTRUTTORE
 	// -------------------------------------------------------------------
-	// accidentals è un array con le posizioni delle linee e spazi del pentagramma
-	// type 1 = sharp, -1 = flat, 0 = natural
-	// mode -1 = moll +1 = dur
 	public GraphicalKeySignature(int x, GraphicalStaff staff, KeySignature keySignature) {
 
 		setX(x);

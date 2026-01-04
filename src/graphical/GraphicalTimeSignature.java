@@ -33,7 +33,8 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	private Font numberFont;
 	private final TimeSignature timeSignature;
 
-	public GraphicalTimeSignature(TimeSignature timeSignature, GraphicalStaff staff) {
+	public GraphicalTimeSignature(TimeSignature timeSignature, GraphicalStaff staff, int x) {
+		setX(x);
 		this.timeSignature = timeSignature;
 		this.staff = staff;
 		
@@ -71,8 +72,8 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	    Font oldFont = g2.getFont();
 	    g2.setFont(numberFont);
 
-	    int numY = staff.getYPosOfLine(4);
-	    int denY = staff.getYPosOfLine(2);
+	    int numY = staff.getYPosOfLine(3);
+	    int denY = staff.getYPosOfLine(1);
 
 	    drawDigits(g2, String.valueOf(numerator), getX(), numY);
 	    drawDigits(g2, String.valueOf(denominator), getX(), denY);
@@ -98,7 +99,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature, staff);
+		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature, staff, getX());
 		timeSig.setX(getX());
 		timeSig.setY(getY());
 		timeSig.setBounds(getBounds());

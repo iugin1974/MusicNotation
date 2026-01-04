@@ -33,7 +33,6 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		this.distanceBetweenLines = distanceBetweenLines;
 		this.id = id;
 		setBounds();
-		
 	}
 	
 	private void setBounds() {
@@ -265,13 +264,13 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
         menu.add(i2);
         i1.addActionListener(e -> {
             if (actionListener != null) {
-                actionListener.requestKeySignature(staff);
+                actionListener.openKeySignatureDialog(x, y);
             }
         });
 
         i2.addActionListener(e -> {
             if (actionListener != null) {
-                actionListener.requestTimeSignature(staff);
+                actionListener.openTimeSignatureDialog(x, y);
             }
         });
 
