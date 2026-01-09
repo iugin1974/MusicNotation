@@ -20,9 +20,8 @@ public class GraphicalRest extends GraphicalObject {
 	private final Rest rest;
 
 	public GraphicalRest(Rest rest) {
-		symbol = setSymbol();
 		this.rest = rest;
-		setup();
+		symbol = setSymbol();
 	}
 
 	private void setup() {

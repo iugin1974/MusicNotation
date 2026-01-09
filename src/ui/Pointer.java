@@ -21,7 +21,6 @@ public class Pointer implements StaffInfo {
 	public Pointer(Controller controller, MusicalSymbol noteSymbol) {
 		this.symbol = noteSymbol;
 		this.controller = controller;
-		init();
 	}
 	
 	private void init() {

@@ -241,10 +241,6 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		}
 	}
 
-		public int getId() {
-		return id;
-	}
-
 	@Override
 	public GraphicalObject cloneObject() {
 		// TODO Auto-generated method stub

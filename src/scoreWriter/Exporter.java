@@ -9,6 +9,7 @@ import musicEvent.Rest;
 import musicInterface.MusicObject;
 import musicLily.LilyBar;
 import musicLily.LilyNote;
+import musicLily.LilyRest;
 import notation.Clef;
 import notation.KeySignature;
 import notation.ParsedStaff;
@@ -31,13 +32,13 @@ public class Exporter {
 		ScoreParser parser = new ScoreParser(score);
 		List<ParsedStaff> parsedStaves = parser.parse();
 		for (ParsedStaff parsedStaff : parsedStaves) {
-			
+
 			if (!parsedStaff.startsWithClef()) {
 				System.out.println("Manca la chiave in uno staff");
 				return; // TODO -> questo va nel controller
 			}
 		}
-				
+
 		for (int staffIndex = 0; staffIndex < parsedStaves.size(); staffIndex++) {
 			ParsedStaff staff = parsedStaves.get(staffIndex);
 
@@ -48,16 +49,17 @@ public class Exporter {
 				if (!hasNotesOrRests(voiceObjs))
 					continue;
 
-				parseVoice(staffIndex, voiceIndex, voiceObjs);	
-				
+				parseVoice(staffIndex, voiceIndex, voiceObjs);
+
 				// Nel loop stiamo iterando sui parsedStaves, dove ogni ParsedStaff combina
 				// le informazioni “staff-wide” (voce 0) con le note delle voci successive.
-				// Di conseguenza, la prima voce musicale reale diventa voiceIndex 0 in questo contesto,
+				// Di conseguenza, la prima voce musicale reale diventa voiceIndex 0 in questo
+				// contesto,
 				// mentre le lyrics originali sono memorizzate a partire da voice 1.
 				// Per recuperarle correttamente, dobbiamo quindi usare voiceIndex + 1.
 				for (int j = 0; j < score.getStanzasNumber(staffIndex, voiceIndex + 1); j++) {
-				List<String> l = score.getLyricsFor(staffIndex, voiceIndex + 1, j);
-				exportLyrics(l, staffIndex, voiceIndex, j);
+					List<String> l = score.getLyricsFor(staffIndex, voiceIndex + 1, j);
+					exportLyrics(l, staffIndex, voiceIndex, j);
 				}
 				sb.append("\n");
 				currentClef = null;
@@ -87,61 +89,61 @@ public class Exporter {
 				parseClef((Clef) go);
 			} else if (go instanceof Note) {
 				parseNote((Note) go);
+			} else if (go instanceof Rest) {
+				parseRest((Rest) go);
 			} else if (go instanceof Bar) {
 				parseBar((Bar) go);
 			} else if (go instanceof TimeSignature) {
 				parseTimeSignature((TimeSignature) go);
 			} else if (go instanceof KeySignature) {
-				parseKeySignature((KeySignature)go);
+				parseKeySignature((KeySignature) go);
 			}
 		}
 	}
 
 	private void parseKeySignature(KeySignature ks) {
 
-	    this.ks = ks;
+		this.ks = ks;
 
-	    String[] majorKeysSharp = {"c", "g", "d", "a", "e", "h", "fis", "cis"};
-	    String[] minorKeysSharp = {"a", "e", "h", "fis", "cis", "gis", "dis", "ais"};
+		String[] majorKeysSharp = { "c", "g", "d", "a", "e", "h", "fis", "cis" };
+		String[] minorKeysSharp = { "a", "e", "h", "fis", "cis", "gis", "dis", "ais" };
 
-	    String[] majorKeysFlat  = {"c", "f", "b", "es", "as", "des", "ges", "ces"};
-	    String[] minorKeysFlat  = {"a", "d", "g", "c", "f", "bes", "ees", "aes"};
+		String[] majorKeysFlat = { "c", "f", "b", "es", "as", "des", "ges", "ces" };
+		String[] minorKeysFlat = { "a", "d", "g", "c", "f", "bes", "ees", "aes" };
 
-	    int n = ks.getNumberOfAlterations();
-	    int type = ks.getTypeOfAlterations(); // 1 = #, -1 = b
+		int n = ks.getNumberOfAlterations();
+		int type = ks.getTypeOfAlterations(); // 1 = #, -1 = b
 
-	    String key;
+		String key;
 
-	    if (n == 0) {
-	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE) ? "c" : "a";
-	    }
-	    else if (type == 1) { // diesis
-	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE)
-	                ? majorKeysSharp[n]
-	                : minorKeysSharp[n];
-	    }
-	    else { // bemolle
-	        key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE)
-	                ? majorKeysFlat[n]
-	                : minorKeysFlat[n];
-	    }
+		if (n == 0) {
+			key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE) ? "c" : "a";
+		} else if (type == 1) { // diesis
+			key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE) ? majorKeysSharp[n] : minorKeysSharp[n];
+		} else { // bemolle
+			key = (ks.getModus() == musicEvent.Modus.MAJOR_SCALE) ? majorKeysFlat[n] : minorKeysFlat[n];
+		}
 
-	    String Modus;
+		String Modus;
 
-	    switch (ks.getModus()) {
-	        case MAJOR_SCALE:  Modus = "\\major";  break;
-	        case MINOR_SCALE:  Modus = "\\minor";  break;
-	      //  case DORIAN: Modus = "\\dorian"; break;
-	     //   case PHRYGIAN: Modus = "\\phrygian"; break;
-	     //   case LYDIAN: Modus = "\\lydian"; break;
-	     //   case MIXOLYDIAN: Modus = "\\mixolydian"; break;
-	     //   case LOCRIAN: Modus = "\\locrian"; break;
-	        default: Modus = "\\major";
-	    }
+		switch (ks.getModus()) {
+		case MAJOR_SCALE:
+			Modus = "\\major";
+			break;
+		case MINOR_SCALE:
+			Modus = "\\minor";
+			break;
+		// case DORIAN: Modus = "\\dorian"; break;
+		// case PHRYGIAN: Modus = "\\phrygian"; break;
+		// case LYDIAN: Modus = "\\lydian"; break;
+		// case MIXOLYDIAN: Modus = "\\mixolydian"; break;
+		// case LOCRIAN: Modus = "\\locrian"; break;
+		default:
+			Modus = "\\major";
+		}
 
-	    sb.append("\\key ").append(key).append(" ").append(Modus).append("\n");
+		sb.append("\\key ").append(key).append(" ").append(Modus).append("\n");
 	}
-
 
 	private void parseTimeSignature(TimeSignature ts) {
 		int n = ts.getNumerator();
@@ -154,17 +156,16 @@ public class Exporter {
 
 	/** Esporta una clef LilyPond */
 	private void parseClef(Clef clef) {
-	    this.currentClef = clef;
+		this.currentClef = clef;
 
-	    switch (clef.getType()) {
-	        case TREBLE -> sb.append("\\clef treble");
-	        case TREBLE_8 -> sb.append("\\clef \"treble_8\"");
-	        case BASS -> sb.append("\\clef bass");
+		switch (clef.getType()) {
+		case TREBLE -> sb.append("\\clef treble");
+		case TREBLE_8 -> sb.append("\\clef \"treble_8\"");
+		case BASS -> sb.append("\\clef bass");
 		default -> throw new IllegalArgumentException("Unexpected value: " + clef.getType());
-	    }
-	    sb.append("\n");
+		}
+		sb.append("\n");
 	}
-
 
 	/** Esporta una nota */
 	private void parseNote(Note note) {
@@ -172,7 +173,7 @@ public class Exporter {
 		boolean success = MidiCalculator.setMidiNumberAndAlteration(note, currentClef, ks);
 		if (!success)
 			return; // chiave mancante
-		
+
 		LilyNote ln = new LilyNote(note);
 		sb.append(ln.draw()).append(" ");
 
@@ -182,6 +183,11 @@ public class Exporter {
 			sb.append(")");
 		if (note.isTiedStart())
 			sb.append("~");
+	}
+
+	private void parseRest(Rest rest) {
+		LilyRest lr = new LilyRest(rest);
+		sb.append(lr.draw() + " ");
 	}
 
 	/** Esporta una barra di misura */
@@ -202,25 +208,22 @@ public class Exporter {
 	}
 
 	private void exportLyrics(List<String> list, int staffIndex, int voiceIndex, int stanza) {
-	    if (list == null || list.isEmpty()) return;
+		if (list == null || list.isEmpty())
+			return;
 
-	    // Nome della variabile LilyPond basato su staff/voice/stanza
-	    String name = "Lyric" + getNumber(staffIndex) 
-	                             + getNumber(voiceIndex) 
-	                             + getNumber(stanza);
+		// Nome della variabile LilyPond basato su staff/voice/stanza
+		String name = "Lyric" + getNumber(staffIndex) + getNumber(voiceIndex) + getNumber(stanza);
 
-	    sb.append(name).append(" = \\lyricmode {\n");
+		sb.append(name).append(" = \\lyricmode {\n");
 
-	    for (String s : list) {
-	        if (s != null && !s.isEmpty()) {
-	            sb.append(s).append(" ");
-	        }
-	    }
+		for (String s : list) {
+			if (s != null && !s.isEmpty()) {
+				sb.append(s).append(" ");
+			}
+		}
 
-	    sb.append("\n}\n\n");
+		sb.append("\n}\n\n");
 	}
-
-
 
 	private void createScoreBlock(List<ParsedStaff> parsed) {
 

@@ -23,7 +23,6 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	public GraphicalNote(Note n) {
 		this.note = n;
 		symbol = setSymbol();
-		setup();
 	}
 
 	private void setup() {

@@ -1,7 +1,5 @@
 package graphical;
 
-import scoreWriter.SymbolId;
-
 public class MusicalSymbol {
 	private final String name;
 	private final String iconPath;
@@ -12,14 +10,13 @@ public class MusicalSymbol {
 	private Type type;
 	private int midiOffset = -1;
 	private int[] semitoneMap = null;
-	private SymbolId id; 
 
 	public enum Type {
 		NOTE, REST, BARLINE, CLEF
 	};
 
 	// note
-	public MusicalSymbol(SymbolId id, String name, String iconPath, String glyphUp, String glyphDown, Type type, int duration) {
+	public MusicalSymbol(String name, String iconPath, String glyphUp, String glyphDown, Type type, int duration) {
 		this.name = name;
 		this.iconPath = iconPath;
 		this.glyphUp = glyphUp;
@@ -27,11 +24,11 @@ public class MusicalSymbol {
 		this.glyphDown = glyphDown;
 		this.type = type;
 		this.duration = duration;
-		this.id = id;
+		
 	}
 	
 	// pause
-	public MusicalSymbol(SymbolId id, String name, String glyph, Type type, int duration) {
+	public MusicalSymbol(String name, String glyph, Type type, int duration) {
 		this.name = name;
 		this.iconPath = null;
 		this.glyphUp = null;
@@ -39,22 +36,22 @@ public class MusicalSymbol {
 		this.type = type;
 		this.duration = duration;
 		this.glyphDown = null;
-		this.id = id;
+		
 	}
 
 	// stanghette di battuta
-	public MusicalSymbol(SymbolId id, String name, String iconPath, String glyph, Type type) {
+	public MusicalSymbol(String name, String iconPath, String glyph, Type type) {
 		this.name = name;
 		this.iconPath = iconPath;
 		this.glyphUp = null;
 		this.type = type;
 		this.glyph = glyph;
 		this.glyphDown = null;
-		this.id = id;
+		
 	}
 
 	// chiavi
-	public MusicalSymbol(SymbolId id, String name, String iconPath, String glyph, Type type, int midiOffset, int[] semitoneMap) {
+	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int midiOffset, int[] semitoneMap) {
 		this.name = name;
 		this.iconPath = iconPath;
 		this.glyphUp = null;
@@ -63,7 +60,7 @@ public class MusicalSymbol {
 		this.midiOffset = midiOffset;
 		this.glyphDown = null;
 		this.semitoneMap = semitoneMap;
-		this.id = id;
+		
 	}
 
 	public String getName() {
@@ -100,9 +97,5 @@ public class MusicalSymbol {
 	
 	public int[] getSemitoneMap() {
 		return semitoneMap;
-	}
-	
-	public SymbolId getId() {
-		return id;
 	}
 }

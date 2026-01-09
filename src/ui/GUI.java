@@ -496,10 +496,15 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
+			if (!controller.pointerExists()) return;
+			insertMode = true;
+			mainPanel.repaint();
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			insertMode = false;
+			mainPanel.repaint();
 		}
 
 		@Override

@@ -3,6 +3,7 @@ package graphical;
 import Measure.Bar;
 import Measure.TimeSignature;
 import musicEvent.Note;
+import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
 import notation.KeySignature;
@@ -25,6 +26,9 @@ public final class GraphicalObjectFactory {
         }
         else if (obj instanceof Note) {
             g = new GraphicalNote((Note) obj);
+        }
+        else if (obj instanceof Rest) {
+            g = new GraphicalRest((Rest) obj);
         }
         else if (obj instanceof Clef) {
             g = new GraphicalClef((Clef) obj);

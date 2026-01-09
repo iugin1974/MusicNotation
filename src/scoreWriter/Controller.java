@@ -27,6 +27,7 @@ import graphical.StaffActionListener;
 import musicEvent.Modus;
 import musicEvent.MusicEvent;
 import musicEvent.Note;
+import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
 import notation.CurvedConnection;
@@ -166,6 +167,8 @@ public class Controller implements StaffActionListener {
 		selectionManager.deselectAll();
 		if (objectToInsert.getType() == Type.NOTE)
 			insertNote(objectToInsert.getDuration(), s, x, y);
+		else if (objectToInsert.getType() == Type.REST)
+			insertRest(objectToInsert.getDuration(), s, x, y);
 		else if (objectToInsert.getType() == Type.BARLINE)
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
@@ -193,6 +196,14 @@ public class Controller implements StaffActionListener {
 		score.addObject(n, staffIndex, currentVoice);
 	}
 
+	private void insertRest(int duration, GraphicalStaff s, int x, int y) {
+		Rest r = createRest(duration);
+		r.setTick(x);
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		gui.prepareGraphicalInsertion(x, y);
+		score.addObject(r, staffIndex, currentVoice);
+	}
+	
 	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x, int y) {
 		Clef c = createClef(clefSymbol);
 		if (c == null)
@@ -203,16 +214,17 @@ public class Controller implements StaffActionListener {
 		score.addObject(c, staffIndex, 0);
 	}
 
-	private void insertKeySignature(GraphicalStaff s, int x, int y) {
-
-	}
-
 	private Note createNote(int duration) {
 		Note n = new Note();
 		n.setDuration(duration);
 		return n;
 	}
 
+	private Rest createRest(int duration) {
+		Rest r = new Rest(duration, 0);
+		return r;
+	}
+	
 	private Clef createClef(MusicalSymbol symbol) {
 		if (symbol.equals(SymbolRegistry.CLEF_TREBLE)) {
 			return Clef.treble();
