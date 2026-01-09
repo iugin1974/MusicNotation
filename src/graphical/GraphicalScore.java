@@ -156,48 +156,23 @@ public class GraphicalScore {
 	}
 
 	public GraphicalObject createGraphicalObject(ScoreEvent e, int x, int y) {
+		  MusicObject obj = e.getMusicObject();
+		    if (obj == null) return null;
 
-		GraphicalObject gObj = null;
-		GraphicalStaff s;
-		switch (e.getType()) {
+		    // Determina lo staff, se necessario
+		    GraphicalStaff s = null;
+		    if (obj instanceof KeySignature || obj instanceof TimeSignature) {
+		        s = getStaffAtPos(x, y);
+		        if (s == null) return null; // non c'è staff valido, non creo
+		    }
 
-		case Type.NOTE_ADDED:
-			gObj = new GraphicalNote((Note) e.getMusicObject(), this);
-			gObj.setXY(x, y);
-			break;
+		    // Creazione tramite factory centralizzata
+		    GraphicalObject gObj = GraphicalObjectFactory.create(obj, this, s, x, y);
 
-		case Type.REST_ADDED:
-			gObj = new GraphicalRest((Rest) e.getMusicObject());
-			break;
+		    // Salvo nella mappa per aggiornamenti futuri
+		    objects.put(obj, gObj);
 
-		case Type.BARLINE_ADDED:
-			gObj = new GraphicalBar((Bar) e.getMusicObject());
-			gObj.setXY(x, y);
-			break;
-			
-		case Type.CLEF_ADDED:
-			gObj = new GraphicalClef((Clef) e.getMusicObject());
-			gObj.setXY(x, y);
-			break;
-			
-		case Type.KEY_SIGNATURE_ADDED:
-			s = getStaffAtPos(x, y);
-			if (s == null) return null;
-			gObj = new GraphicalKeySignature(x, s, (KeySignature) e.getMusicObject());
-			break;
-			
-		case Type.TIME_SIGNATURE_ADDED:
-			s = getStaffAtPos(x, y);
-			if (s == null) return null;
-			gObj = new GraphicalTimeSignature((TimeSignature) e.getMusicObject(), s, x);
-			break;
-			
-		default:
-			break;
-		}
-
-		objects.put(e.getMusicObject(), gObj);
-		return gObj;
+		    return gObj;
 	}
 	
 	public GraphicalObject getObject(MusicObject o) {

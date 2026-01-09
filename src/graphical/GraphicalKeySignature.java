@@ -20,21 +20,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 	int pos[];
 	private final KeySignature keySignature;
 	
-	//private Font musicFont;
-	
-	private GraphicalStaff staff;
-	
-
 	// -------------------------------------------------------------------
 	// COSTRUTTORE
 	// -------------------------------------------------------------------
-	public GraphicalKeySignature(int x, GraphicalStaff staff, KeySignature keySignature) {
-
-		setX(x);
-		nextAlteration = x;
-		this.staff = staff;
+	public GraphicalKeySignature(KeySignature keySignature) {
 		this.keySignature = keySignature;
-		computeLayout();
 	}
 
 	// -------------------------------------------------------------------
@@ -51,7 +41,7 @@ public class GraphicalKeySignature extends GraphicalObject {
 
 		// Ricava tutte le posizioni possibili dal pentagramma,
 		// inclusi eventuali spazi sopra o sotto (qui 0 linea del MI4, 9 spazio SOL5)
-		int[] linePositions = staff.getYPosOfLinesAndSpacesExtended(0, 9);
+		int[] linePositions = gStaff.getYPosOfLinesAndSpacesExtended(0, 9);
 
 		if (typeOfAlterations == 1) { // Diesis
 			for (int i = 0; i < numberOfAlterations; i++) {
@@ -77,6 +67,8 @@ public class GraphicalKeySignature extends GraphicalObject {
 	// -------------------------------------------------------------------
 	@Override
 	public void draw(Graphics g) {
+		computeLayout();
+		nextAlteration = getX();
 		Graphics2D g2 = (Graphics2D) g;
 		//g2.setFont(musicFont);
 		// Se selezionato, evidenzia
@@ -101,6 +93,7 @@ public class GraphicalKeySignature extends GraphicalObject {
 				maxY = p;
 		}
 
+		// TODO i bounds non sono corretti
 		// Calcolo bounds corretti
 		int width = nextAlteration - getX();
 		int height = maxY - minY;
@@ -108,7 +101,7 @@ public class GraphicalKeySignature extends GraphicalObject {
 		Rectangle bounds = new Rectangle(getX(), minY, width, height);
 
 		setBounds(bounds);
-		//drawBounds(g2);
+		drawBounds(g2);
 
 		// Ripristina posizione iniziale
 		nextAlteration = getX();
@@ -127,10 +120,8 @@ public class GraphicalKeySignature extends GraphicalObject {
 
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalKeySignature ks = new GraphicalKeySignature(getX(), staff, keySignature);
-		ks.setX(getX());
-		ks.setY(getY());
-		ks.setBounds(getBounds());
+		GraphicalKeySignature ks = new GraphicalKeySignature(keySignature);
+		ks.init(getGraphicalScore(), getGraphicalStaff(), getX(), getY());
 		return ks;
 	}
 

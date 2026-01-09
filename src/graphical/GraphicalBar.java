@@ -13,14 +13,13 @@ import scoreWriter.SymbolRegistry;
 public class GraphicalBar extends GraphicalObject {
 
 	private MusicalSymbol symbol;
-	private final Bar bar;
+	private Bar bar;
 
 	public GraphicalBar(Bar bar) {
-		this.bar = bar;
-		symbol = setSymbol();
-	}
+        this.bar = bar;
+        symbol = setSymbol();
+    }
 
-	
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyph();
@@ -43,16 +42,14 @@ public class GraphicalBar extends GraphicalObject {
 	@Override
 	public GraphicalObject cloneObject() {
 		GraphicalBar newBar = new GraphicalBar(bar);
-		newBar.setX(getX());
-		newBar.setY(getY());
-		newBar.setBounds(getBounds());
+		newBar.init(getGraphicalScore(), getGraphicalStaff(), getX(), getY());
 		return newBar;
 	}
-	
+
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
-	
+
 	public Bar getBar() {
 		return bar;
 	}
@@ -60,22 +57,21 @@ public class GraphicalBar extends GraphicalObject {
 	@Override
 	protected MusicalSymbol setSymbol() {
 		Type t = bar.getType();
-		 switch (t) {
-         case NORMAL:
-             return SymbolRegistry.BARLINE_SINGLE;
-         case DOUBLE:
-             return SymbolRegistry.BARLINE_DOUBLE;
-         case END:
-             return SymbolRegistry.BARLINE_FINAL;
-         case BEGIN_REPEAT:
-             return SymbolRegistry.BARLINE_REPEAT_START;
-         case END_REPEAT:
-             return SymbolRegistry.BARLINE_REPEAT_END;
-         default:
-             return SymbolRegistry.BARLINE_SINGLE; // fallback
-     }
+		switch (t) {
+		case NORMAL:
+			return SymbolRegistry.BARLINE_SINGLE;
+		case DOUBLE:
+			return SymbolRegistry.BARLINE_DOUBLE;
+		case END:
+			return SymbolRegistry.BARLINE_FINAL;
+		case BEGIN_REPEAT:
+			return SymbolRegistry.BARLINE_REPEAT_START;
+		case END_REPEAT:
+			return SymbolRegistry.BARLINE_REPEAT_END;
+		default:
+			return SymbolRegistry.BARLINE_SINGLE; // fallback
+		}
 	}
-
 
 	@Override
 	public Bar getModelObject() {

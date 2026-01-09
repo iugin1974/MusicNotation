@@ -11,12 +11,22 @@ public abstract class GraphicalObject {
 	private int y = 0;
 	protected Rectangle bounds = null;
 	protected GraphicalScore gScore;
+	protected GraphicalStaff gStaff;
 	
-	public void setGraphicalScore(GraphicalScore gScore) {
-		this.gScore = gScore;
-	}
-	
-	public int getX() {
+	// inizializzazione comune
+    public final void init(
+            GraphicalScore gScore,
+            GraphicalStaff gStaff,
+            int x,
+            int y
+    ) {
+        this.gScore = gScore;
+        this.gStaff = gStaff;
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getX() {
 		return x;
 	}
 	
@@ -69,6 +79,14 @@ public abstract class GraphicalObject {
 	
 	public int getHeight() {
 		return bounds.height;
+	}
+	
+	public GraphicalScore getGraphicalScore() {
+		return gScore;
+	}
+	
+	public GraphicalStaff getGraphicalStaff() {
+		return gStaff;
 	}
 	
     public boolean contains(int x, int y) {

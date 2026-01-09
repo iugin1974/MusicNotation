@@ -25,6 +25,7 @@ import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
 import graphical.StaffActionListener;
 import musicEvent.Modus;
+import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicInterface.MusicObject;
 import notation.Clef;
@@ -54,36 +55,18 @@ public class Controller implements StaffActionListener {
 
 	private void test() {
 		score.addStaff();
-	/*	Note n1 = new Note();
-		Note n2 = new Note();
-		n1.setDuration(2);
-		n2.setDuration(3);
-		score.addObject(n1, 0, 1);
-		score.addObject(n2, 0, 1);
-		TimeSignature ts = new TimeSignature(4, 4);
-		score.addObject(ts, 0, 0);
-		KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
-		score.addObject(ks, 0, 0);
-		Note n3 = new Note();
-		Note n4 = new Note();
-		n3.setDuration(4);
-		n4.setDuration(4);
-		score.addObject(n3, 0, 2);
-		score.addObject(n4, 0, 2);
-		Clef c = Clef.treble();
-		score.addObject(c, 0, 0);
-		Bar bar = new Bar();
-		bar.setEndBar();
-		score.addObject(bar, 0, 0);
-		c.setTick(10);
-		ks.setTick(20);
-		ts.setTick(30);
-		n1.setTick(40);
-		n2.setTick(50);
-		n3.setTick(40);
-		n4.setTick(50);
-		bar.setTick(60);
-	*/	
+		/*
+		 * Note n1 = new Note(); Note n2 = new Note(); n1.setDuration(2);
+		 * n2.setDuration(3); score.addObject(n1, 0, 1); score.addObject(n2, 0, 1);
+		 * TimeSignature ts = new TimeSignature(4, 4); score.addObject(ts, 0, 0);
+		 * KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
+		 * score.addObject(ks, 0, 0); Note n3 = new Note(); Note n4 = new Note();
+		 * n3.setDuration(4); n4.setDuration(4); score.addObject(n3, 0, 2);
+		 * score.addObject(n4, 0, 2); Clef c = Clef.treble(); score.addObject(c, 0, 0);
+		 * Bar bar = new Bar(); bar.setEndBar(); score.addObject(bar, 0, 0);
+		 * c.setTick(10); ks.setTick(20); ts.setTick(30); n1.setTick(40);
+		 * n2.setTick(50); n3.setTick(40); n4.setTick(50); bar.setTick(60);
+		 */
 	}
 
 	public static void main(String[] args) {
@@ -187,7 +170,7 @@ public class Controller implements StaffActionListener {
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
-	
+
 		resizeStavesIfNeeded(x);
 
 	}
@@ -221,9 +204,9 @@ public class Controller implements StaffActionListener {
 	}
 
 	private void insertKeySignature(GraphicalStaff s, int x, int y) {
-		
+
 	}
-	
+
 	private Note createNote(int duration) {
 		Note n = new Note();
 		n.setDuration(duration);
@@ -372,7 +355,8 @@ public class Controller implements StaffActionListener {
 
 		for (GraphicalObject obj : selectionManager.getSelected()) {
 			MusicObject mo = obj.getModelObject();
-			if (mo == null) continue;
+			if (mo == null)
+				continue;
 			score.changeTick(mo, obj.getX());
 
 			if (mo instanceof Note note && obj instanceof GraphicalNote gNote) {
@@ -414,38 +398,33 @@ public class Controller implements StaffActionListener {
 		if (selectedNotes.size() == 1) {
 			Note n1 = selectedNotes.get(0);
 			Note n2 = (Note) score.getNextNote(n1);
-			if (n2 == null)
-				continue;
-			if (n1.getMidiNumber() == n2.getMidiNumber()) {
-				Tie t = new Tie();
-				n1.isTiedStart();
-				n2.isTiedEnd();
+			
+			if (n2 != null) {
+				if (n1.getStaffPosition() == n2.getStaffPosition()) {
+					n1.isTiedStart();
+					n2.isTiedEnd();
+				} else {
+					n1.isSlurStart();
+					n2.isSlurEnd();
+				}
 			}
 		}
 
-		for (int i = 0; i < selectionManager.getSelected().size(); i++) {
-			if (selectedNotes.size() == 1) {
-				Note n1 = selectedNotes.get(0);
-
-				if (n1.getY() == n2.getY())
-					tie(n1, n2, i);
-				else
-					slur(n1, n2, i);
-
-				continue; // passa al prossimo staff
-			}
-
-			for (int j = 0; j < selectedNotes.size() - 1; j++) {
-				GraphicalNote n1 = selectedNotes.get(j);
-				GraphicalNote n2 = selectedNotes.get(j + 1);
-
-				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2))
-					tie(n1, n2, i); // usa i invece di j
-				else
-					slur(n1, n2, i);
-			}
-		}
-		gui.repaintPanel();
+		/*
+		 * for (int i = 0; i < selectionManager.getSelected().size() - 1; i++) { if
+		 * (selectedNotes.size() == 1) { Note n1 = selectedNotes.get(0); Note n2;
+		 * MusicEvent e = score.getNextNote(n1); if (e instanceof Note) { n2 = (Note)e;
+		 * } else continue; if (n1.getStaffPosition() == n2.getStaffPosition()) tie(n1,
+		 * n2, i); else slur(n1, n2, i);
+		 * 
+		 * continue; // passa al prossimo staff }
+		 * 
+		 * for (int j = 0; j < selectedNotes.size() - 1; j++) { GraphicalNote n1 =
+		 * selectedNotes.get(j); GraphicalNote n2 = selectedNotes.get(j + 1);
+		 * 
+		 * if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2)) tie(n1, n2,
+		 * i); // usa i invece di j else slur(n1, n2, i); } } gui.repaintPanel();
+		 */
 	}
 
 	@Override
@@ -497,7 +476,6 @@ public class Controller implements StaffActionListener {
 	public Score getScore() {
 		return score;
 	}
-	
 
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
 		// --- CONTROLLI ---
@@ -516,7 +494,7 @@ public class Controller implements StaffActionListener {
 		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
 
 	}
-	
+
 	public int getCurrentVoice() {
 		return currentVoice;
 	}

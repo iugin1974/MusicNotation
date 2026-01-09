@@ -17,7 +17,6 @@ import musicInterface.MusicObject;
 
 public class GraphicalTimeSignature extends GraphicalObject {
 
-	private GraphicalStaff staff;
 	private static final char[] SMUFL_DIGITS = {
 		    '\uE080', // 0
 		    '\uE081', // 1
@@ -33,10 +32,8 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	private Font numberFont;
 	private final TimeSignature timeSignature;
 
-	public GraphicalTimeSignature(TimeSignature timeSignature, GraphicalStaff staff, int x) {
-		setX(x);
+	public GraphicalTimeSignature(TimeSignature timeSignature) {
 		this.timeSignature = timeSignature;
-		this.staff = staff;
 		
 		try (InputStream is1 = getClass().getResourceAsStream("/fonts/BravuraText.otf")) {
 			numberFont = Font.createFont(Font.TRUETYPE_FONT, is1).deriveFont(50f);
@@ -72,13 +69,14 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	    Font oldFont = g2.getFont();
 	    g2.setFont(numberFont);
 
-	    int numY = staff.getYPosOfLine(3);
-	    int denY = staff.getYPosOfLine(1);
+	    int numY = gStaff.getYPosOfLine(3);
+	    int denY = gStaff.getYPosOfLine(1);
 
 	    drawDigits(g2, String.valueOf(numerator), getX(), numY);
 	    drawDigits(g2, String.valueOf(denominator), getX(), denY);
 
 	    // bounds più precisi
+	    // TODO correggi i bounds
 	    FontMetrics fm = g2.getFontMetrics();
 	    int width = Math.max(fm.stringWidth(String.valueOf(numerator)), fm.stringWidth(String.valueOf(denominator)));
 	    int height = (denY - numY) + fm.getHeight();
@@ -86,6 +84,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	    setBounds(bounds);
 
 	    g2.setFont(oldFont);
+	    drawBounds(g2);
 	}
 
 	private String toSMUFLNumber(String s) {
@@ -99,7 +98,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	
 	@Override
 	public GraphicalObject cloneObject() {
-		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature, staff, getX());
+		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature);
 		timeSig.setX(getX());
 		timeSig.setY(getY());
 		timeSig.setBounds(getBounds());

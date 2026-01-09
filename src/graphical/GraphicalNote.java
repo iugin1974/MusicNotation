@@ -20,10 +20,9 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	private final Note note;
 	private int staffPosition; // 0 MI, 1 FA, ecc.
 
-	public GraphicalNote(Note n, GraphicalScore gScore) {
-		setGraphicalScore(gScore);
+	public GraphicalNote(Note n) {
 		this.note = n;
-		this.symbol = setSymbol();
+		symbol = setSymbol();
 		setup();
 	}
 
@@ -138,7 +137,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 		@Override
 	public GraphicalObject cloneObject() {
-		GraphicalNote n = new GraphicalNote(note, gScore);
+		GraphicalNote n = new GraphicalNote(note);
 		n.setX(getX());
 		n.setY(getY());
 		n.setBounds(getBounds());
