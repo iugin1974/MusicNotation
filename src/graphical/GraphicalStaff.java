@@ -254,10 +254,12 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	@Override
 	public JPopupMenu getMenu(int x, int y) {
 		JPopupMenu menu = new JPopupMenu();
-		JMenuItem i1 = new JMenuItem("Key accidentals");
+		JMenuItem i1 = new JMenuItem("Key signature");
 		JMenuItem i2 = new JMenuItem("Time signature");
+		JMenuItem i3 = new JMenuItem("Shift objects");
         menu.add(i1);
         menu.add(i2);
+        menu.add(i3);
         i1.addActionListener(e -> {
             if (actionListener != null) {
                 actionListener.openKeySignatureDialog(x, y);
@@ -269,7 +271,11 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
                 actionListener.openTimeSignatureDialog(x, y);
             }
         });
-
+        i3.addActionListener(e -> {
+        	if (actionListener != null) {
+        		actionListener.shitObjectsRight(x, y);
+        	}
+        });
         
         return menu;
 	}

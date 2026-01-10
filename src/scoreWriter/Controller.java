@@ -1,3 +1,11 @@
+/*
+ *  TODO
+ *  - correggi i bounds delle figure
+ *  - lyrics: -- e __ non vengono esportati (ha a che fare col
+ *  fatto che vengono salvati nelle note?
+ *  - salvataggio
+ */
+
 package scoreWriter;
 
 import java.awt.Point;
@@ -13,29 +21,20 @@ import javax.swing.SwingUtilities;
 
 import Measure.Bar;
 import Measure.TimeSignature;
-import graphical.GraphicalBar;
-import graphical.GraphicalKeySignature;
 import graphical.GraphicalNote;
 import graphical.GraphicalObject;
-import graphical.GraphicalRest;
 import graphical.GraphicalScore;
 import graphical.GraphicalStaff;
-import graphical.GraphicalTimeSignature;
 import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
 import graphical.StaffActionListener;
 import musicEvent.Modus;
-import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
-import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.Score;
-import notation.SemitoneMap;
-import notation.Staff;
-import notation.Tie;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.Pointer;
@@ -173,7 +172,7 @@ public class Controller implements StaffActionListener {
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
-
+		
 		resizeStavesIfNeeded(x);
 
 	}
@@ -284,6 +283,11 @@ public class Controller implements StaffActionListener {
 			return;
 		selectionManager.select(o);
 	}
+	
+	public void selectObject(GraphicalObject o) {
+		selectionManager.select(o);
+		gui.repaintPanel();
+	}
 
 	private void resizeStavesIfNeeded(int x) {
 		if (x < gui.getWidth() - 100)
@@ -300,14 +304,16 @@ public class Controller implements StaffActionListener {
 	}
 
 	public void mousePressed(MouseEvent e) {
-		if (!SwingUtilities.isLeftMouseButton(e))
+		if (!SwingUtilities.isLeftMouseButton(e)) {
 			return;
+		}
 
 		// controlla se si è cliccato su un oggetto
 		GraphicalObject o = getObjectAt(e.getX(), e.getY());
-		if (o == null || !selectionManager.hasSelectedObjects())
+		if (o == null)
 			return;
 
+		if (!o.isSelected()) selectObject(o);
 		// se vi sono oggetti selezionati inizia il trascinamento
 		// salva le poisizioni del mouse e di tutti gli oggetti.
 		dragging = true;
@@ -475,6 +481,22 @@ public class Controller implements StaffActionListener {
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(ts, staffIndex, 0);
+	}
+
+	@Override
+	public void shitObjectsRight(int x, int y) {
+		// cerca tutti gli oggetti a destra di mouseX
+		GraphicalStaff s = graphicalScore.getStaffAtPos(x, y);
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		List<MusicObject> objs = score.getObjects(staffIndex);
+		for (MusicObject o : objs) {
+			if (o.getTick() >= x) {
+				o.setTick(o.getTick()+10);
+				GraphicalObject go = graphicalScore.getObject(o);
+				go.moveTo(go.getX()+10, go.getY());
+			}
+		}
+		gui.repaintPanel();
 	}
 
 	public List<String> getLyricsFor(int staff, int voice, int stanza) {
