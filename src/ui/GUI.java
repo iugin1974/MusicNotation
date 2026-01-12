@@ -438,32 +438,42 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			// Richiede il focus al componente
-			requestFocusInWindow();
+		    // Richiede il focus al componente, utile per tastiera
+		    requestFocusInWindow();
 
-			// --- Gestione click destro (popup menu) ---
-			if (SwingUtilities.isRightMouseButton(e)) {
-				GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
+		    // --- Click destro: menu contestuale ---
+		    if (SwingUtilities.isRightMouseButton(e)) {
+		        GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
+		        if (object instanceof PopupLauncher) {
+		            // Mostra il menu contestuale in posizione mouse
+		            JPopupMenu menu = ((PopupLauncher)object).getMenu(e.getX(), e.getY());
+		            menu.show(this, e.getX(), e.getY());
+		        }
+		        return; // nessun altro effetto sul modello
+		    } // end right button
 
-				if (object instanceof PopupLauncher) {
-					PopupLauncher launcher = (PopupLauncher) object;
-					JPopupMenu menu = launcher.getMenu(e.getX(), e.getY());
-					menu.show(this, e.getX(), e.getY());
-				}
-			}
+		    // --- Modalità inserimento oggetto ---
+		    if (insertMode) {
+		    	System.out.println("Insert mode");
+		        controller.removeSelection();                        // deseleziona tutto
+		        insertObject(e);                                    // inserisce la nota/oggetto
+		        controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
+		        
+		    } // end insertMode
 
-			// --- Modalità inserimento oggetto ---
-			if (insertMode) {
-				insertObject(e);
-				return;
-			}
-
-			// Verifica se CTRL è premuto
-			boolean ctrlPressed = e.isControlDown();
-			// --- Modalità selezione ---
-			controller.selectObjectAtPos(e.getX(), e.getY(), ctrlPressed);
-			mainPanel.repaint();
+		    if (!insertMode && !e.isControlDown()) {
+		    	controller.removeSelection();  
+		    	controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
+		    }
+		    
+		    // --- Modalità selezione normale ---
+		    if(!insertMode && e.isControlDown()) {               // CTRL indica selezione multipla
+		    	System.out.println("CTRL down");
+		    controller.addClickedObjectToSelection(e.getX(), e.getY()); 
+		    }
+		    mainPanel.repaint();                                    // evidenzia subito la selezione
 		}
+
 
 		/**
 		 * Inserisce un oggetto usando il puntatore se esiste, altrimenti usa la
@@ -473,6 +483,8 @@ public class GUI extends JFrame implements ScoreListener {
 			int x;
 			int y;
 
+			// Se c'è un puntatore inserisce prende la posizione del puntatore
+			// altrimenti quella del click
 			if (controller.pointerExists()) {
 				x = controller.getPointer().getX();
 				y = controller.getPointer().getY();

@@ -15,6 +15,7 @@ import Measure.TimeSignature;
 import musicEvent.Note;
 import musicEvent.Rest;
 import notation.Clef;
+import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.Score;
 import notation.ScoreEvent;
@@ -26,9 +27,9 @@ import scoreWriter.ScoreWriter;
 public class GraphicalScore {
 
 	private Score score;
-	private ScoreWriter controller;
 	private List<GraphicalStaff> staves = new ArrayList<>();
 	private Map<MusicObject, GraphicalObject> objects = new HashMap<>();
+	private List<GraphicalCurvedConnection> listCurvedConnections = new ArrayList<>();
 	protected final LedgerLinesRenderer ledgerRenderer = new LedgerLinesRenderer();
 
 	private final int DISTANCE_BETWEEN_STAVES = 50;
@@ -119,9 +120,15 @@ public class GraphicalScore {
 		for (GraphicalStaff s : staves) {
 			s.draw(g);
 		}
+		for (GraphicalCurvedConnection gc : listCurvedConnections) {
+			gc.draw(g);
+		}
 	    for (GraphicalObject obj : objects.values()) {
 	        obj.draw(g);
 	    }
+	    
+	    GraphicalLyrics l = new GraphicalLyrics(objects, this);
+	    l.draw(g);
 	}
 
 	public boolean hasStaves() {
@@ -173,6 +180,18 @@ public class GraphicalScore {
 		    objects.put(obj, gObj);
 
 		    return gObj;
+	}
+	
+	public void addCurvedConnection(CurvedConnection c) {
+		GraphicalCurvedConnection gc = new GraphicalCurvedConnection(this, c);
+		listCurvedConnections.add(gc);
+	}
+	
+	public void updateCurvedConnection(GraphicalNote n) {
+		for (GraphicalCurvedConnection gcc : listCurvedConnections) {
+			gcc.move(n);
+		}
+		
 	}
 	
 	public GraphicalObject getObject(MusicObject o) {

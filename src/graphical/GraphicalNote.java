@@ -74,42 +74,6 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
-		if (note.hasLyric()) {
-			drawLyrics(g);
-		}
-	}
-
-	private void drawLyrics(Graphics g) {
-	    Note note = getNote();
-
-	    if (!note.hasLyric())
-	        return;
-
-	    int baseX = getCenterX();          // centro nota
-	    int staffIndex = note.getStaffIndex();
-	    int baseY = gScore.getStaff(staffIndex).getYPosOfLine(0) + 20;     // sotto il pentagramma
-
-	    Font oldFont = g.getFont();
-	    Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
-	    g.setFont(fontLyric);
-	    FontMetrics fm = g.getFontMetrics();
-
-	    // Disegna UNA riga per ogni stanza
-	    for (int stanza = 0; stanza < note.getNumberOfStanzas(); stanza++) {
-	        Lyric lyric = note.getLyric(stanza);
-	        if (lyric == null)
-	            continue;
-
-	        String text = lyric.getSyllable().getText();
-	        if (text == null || text.isEmpty())
-	            continue;
-
-	        int textWidth = fm.stringWidth(text);
-	        int y = baseY + stanza * (fm.getHeight() + 4);
-
-	        g.drawString(text, baseX - textWidth / 2, y);
-	    }
-	    g.setFont(oldFont);
 	}
 
 	public int getCenterX() {
@@ -140,6 +104,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		n.setX(getX());
 		n.setY(getY());
 		n.setBounds(getBounds());
+		n.setStaffPosition(getStaffPosition());
 		return n;
 	}
 

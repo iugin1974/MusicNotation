@@ -4,6 +4,206 @@
  *  - lyrics: -- e __ non vengono esportati (ha a che fare col
  *  fatto che vengono salvati nelle note?
  *  - salvataggio
+ *  - mousePressed e Mouseclicked fanno praticamente la stessa cosa
+ *  
+ *  
+ *  
+ *  
+ *  Ok, adesso il quadro è completo.
+E qui devo essere molto chiaro: così com’è, il codice è logicamente sbagliato, non solo “un po’ ridondante”.
+
+Non è un’opinione: stai violando il modello di eventi di Swing.
+
+Cosa succede davvero con UN singolo click sinistro
+
+Sequenza reale degli eventi:
+
+mousePressed
+
+mouseReleased
+
+mouseClicked
+
+Ora guardiamo cosa fai.
+
+mousePressed: selezione + inizio drag
+
+In mousePressed tu fai:
+
+deselectAll() (se CTRL non è premuto)
+
+getObjectAt
+
+selectObject(o)
+
+imposti sempre:
+
+dragging = true;
+dragStart = e.getPoint();
+
+
+salvi le posizioni degli oggetti selezionati
+
+👉 Hai già fatto una selezione completa
+👉 Hai già dichiarato che stai trascinando
+
+Anche se l’utente NON trascinerà mai.
+
+mouseClicked: selezione DI NUOVO + insert
+
+Poi arriva mouseClicked e fai:
+
+se insertMode → insertObject(e)
+
+altrimenti:
+
+controller.selectObjectAtPos(...)
+
+
+👉 Seconda selezione
+👉 su uno stato che è già stato modificato
+👉 con listener già partiti
+👉 con oggetti già marcati come “dragging”
+
+Questo spiega perfettamente:
+
+doppia selezione
+
+ricalcoli
+
+reset di staffPosition
+
+bug che colpisce solo la prima nota
+
+Punto cruciale (qui sei proprio fuori strada)
+mousePressed NON è “clic”
+mouseClicked NON è “più sicuro”
+
+In Swing:
+
+mousePressed = inizio di un’azione
+
+mouseDragged = azione in corso
+
+mouseReleased = fine
+
+mouseClicked = evento sintetico, spesso inutile negli editor
+
+👉 Non devi mai fare logica di selezione in entrambi.
+
+Errore grave specifico nel tuo codice
+
+Questa riga in mousePressed:
+
+dragging = true;
+
+
+È sbagliata concettualmente.
+
+Dovrebbe essere:
+
+dragging = false; // inizialmente
+
+
+e diventare true solo in mouseDragged.
+
+Così ora:
+
+ogni click è visto come un drag
+
+listener di drag/scorrimento/normalizzazione partono
+
+il sistema pensa che la nota sia stata “spostata”
+
+e ricalcola posizione → staffPosition = 0
+
+Come va sistemato DAVVERO (non workaround)
+1️⃣ mousePressed: solo preparazione
+public void mousePressed(MouseEvent e) {
+    if (!SwingUtilities.isLeftMouseButton(e)) return;
+
+    if (!e.isControlDown()) {
+        selectionManager.deselectAll();
+    }
+
+    GraphicalObject o = getObjectAt(e.getX(), e.getY());
+    if (o == null) return;
+
+    if (!o.isSelected()) {
+        selectObject(o);
+    }
+
+    dragging = false;          // NON true
+    dragStart = e.getPoint();
+}
+
+2️⃣ mouseDragged: qui inizia il drag
+public void mouseDragged(MouseEvent e) {
+    dragging = true;
+    // spostamento oggetti
+}
+
+3️⃣ mouseClicked: SOLO click semantico
+
+Nel tuo caso:
+
+niente selezione
+
+niente drag
+
+solo:
+
+popup
+
+insertMode
+
+public void mouseClicked(MouseEvent e) {
+    requestFocusInWindow();
+
+    if (SwingUtilities.isRightMouseButton(e)) {
+        ...
+        return;
+    }
+
+    if (insertMode) {
+        insertObject(e);
+        return;
+    }
+
+    // NIENTE select qui
+}
+
+Verità scomoda (ma utile)
+
+Il tuo bug non nasce da staffPosition.
+Nasce da questo errore concettuale:
+
+“Un click è una cosa sola”
+
+In Swing non lo è.
+È una sequenza di eventi, e tu stai duplicando la semantica.
+
+Conclusione netta
+
+Il reset di staffPosition è un effetto collaterale
+
+La causa è:
+
+doppia selezione
+
+drag attivato senza drag
+
+uso scorretto di mouseClicked
+
+Se sistemi questo, il bug sparisce senza toccare Note, Staff o Score.
+
+Se vuoi, al prossimo passo possiamo:
+
+ripulire del tutto il flusso input
+
+separare “edit”, “insert”, “select”
+
+evitare che questo tipo di bug torni mai più
  */
 
 package scoreWriter;
@@ -21,6 +221,7 @@ import javax.swing.SwingUtilities;
 
 import Measure.Bar;
 import Measure.TimeSignature;
+import graphical.GraphicalCurvedConnection;
 import graphical.GraphicalNote;
 import graphical.GraphicalObject;
 import graphical.GraphicalScore;
@@ -29,12 +230,17 @@ import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
 import graphical.StaffActionListener;
 import musicEvent.Modus;
+import musicEvent.MusicEvent;
 import musicEvent.Note;
+import musicEvent.NoteEvent;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
+import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.Score;
+import notation.Slur;
+import notation.Tie;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.Pointer;
@@ -172,7 +378,7 @@ public class Controller implements StaffActionListener {
 			insertBar(objectToInsert, s, x, y);
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
-		
+
 		resizeStavesIfNeeded(x);
 
 	}
@@ -202,7 +408,7 @@ public class Controller implements StaffActionListener {
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(r, staffIndex, currentVoice);
 	}
-	
+
 	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x, int y) {
 		Clef c = createClef(clefSymbol);
 		if (c == null)
@@ -223,7 +429,7 @@ public class Controller implements StaffActionListener {
 		Rest r = new Rest(duration, 0);
 		return r;
 	}
-	
+
 	private Clef createClef(MusicalSymbol symbol) {
 		if (symbol.equals(SymbolRegistry.CLEF_TREBLE)) {
 			return Clef.treble();
@@ -272,20 +478,35 @@ public class Controller implements StaffActionListener {
 		return bar;
 	}
 
-	public void selectObjectAtPos(int x, int y, boolean multipleSelection) {
-		if (score.getStaffCount() == 0)
-			return;
-		if (!multipleSelection)
-			selectionManager.deselectAll();
-		GraphicalObject o = getObjectAt(x, y);
-		System.out.println(o);
-		if (o == null)
-			return;
-		selectionManager.select(o);
+	public void removeSelection() {
+		selectionManager.deselectAll();
 	}
-	
+
+	public void addClickedObjectToSelection(int x, int y) {
+		GraphicalObject o = getObjectAt(x, y);
+		addObjectToSelection(o);
+	}
+
+	public void addObjectToSelection(GraphicalObject o) {
+		if (score.getStaffCount() == 0 || o == null)
+			return;
+		if (o instanceof GraphicalStaff)
+			return;
+		selectionManager.select(o, true);
+		gui.repaintPanel();
+	}
+
+	public void selectObjectAtPos(int x, int y) {
+		GraphicalObject o = getObjectAt(x, y);
+		selectObject(o);
+	}
+
 	public void selectObject(GraphicalObject o) {
-		selectionManager.select(o);
+		if (score.getStaffCount() == 0 || o == null)
+			return;
+		if (o instanceof GraphicalStaff)
+			return;
+		selectionManager.select(o, false);
 		gui.repaintPanel();
 	}
 
@@ -307,13 +528,6 @@ public class Controller implements StaffActionListener {
 		if (!SwingUtilities.isLeftMouseButton(e)) {
 			return;
 		}
-
-		// controlla se si è cliccato su un oggetto
-		GraphicalObject o = getObjectAt(e.getX(), e.getY());
-		if (o == null)
-			return;
-
-		if (!o.isSelected()) selectObject(o);
 		// se vi sono oggetti selezionati inizia il trascinamento
 		// salva le poisizioni del mouse e di tutti gli oggetti.
 		dragging = true;
@@ -333,6 +547,11 @@ public class Controller implements StaffActionListener {
 		int dy = e.getY() - dragStart.y;
 
 		// Oggetto di riferimento per lo snap verticale
+
+		if (dragStartPositions.isEmpty()) {
+			return; // nessun oggetto da trascinare
+		}
+
 		GraphicalObject anchor = dragStartPositions.keySet().iterator().next();
 		Point anchorStart = dragStartPositions.get(anchor);
 
@@ -347,7 +566,6 @@ public class Controller implements StaffActionListener {
 		}
 
 		int snapDy = snappedY - anchorStart.y;
-
 		// Applica la stessa delta a tutti gli oggetti selezionati
 		for (Map.Entry<GraphicalObject, Point> entry : dragStartPositions.entrySet()) {
 			GraphicalObject o = entry.getKey();
@@ -355,8 +573,39 @@ public class Controller implements StaffActionListener {
 
 			// solo le note si possono muovere in tutte le direzioni.
 			// Altri oggetti solo in orizzontale
+			// TODO se sposto solo la seconda nota non viene spostato la slur
 			if (o instanceof GraphicalNote) {
-				o.moveTo(p.x + dx, p.y + snapDy); // X libera, Y snap
+				GraphicalNote gNote = (GraphicalNote) o;
+				gNote.moveTo(p.x + dx, p.y + snapDy); // X libera, Y snap
+
+				Note n1 = gNote.getModelObject();
+				for (Tie tie : n1.getTies()) {
+					if (tie.isStart(n1)) {
+						NoteEvent n2 = tie.getEnd();
+						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
+						gNote2.setY(gNote.getY());
+						if (gNote.getX() >= gNote2.getX() - 10) {
+							gNote.setX(gNote2.getX() - 10);
+						}
+						graphicalScore.updateCurvedConnection(gNote);
+						graphicalScore.updateCurvedConnection(gNote2);
+					} else if (tie.isEnd(n1)) {
+						NoteEvent n2 = tie.getStart();
+						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
+						gNote2.setY(gNote.getY());
+						if (gNote.getX() < gNote2.getX() + 10) {
+							gNote.setX(gNote2.getX() + 10);
+						}
+						graphicalScore.updateCurvedConnection(gNote);
+						graphicalScore.updateCurvedConnection(gNote2);
+					}
+				}
+					for (Slur slur : n1.getSlurs()) {
+						NoteEvent n2 = slur.getEnd();
+						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
+						graphicalScore.updateCurvedConnection(gNote);
+						graphicalScore.updateCurvedConnection(gNote2);
+					}
 			} else {
 				o.moveTo(p.x + dx, p.y);
 			}
@@ -403,47 +652,87 @@ public class Controller implements StaffActionListener {
 		pointer = null;
 	}
 
-	private void slurOrTie() {
-		List<GraphicalObject> l = selectionManager.getSelected();
-		List<Note> selectedNotes = new ArrayList<>();
-		for (GraphicalObject g : l) {
-			if (g instanceof GraphicalNote) {
-				selectedNotes.add(((GraphicalNote) g).getModelObject());
-			}
-		}
-		if (selectedNotes.isEmpty())
-			return;
-		if (selectedNotes.size() == 1) {
-			Note n1 = selectedNotes.get(0);
-			Note n2 = (Note) score.getNextNote(n1);
-			
-			if (n2 != null) {
-				if (n1.getStaffPosition() == n2.getStaffPosition()) {
-					n1.isTiedStart();
-					n2.isTiedEnd();
-				} else {
-					n1.isSlurStart();
-					n2.isSlurEnd();
-				}
-			}
-		}
-
-		/*
-		 * for (int i = 0; i < selectionManager.getSelected().size() - 1; i++) { if
-		 * (selectedNotes.size() == 1) { Note n1 = selectedNotes.get(0); Note n2;
-		 * MusicEvent e = score.getNextNote(n1); if (e instanceof Note) { n2 = (Note)e;
-		 * } else continue; if (n1.getStaffPosition() == n2.getStaffPosition()) tie(n1,
-		 * n2, i); else slur(n1, n2, i);
-		 * 
-		 * continue; // passa al prossimo staff }
-		 * 
-		 * for (int j = 0; j < selectedNotes.size() - 1; j++) { GraphicalNote n1 =
-		 * selectedNotes.get(j); GraphicalNote n2 = selectedNotes.get(j + 1);
-		 * 
-		 * if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2)) tie(n1, n2,
-		 * i); // usa i invece di j else slur(n1, n2, i); } } gui.repaintPanel();
-		 */
+	public List<CurvedConnection> getCurveList() {
+		return score.getCurveList();
 	}
+
+	/**
+	 * Crea una Tie o una Slur a partire dalla selezione corrente.
+	 *
+	 * Regole:
+	 * - Se è selezionata UNA sola nota, viene collegata alla nota successiva nello score
+	 * - Se sono selezionate PIÙ note, ciascuna nota viene collegata alla successiva selezionata
+	 * - L'ultima nota non viene mai collegata a note esterne alla selezione
+	 *
+	 * Per ogni coppia:
+	 * - se la relazione è musicalmente valida → Tie
+	 * - altrimenti → Slur
+	 *
+	 * La semantica musicale è demandata al modello (Tie.createIfValid),
+	 * la GUI non prende decisioni musicali.
+	 */
+	private void slurOrTie() {
+
+	    // Recupera tutti gli oggetti grafici selezionati
+	    List<GraphicalObject> l = selectionManager.getSelected();
+
+	    // Estrae solo le note (oggetti grafici → modello)
+	    List<Note> selectedNotes = new ArrayList<>();
+	    for (GraphicalObject g : l) {
+	        if (g instanceof GraphicalNote) {
+	            selectedNotes.add(((GraphicalNote) g).getModelObject());
+	        }
+	    }
+
+	    // Nessuna nota selezionata → nessuna operazione
+	    if (selectedNotes.isEmpty())
+	        return;
+
+	    // Lista finale di note da collegare in sequenza
+	    List<Note> notesToProcess = new ArrayList<>();
+
+	    if (selectedNotes.size() == 1) {
+	        // Caso speciale: una sola nota selezionata
+	        // La si collega automaticamente alla nota successiva nello score
+	        Note n1 = selectedNotes.get(0);
+	        Note n2 = (Note) score.getNextNote(n1);
+
+	        if (n2 != null) {
+	            notesToProcess.add(n1);
+	            notesToProcess.add(n2);
+	        }
+	    } else {
+	        // Caso generale: più note selezionate
+	        // Si collegano solo tra loro, in ordine
+	        notesToProcess.addAll(selectedNotes);
+	    }
+
+	    // Crea una connessione per ogni coppia consecutiva
+	    // (l'ultima nota non guarda oltre)
+	    for (int i = 0; i < notesToProcess.size() - 1; i++) {
+
+	        Note n1 = notesToProcess.get(i);
+	        Note n2 = notesToProcess.get(i + 1);
+
+	        CurvedConnection curve;
+
+	        // Il modello decide se la relazione è una Tie valida
+	        Tie tie = Tie.createIfValid(score, n1, n2);
+	        if (tie != null) {
+	            curve = tie;
+	        } else {
+	            // Se non è una Tie, la relazione è una Slur
+	            curve = new Slur(n1, n2);
+	        }
+
+	        // Registrazione separata:
+	        // - GraphicalScore per la visualizzazione
+	        // - Score per il modello e gli eventi
+	        graphicalScore.addCurvedConnection(curve);
+	        score.addCurvedConnection(curve);
+	    }
+	}
+
 
 	@Override
 	public void openKeySignatureDialog(int x, int y) {
@@ -491,9 +780,9 @@ public class Controller implements StaffActionListener {
 		List<MusicObject> objs = score.getObjects(staffIndex);
 		for (MusicObject o : objs) {
 			if (o.getTick() >= x) {
-				o.setTick(o.getTick()+10);
+				o.setTick(o.getTick() + 10);
 				GraphicalObject go = graphicalScore.getObject(o);
-				go.moveTo(go.getX()+10, go.getY());
+				go.moveTo(go.getX() + 10, go.getY());
 			}
 		}
 		gui.repaintPanel();
@@ -526,7 +815,6 @@ public class Controller implements StaffActionListener {
 		}
 
 		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
-
 	}
 
 	public int getCurrentVoice() {

@@ -11,10 +11,13 @@ import musicLily.LilyBar;
 import musicLily.LilyNote;
 import musicLily.LilyRest;
 import notation.Clef;
+import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.ParsedStaff;
 import notation.Score;
 import notation.ScoreParser;
+import notation.Slur;
+import notation.Tie;
 
 public class Exporter {
 
@@ -177,14 +180,13 @@ public class Exporter {
 		LilyNote ln = new LilyNote(note);
 		sb.append(ln.draw()).append(" ");
 
-		if (note.isSlurStart())
-			sb.append("(");
-		if (note.isSlurEnd())
-			sb.append(")");
-		if (note.isTiedStart())
-			sb.append("~");
+		for (CurvedConnection c : score.getCurveList()) {
+			if (note == c.getStart() && c instanceof Tie) sb.append("~");
+			if (note == c.getStart() && c instanceof Slur) sb.append("(");
+			if (note == c.getEnd() && c instanceof Slur) sb.append(")");
+			}
 	}
-
+	
 	private void parseRest(Rest rest) {
 		LilyRest lr = new LilyRest(rest);
 		sb.append(lr.draw() + " ");

@@ -7,24 +7,43 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.CubicCurve2D;
 
+import musicEvent.NoteEvent;
 import musicInterface.MusicObject;
 import notation.CurvedConnection;
 
-public abstract class GraphicalCurvedConnection extends GraphicalObject {
+public class GraphicalCurvedConnection extends GraphicalObject {
 
-    protected GraphicalNote startNote;
-    protected GraphicalNote endNote;
+    protected GraphicalNote startNote, endNote;
     protected CurvedConnection model;
 
     private int x1, y1;
     boolean slurAbove = true;
 
-    protected GraphicalCurvedConnection(CurvedConnection model) {
+    public GraphicalCurvedConnection(GraphicalScore gScore, CurvedConnection model) {
         this.model = model;
+        NoteEvent n1 = model.getStart();
+        NoteEvent n2 = model.getEnd();
+        startNote = (GraphicalNote) gScore.getObject(n1);
+        endNote = (GraphicalNote) gScore.getObject(n2);
+        setX(startNote.getX());
+        setY(startNote.getY());
+        x1 = endNote.getX();
+        y1 = endNote.getY();
     }
 
     public CurvedConnection getModel() {
         return model;
+    }
+    
+    public void move(GraphicalNote n) {
+    	if (n != startNote && n != endNote) return;
+    	if (n == startNote) {
+    	setX(n.getX());
+    	setY(n.getY());
+    	} else {
+    		setX1(n.getX());
+    		setY1(n.getY());
+    	}
     }
     
     public void setX1Y1(int x, int y) { x1 = x; y1 = y; }
@@ -71,12 +90,21 @@ public abstract class GraphicalCurvedConnection extends GraphicalObject {
         g2.setStroke(old);
     }
 
+    public boolean hasNote(GraphicalNote n) {
+    	return (startNote == n || endNote == n);
+    }
+
     public MusicalSymbol getSymbol() {
         return null;
     }
 
     @Override
 	public MusicObject getModelObject() {
+		return null;
+	}
+
+	@Override
+	protected MusicalSymbol setSymbol() {
 		return null;
 	}
 }
