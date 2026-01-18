@@ -93,7 +93,7 @@ public class GraphicalLyrics {
 	}
 
 	private void drawLyricExtender(Graphics g, int x1, int x2, int y) {
-		g.drawL
+		//g.drawL
 		
 	}
 }

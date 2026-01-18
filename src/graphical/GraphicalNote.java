@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 import musicEvent.Note;
+import notation.CurvedConnection;
 import notation.Lyric;
 import scoreWriter.StaffInfo;
 import scoreWriter.SymbolRegistry;
@@ -18,11 +19,11 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 	private MusicalSymbol symbol;
 	private final Note note;
-	private int staffPosition; // 0 MI, 1 FA, ecc.
 
 	public GraphicalNote(Note n) {
 		this.note = n;
 		symbol = setSymbol();
+		System.out.println("Constructor in GraphicalNote. StaffPosition: "+ n.getStaffPosition());
 	}
 
 	private void setup() {
@@ -74,6 +75,12 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
+		// Test
+//		Font oldFont = g.getFont();
+//		Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
+//	    g.setFont(fontLyric);
+//		g.drawString(getStaffPosition()+"", getX(), getY()+50);
+//		g.setFont(oldFont);
 	}
 
 	public int getCenterX() {
@@ -114,12 +121,12 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 	@Override
 	public void setStaffPosition(int p) {
-		staffPosition = p;
+		note.setStaffPosition(p);
 	}
 
 	@Override
 	public int getStaffPosition() {
-		return staffPosition;
+		return note.getStaffPosition();
 	}
 	
 	public Note getNote() {
@@ -130,4 +137,18 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	public Note getModelObject() {
 		return note;
 	}
+	
+    @Override
+    public void moveTo(int x, int y) {
+        super.moveTo(x, y); // sposta la nota
+
+        // notifica tutte le curve collegate
+        for (CurvedConnection c : getModelObject().getCurvedConnections()) {
+            GraphicalObject gObj = super.getGraphicalScore().getObject(c);
+
+            if (gObj instanceof GraphicalCurvedConnection gCurve) {
+                gCurve.move(this);
+            }
+        }
+    }
 }

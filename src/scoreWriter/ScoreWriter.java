@@ -130,7 +130,7 @@ public class ScoreWriter implements StaffActionListener {
 		if (score.getStaffCount() == 0)
 			return;
 		if (!multipleSelection)
-			selectionManager.deselectAll();
+			selectionManager.clearSelection();
 		GraphicalObject o = getObjectAt(x, y);
 		if (o == null)
 			return;
@@ -219,7 +219,7 @@ public class ScoreWriter implements StaffActionListener {
 	    int staffNumber = checkInWichStaffIsPoint(x, y);
 	    if (staffNumber == -1) return;
 
-	    selectionManager.deselectAll();
+	    selectionManager.clearSelection();
 
 	    // Creazione del GraphicalObject dal simbolo
 	    GraphicalObject obj = createGraphicalObject(symbolToInsert, x, y, staffNumber);

@@ -17,7 +17,7 @@ public class SelectionManager {
 			o.select(false);
 		} else {
 			if (!add)
-				deselectAll(); // se non voglio aggiungere, rimuovo tutto
+				clearSelection(); // se non voglio aggiungere, rimuovo tutto
 			selected.add(o);
 			o.select(true);
 		}
@@ -29,7 +29,7 @@ public class SelectionManager {
 		}
 	}
 
-	public void deselectAll() {
+	public void clearSelection() {
 		for (GraphicalObject o : selected) {
 			o.select(false);
 		}
@@ -43,4 +43,5 @@ public class SelectionManager {
 	public boolean hasSelectedObjects() {
 		return selected != null && selected.size() > 0;
 	}
+		
 }

@@ -211,10 +211,15 @@ package scoreWriter;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -333,26 +338,21 @@ public class Controller implements StaffActionListener {
 		if (selectedObjects.isEmpty())
 			return;
 
-		// TODO elimina solo la slur se selezionata
-		// prima puliamo le note se l'oggetto è curva
-		/*
-		 * for (GraphicalObject obj : selectedObjects) { if (obj instanceof
-		 * CurvedConnection) { ((CurvedConnection) obj).removeFromNotes(); } }
-		 */
-
+		// 1. Rimuovi dal MODELLO
 		for (GraphicalObject o : selectedObjects) {
+
 			MusicObject mo = o.getModelObject();
+			if (mo == null)
+				continue;
+
+			// Delegazione totale allo Score
 			score.removeObject(mo);
 		}
-		// rimuovi dal grid solo le note
-		for (GraphicalObject obj : selectedObjects) {
-			if (obj instanceof GraphicalNote)
-				;
-			// grid.remove((GraphicalNote) obj);
-		}
 
+		// 2. Pulisci la selezione (opzionale ma consigliato)
+		selectionManager.clearSelection();
 	}
-
+	
 	public Pointer getPointer() {
 		return pointer;
 	}
@@ -369,7 +369,7 @@ public class Controller implements StaffActionListener {
 		GraphicalStaff s = gui.getPointedStaff(x, y);
 		if (s == null)
 			return;
-		selectionManager.deselectAll();
+		selectionManager.clearSelection();
 		if (objectToInsert.getType() == Type.NOTE)
 			insertNote(objectToInsert.getDuration(), s, x, y);
 		else if (objectToInsert.getType() == Type.REST)
@@ -395,6 +395,7 @@ public class Controller implements StaffActionListener {
 		Note n = createNote(duration);
 		n.setTick(x);
 		int staffPosition = s.getPosInStaff(y);
+		System.out.println("Insert note at " + staffPosition + "staff position");
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		gui.prepareGraphicalInsertion(x, y);
@@ -479,7 +480,7 @@ public class Controller implements StaffActionListener {
 	}
 
 	public void removeSelection() {
-		selectionManager.deselectAll();
+		selectionManager.clearSelection();
 	}
 
 	public void addClickedObjectToSelection(int x, int y) {
@@ -520,7 +521,6 @@ public class Controller implements StaffActionListener {
 			s.setWidth(w + 200);
 		}
 		gui.resizePanel(w + 200, gui.getHeight()); // TODO l'altezza deve essere in base agli staves
-		// anche nella guissa
 		gui.repaintPanel();
 	}
 
@@ -572,45 +572,36 @@ public class Controller implements StaffActionListener {
 			Point p = entry.getValue();
 
 			// solo le note si possono muovere in tutte le direzioni.
-			// Altri oggetti solo in orizzontale
-			// TODO se sposto solo la seconda nota non viene spostato la slur
-			if (o instanceof GraphicalNote) {
-				GraphicalNote gNote = (GraphicalNote) o;
-				gNote.moveTo(p.x + dx, p.y + snapDy); // X libera, Y snap
+			// Altri oggetti solo in orizzontales
+			if (o instanceof GraphicalNote gNote) {
 
-				Note n1 = gNote.getModelObject();
-				for (Tie tie : n1.getTies()) {
-					if (tie.isStart(n1)) {
-						NoteEvent n2 = tie.getEnd();
-						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
-						gNote2.setY(gNote.getY());
-						if (gNote.getX() >= gNote2.getX() - 10) {
-							gNote.setX(gNote2.getX() - 10);
-						}
-						graphicalScore.updateCurvedConnection(gNote);
-						graphicalScore.updateCurvedConnection(gNote2);
-					} else if (tie.isEnd(n1)) {
-						NoteEvent n2 = tie.getStart();
-						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
-						gNote2.setY(gNote.getY());
-						if (gNote.getX() < gNote2.getX() + 10) {
-							gNote.setX(gNote2.getX() + 10);
-						}
-						graphicalScore.updateCurvedConnection(gNote);
-						graphicalScore.updateCurvedConnection(gNote2);
-					}
+				NoteEvent modelNote = gNote.getModelObject();
+
+				// 1. Recupera tutte le note legate
+				List<NoteEvent> tiedGroup = score.getConnectionGroup(modelNote, Tie.class);
+
+				// 2. Muovi la nota trascinata
+				gNote.moveTo(p.x + dx, p.y + snapDy);
+
+				int newY = gNote.getY();
+
+				// 3. Allinea verticalmente tutte le altre note del gruppo
+				for (NoteEvent note : tiedGroup) {
+					if (note == modelNote)
+						continue;
+
+					GraphicalNote other = (GraphicalNote) graphicalScore.getObject(note);
+
+					other.setY(newY);
+					// TODO La tie deve essere aggiornata in tutte le note
 				}
-					for (Slur slur : n1.getSlurs()) {
-						NoteEvent n2 = slur.getEnd();
-						GraphicalNote gNote2 = (GraphicalNote) graphicalScore.getObject(n2);
-						graphicalScore.updateCurvedConnection(gNote);
-						graphicalScore.updateCurvedConnection(gNote2);
-					}
 			} else {
 				o.moveTo(p.x + dx, p.y);
 			}
 		}
-
+		// problema con le voci e le legature
+		// metto tie, la tolgo, la rimetto e viene slur
+		// export totalmente a puttane
 		gui.repaintPanel();
 	}
 
@@ -627,10 +618,13 @@ public class Controller implements StaffActionListener {
 			score.changeTick(mo, obj.getX());
 
 			if (mo instanceof Note note && obj instanceof GraphicalNote gNote) {
-				note.setStaffPosition(gNote.getStaffPosition());
+				GraphicalStaff s = graphicalScore.getStaffAtPos(e.getX(), e.getY());
+				int snapY = gui.getSnapY(s, gNote.getY());
+				int p = s.getPosInStaff(snapY);
+				note.setStaffPosition(p);
 
 				// aggiorna tie/slur se presente
-				// CurvedConnection curve = note.getCurvedConnection();
+//				 List<CurvedConnection> curve = note.getCurvedConnections();
 				// if (curve != null) {
 				// curve.updateFromGraphical(); // metodo che aggiorna curve dal grafico
 				// }
@@ -659,80 +653,85 @@ public class Controller implements StaffActionListener {
 	/**
 	 * Crea una Tie o una Slur a partire dalla selezione corrente.
 	 *
-	 * Regole:
-	 * - Se è selezionata UNA sola nota, viene collegata alla nota successiva nello score
-	 * - Se sono selezionate PIÙ note, ciascuna nota viene collegata alla successiva selezionata
-	 * - L'ultima nota non viene mai collegata a note esterne alla selezione
+	 * Regole: - Se è selezionata UNA sola nota, viene collegata alla nota
+	 * successiva nello score - Se sono selezionate PIÙ note, ciascuna nota viene
+	 * collegata alla successiva selezionata - L'ultima nota non viene mai collegata
+	 * a note esterne alla selezione
 	 *
-	 * Per ogni coppia:
-	 * - se la relazione è musicalmente valida → Tie
-	 * - altrimenti → Slur
+	 * Per ogni coppia: - se la relazione è musicalmente valida → Tie - altrimenti →
+	 * Slur
 	 *
-	 * La semantica musicale è demandata al modello (Tie.createIfValid),
-	 * la GUI non prende decisioni musicali.
+	 * La semantica musicale è demandata al modello (Tie.createIfValid), la GUI non
+	 * prende decisioni musicali.
 	 */
 	private void slurOrTie() {
 
-	    // Recupera tutti gli oggetti grafici selezionati
-	    List<GraphicalObject> l = selectionManager.getSelected();
+		// Recupera tutti gli oggetti grafici selezionati
+		List<GraphicalObject> l = selectionManager.getSelected();
 
-	    // Estrae solo le note (oggetti grafici → modello)
-	    List<Note> selectedNotes = new ArrayList<>();
-	    for (GraphicalObject g : l) {
-	        if (g instanceof GraphicalNote) {
-	            selectedNotes.add(((GraphicalNote) g).getModelObject());
-	        }
-	    }
+		// Estrae solo le note (oggetti grafici → modello)
+		List<Note> selectedNotes = new ArrayList<>();
+		for (GraphicalObject g : l) {
+			if (g instanceof GraphicalNote) {
+				selectedNotes.add(((GraphicalNote) g).getModelObject());
+			}
+		}
 
-	    // Nessuna nota selezionata → nessuna operazione
-	    if (selectedNotes.isEmpty())
-	        return;
+		// Nessuna nota selezionata → nessuna operazione
+		if (selectedNotes.isEmpty())
+			return;
 
-	    // Lista finale di note da collegare in sequenza
-	    List<Note> notesToProcess = new ArrayList<>();
+		// Lista finale di note da collegare in sequenza
+		List<Note> notesToProcess = new ArrayList<>();
 
-	    if (selectedNotes.size() == 1) {
-	        // Caso speciale: una sola nota selezionata
-	        // La si collega automaticamente alla nota successiva nello score
-	        Note n1 = selectedNotes.get(0);
-	        Note n2 = (Note) score.getNextNote(n1);
+		if (selectedNotes.size() == 1) {
+			// Caso speciale: una sola nota selezionata
+			// La si collega automaticamente alla nota successiva nello score
+			Note n1 = selectedNotes.get(0);
+			Note n2 = (Note) score.getNextNote(n1);
 
-	        if (n2 != null) {
-	            notesToProcess.add(n1);
-	            notesToProcess.add(n2);
-	        }
-	    } else {
-	        // Caso generale: più note selezionate
-	        // Si collegano solo tra loro, in ordine
-	        notesToProcess.addAll(selectedNotes);
-	    }
+			if (n2 != null) {
+				notesToProcess.add(n1);
+				notesToProcess.add(n2);
+			}
+		} else {
+			// Caso generale: più note selezionate
+			// Si collegano solo tra loro, in ordine
+			notesToProcess.addAll(selectedNotes);
+		}
 
-	    // Crea una connessione per ogni coppia consecutiva
-	    // (l'ultima nota non guarda oltre)
-	    for (int i = 0; i < notesToProcess.size() - 1; i++) {
+		// Crea una connessione per ogni coppia consecutiva
+		// (l'ultima nota non guarda oltre)
+		for (int i = 0; i < notesToProcess.size() - 1; i++) {
 
-	        Note n1 = notesToProcess.get(i);
-	        Note n2 = notesToProcess.get(i + 1);
+			Note n1 = notesToProcess.get(i);
+			Note n2 = notesToProcess.get(i + 1);
 
-	        CurvedConnection curve;
+			CurvedConnection curve;
 
-	        // Il modello decide se la relazione è una Tie valida
-	        Tie tie = Tie.createIfValid(score, n1, n2);
-	        if (tie != null) {
-	            curve = tie;
-	        } else {
-	            // Se non è una Tie, la relazione è una Slur
-	            curve = new Slur(n1, n2);
-	        }
+			System.out.println("Slur or tie? Compare " + n1.getStaffPosition() + " with " + n2.getStaffPosition());
+			// Il modello decide se la relazione è una Tie valida
+			Tie tie = Tie.createIfValid(score, n1, n2);
+			if (tie != null) {
+				curve = tie;
+			} else {
+				// Se non è una Tie, la relazione è una Slur
+				curve = new Slur(n1, n2);
+			}
 
-	        // Registrazione separata:
-	        // - GraphicalScore per la visualizzazione
-	        // - Score per il modello e gli eventi
-	        graphicalScore.addCurvedConnection(curve);
-	        score.addCurvedConnection(curve);
-	    }
+			int staffIndex = n1.getStaffIndex();
+			GraphicalObject go = graphicalScore.getObject(n1);
+			int x = go.getX();
+			int y = go.getY();
+			curve.setStaff(staffIndex);
+			// Registrazione separata:
+			// - GraphicalScore per la visualizzazione
+			// - Score per il modello e gli eventi
+//	        graphicalScore.addCurvedConnection(curve);
+			gui.prepareGraphicalInsertion(x, y);
+			score.addCurvedConnection(curve);
+		}
 	}
-
 
 	@Override
 	public void openKeySignatureDialog(int x, int y) {

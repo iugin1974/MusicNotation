@@ -6,6 +6,7 @@ import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
+import notation.CurvedConnection;
 import notation.KeySignature;
 
 public final class GraphicalObjectFactory {
@@ -38,6 +39,9 @@ public final class GraphicalObjectFactory {
         }
         else if (obj instanceof TimeSignature) {
             g = new GraphicalTimeSignature((TimeSignature) obj);
+        }
+        else if (obj instanceof CurvedConnection) {
+        	g = new GraphicalCurvedConnection(gScore, (CurvedConnection)obj);
         }
         else {
             throw new IllegalArgumentException(

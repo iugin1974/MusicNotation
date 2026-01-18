@@ -17,7 +17,6 @@ public class GraphicalCurvedConnection extends GraphicalObject {
     protected CurvedConnection model;
 
     private int x1, y1;
-    boolean slurAbove = true;
 
     public GraphicalCurvedConnection(GraphicalScore gScore, CurvedConnection model) {
         this.model = model;
@@ -31,10 +30,6 @@ public class GraphicalCurvedConnection extends GraphicalObject {
         y1 = endNote.getY();
     }
 
-    public CurvedConnection getModel() {
-        return model;
-    }
-    
     public void move(GraphicalNote n) {
     	if (n != startNote && n != endNote) return;
     	if (n == startNote) {
@@ -72,7 +67,8 @@ public class GraphicalCurvedConnection extends GraphicalObject {
         double c1x = x + dx * 0.25;
         double c2x = x + dx * 0.75;
 
-        double direction = slurAbove ? -1 : +1;
+        int voiceIndex = startNote.getModelObject().getVoiceIndex();
+        double direction = voiceIndex == 1 ? -1 : +1;
         double c1y = y  + direction * height;
         double c2y = y1 + direction * height;
 
@@ -100,7 +96,7 @@ public class GraphicalCurvedConnection extends GraphicalObject {
 
     @Override
 	public MusicObject getModelObject() {
-		return null;
+		return model;
 	}
 
 	@Override
