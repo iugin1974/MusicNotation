@@ -242,13 +242,16 @@ public class Exporter {
 				sb.append("    << ");
 				sb.append(beginVoice(staffIndex, voiceIndex));
 				sb.append(" ");
+				sb.append(getVoiceNumber(voiceIndex));
+				sb.append(" ");
 				sb.append(getStaffName(staffIndex, voiceIndex));
 				sb.append(" }");
-				// qui verrà chiamato il tuo exporter di voice
 				sb.append(" >>\n");
+				appendLyricsToStaff(staffIndex, voiceIndex);
 			}
 
 			sb.append("  >>\n");
+			// qui vengono inserite le lyrics se presenti
 		}
 
 		sb.append(">>\n");
@@ -262,7 +265,38 @@ public class Exporter {
 	private String beginVoice(int staffIndex, int voiceIndex) {
 		return "\\new Voice = \"voice" + getNumber(staffIndex) + getNumber(voiceIndex) + "\" {";
 	}
+	
+	private String getVoiceNumber(int voiceIndex) {
+		switch (voiceIndex) {
+			case 0: return "\\voiceOne";
+			case 1: return "\\voiceTwo";
+		}
+		return "";
+	}
+	
+	private void appendLyricsToStaff(int staffIndex, int voiceIndex) {
 
+	    int stanzas = score.getStanzasNumber(staffIndex, voiceIndex + 1);
+	    if (stanzas == 0) return;
+
+	    String voiceName =
+	        "voice" + getNumber(staffIndex) + getNumber(voiceIndex);
+
+	    for (int stanza = 0; stanza < stanzas; stanza++) {
+
+	        String lyricVar =
+	            "Lyric" + getNumber(staffIndex)
+	                   + getNumber(voiceIndex)
+	                   + getNumber(stanza);
+
+	        sb.append("    \\new Lyrics \\lyricsto \"")
+	          .append(voiceName)
+	          .append("\" { \\")
+	          .append(lyricVar)
+	          .append(" }\n");
+	    }
+	}
+	
 	private String getNumber(int n) {
 		return numbers[n];
 	}

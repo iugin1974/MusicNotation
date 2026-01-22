@@ -147,7 +147,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
             GraphicalObject gObj = super.getGraphicalScore().getObject(c);
 
             if (gObj instanceof GraphicalCurvedConnection gCurve) {
-                gCurve.move(this);
+                gCurve.updateFromNotes();
             }
         }
     }

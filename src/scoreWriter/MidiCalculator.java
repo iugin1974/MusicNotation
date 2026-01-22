@@ -7,13 +7,13 @@ import notation.KeySignature;
 
 public class MidiCalculator {
 
-	public static boolean setMidiNumberAndAlteration(Note n, Clef clef, KeySignature ks) {
+	public static boolean setMidiNumberAndAlteration(Note note, Clef clef, KeySignature ks) {
 		if (clef == null) {
 			System.out.println("Export ist not possible. No clef");
 			return false;
 		}
 		int[] scale = clef.getSemitoneMap();
-		int position = n.getStaffPosition();
+		int position = note.getStaffPosition();
 
 		// posizione musicale della nota (indipendente dall’ottava)
 		int notePosMod7 = Math.floorMod(position, 7); // 0..6
@@ -37,17 +37,17 @@ public class MidiCalculator {
 
 		    if (keyPosMod7 == notePosMod7) {
 		        midiN += typeOfAlterations;
-		        n.setAlteration(typeOfAlterations);
+		        note.setAlteration(typeOfAlterations);
 		        found = true;
 		        break;
 		    }
 		}
 
 		if (!found) {
-		    n.setAlteration(0);
+		    note.setAlteration(0);
 		}
 
-		n.setMidiNumber(midiN);
+		note.setMidiNumber(midiN);
 		return true;
 
 	}

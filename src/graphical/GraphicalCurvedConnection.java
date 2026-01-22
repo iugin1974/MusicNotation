@@ -30,15 +30,13 @@ public class GraphicalCurvedConnection extends GraphicalObject {
         y1 = endNote.getY();
     }
 
-    public void move(GraphicalNote n) {
-    	if (n != startNote && n != endNote) return;
-    	if (n == startNote) {
-    	setX(n.getX());
-    	setY(n.getY());
-    	} else {
-    		setX1(n.getX());
-    		setY1(n.getY());
-    	}
+    public void updateFromNotes() {
+        if (startNote == null || endNote == null) return;
+
+        setX(startNote.getX());
+        setY(startNote.getY());
+        setX1(endNote.getX());
+        setY1(endNote.getY());
     }
     
     public void setX1Y1(int x, int y) { x1 = x; y1 = y; }

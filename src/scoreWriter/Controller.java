@@ -264,22 +264,125 @@ public class Controller implements StaffActionListener {
 	private Point dragStart;
 	private Map<GraphicalObject, Point> dragStartPositions;
 
-	private void test() {
-		score.addStaff();
-		/*
-		 * Note n1 = new Note(); Note n2 = new Note(); n1.setDuration(2);
-		 * n2.setDuration(3); score.addObject(n1, 0, 1); score.addObject(n2, 0, 1);
-		 * TimeSignature ts = new TimeSignature(4, 4); score.addObject(ts, 0, 0);
-		 * KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
-		 * score.addObject(ks, 0, 0); Note n3 = new Note(); Note n4 = new Note();
-		 * n3.setDuration(4); n4.setDuration(4); score.addObject(n3, 0, 2);
-		 * score.addObject(n4, 0, 2); Clef c = Clef.treble(); score.addObject(c, 0, 0);
-		 * Bar bar = new Bar(); bar.setEndBar(); score.addObject(bar, 0, 0);
-		 * c.setTick(10); ks.setTick(20); ts.setTick(30); n1.setTick(40);
-		 * n2.setTick(50); n3.setTick(40); n4.setTick(50); bar.setTick(60);
-		 */
-	}
+	private static final int X_SCALE = 3;
 
+	
+	private void setGraphicalPosition(MusicObject obj) {
+	    GraphicalObject gObj = graphicalScore.getObject(obj);
+	    if (gObj == null) return;
+
+	    gObj.setX(obj.getTick() * X_SCALE);
+
+	    if (obj instanceof NoteEvent note) {
+	        int y = 90 - note.getStaffPosition() * 10;
+	        gObj.setY(y);
+	    } else {
+	        gObj.setY(90);
+	    }
+	}
+	
+	private void test() {
+
+	    score.addStaff();
+
+	    // ===== STAFF OBJECTS (VOICE 0) =====
+	    Clef clef = Clef.treble();
+	    clef.setTick(0);
+	    score.addObject(clef, 0, 0);
+	    setGraphicalPosition(clef);
+
+	    TimeSignature ts = new TimeSignature(4, 4);
+	    ts.setTick(10);
+	    score.addObject(ts, 0, 0);
+	    setGraphicalPosition(ts);
+
+	    KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
+	    ks.setTick(20);
+	    score.addObject(ks, 0, 0);
+	    setGraphicalPosition(ks);
+
+	    // ===== VOICE 1 =====
+	    Note v1n1 = new Note();
+	    v1n1.setDuration(4);
+	    v1n1.setStaffPosition(2);
+	    v1n1.setTick(40);
+	    score.addObject(v1n1, 0, 1);
+	    setGraphicalPosition(v1n1);
+
+	    Note v1n2 = new Note();
+	    v1n2.setDuration(4);
+	    v1n2.setStaffPosition(2);
+	    v1n2.setTick(60);
+	    score.addObject(v1n2, 0, 1);
+	    setGraphicalPosition(v1n2);
+
+	    Note v1n3 = new Note();
+	    v1n3.setDuration(4);
+	    v1n3.setStaffPosition(2);
+	    v1n3.setTick(80);
+	    score.addObject(v1n3, 0, 1);
+	    setGraphicalPosition(v1n3);
+
+	    Note v1n4 = new Note();
+	    v1n4.setDuration(4);
+	    v1n4.setStaffPosition(2);
+	    v1n4.setTick(100);
+	    score.addObject(v1n4, 0, 1);
+	    setGraphicalPosition(v1n4);
+
+	   
+	    // ===== VOICE 2 =====
+	    Note v2n1 = new Note();
+	    v2n1.setDuration(2);
+	    v2n1.setStaffPosition(-2);
+	    v2n1.setTick(40);
+	    score.addObject(v2n1, 0, 2);
+	    setGraphicalPosition(v2n1);
+
+	    Note v2n2 = new Note();
+	    v2n2.setDuration(2);
+	    v2n2.setStaffPosition(-1);
+	    v2n2.setTick(60);
+	    score.addObject(v2n2, 0, 2);
+	    setGraphicalPosition(v2n2);
+
+	    // ===== BAR =====
+	    Bar bar = new Bar();
+	    bar.setEndBar();
+	    bar.setTick(120);
+	    score.addObject(bar, 0, 0);
+	    setGraphicalPosition(bar);
+
+	    // ===== LYRICS =====
+	    score.addLyrics(List.of("la", "_", "__", "so"), 0, 1, 0);
+	    score.addLyrics(List.of("do", "_", "_", "re"), 0, 1, 1);
+
+	    // ===== TIE CHAIN =====
+	    Tie t1 = Tie.createIfValid(score, v1n1, v1n2);
+	    if (t1 != null) {
+	        t1.setStaff(0);
+	        score.addCurvedConnection(t1);
+	    }
+
+	    Tie t2 = Tie.createIfValid(score, v1n2, v1n3);
+	    if (t2 != null) {
+	        t2.setStaff(0);
+	        score.addCurvedConnection(t2);
+	    }
+
+	    Tie t3 = Tie.createIfValid(score, v1n3, v1n4);
+	    if (t3 != null) {
+	        t3.setStaff(0);
+	        score.addCurvedConnection(t3);
+	    }
+
+	    // ===== SLUR =====
+	    Slur slur = new Slur(v1n1, v1n4);
+	    slur.setStaff(0);
+	    score.addCurvedConnection(slur);
+	     
+	    export();
+	}
 	public static void main(String[] args) {
 		new Controller().go();
 	}
@@ -379,7 +482,7 @@ public class Controller implements StaffActionListener {
 		else if (objectToInsert.getType() == Type.CLEF)
 			insertClef(objectToInsert, s, x, y);
 
-		resizeStavesIfNeeded(x);
+		resizeStavesIfNeeded();
 
 	}
 
@@ -511,12 +614,21 @@ public class Controller implements StaffActionListener {
 		gui.repaintPanel();
 	}
 
-	private void resizeStavesIfNeeded(int x) {
-		if (x < gui.getWidth() - 100)
-			return;
+	private MusicObject getLastElement() {
+		List<MusicObject> list = score.getAllObjects();
+		if (list.size() == 0) return null;
+		return list.get(list.size()-1);
+	}
+	
+	private void resizeStavesIfNeeded() {
+		MusicObject mo = getLastElement();
+		if (mo == null) return;
+		GraphicalObject go = graphicalScore.getObject(mo);
+		int x = go.getX();
 		List<GraphicalStaff> staves = graphicalScore.getStaves();
 		int w = staves.get(0).getWidth();
-		// int w = gui.getStaffList().get(0).getWidth();
+		if (x < w - 100)
+			return;
 		for (GraphicalStaff s : staves) {
 			s.setWidth(w + 200);
 		}
@@ -622,14 +734,9 @@ public class Controller implements StaffActionListener {
 				int snapY = gui.getSnapY(s, gNote.getY());
 				int p = s.getPosInStaff(snapY);
 				note.setStaffPosition(p);
-
-				// aggiorna tie/slur se presente
-//				 List<CurvedConnection> curve = note.getCurvedConnections();
-				// if (curve != null) {
-				// curve.updateFromGraphical(); // metodo che aggiorna curve dal grafico
-				// }
 			}
 		}
+		resizeStavesIfNeeded();
 		dragStart = null;
 		dragStartPositions = null;
 	}

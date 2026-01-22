@@ -25,6 +25,14 @@ public abstract class GraphicalObject {
         this.x = x;
         this.y = y;
     }
+    
+    public final void init(
+            GraphicalScore gScore,
+            GraphicalStaff gStaff
+    ) {
+        this.gScore = gScore;
+        this.gStaff = gStaff;
+    }
 
     public int getX() {
 		return x;

@@ -49,7 +49,14 @@ public final class GraphicalObjectFactory {
             );
         }
 
+     // CurvedConnection (Slur/Tie) calcola le proprie coordinate in base alle note collegate, 
+     // quindi non bisogna passare x e y; per tutti gli altri oggetti grafici
+     // (Note, Rest, Bar, TimeSignature, ecc.) usiamo le coordinate cliccate dall’utente.
+        if (obj instanceof CurvedConnection) {
+        	g.init(gScore, gStaff);
+        } else {
         g.init(gScore, gStaff, x, y);
+        }
         return g;
     }
 }

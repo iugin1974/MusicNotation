@@ -182,20 +182,12 @@ public class GraphicalScore {
 		    return gObj;
 	}
 	
-//	public void addCurvedConnection(CurvedConnection c) {
-//		GraphicalCurvedConnection gc = new GraphicalCurvedConnection(this, c);
-//		listCurvedConnections.add(gc);
-//	}
-//	
-//	public void updateCurvedConnection(GraphicalNote n) {
-//		for (GraphicalCurvedConnection gcc : listCurvedConnections) {
-//			gcc.move(n);
-//		}
-//		
-//	}
-	
 	public GraphicalObject getObject(MusicObject o) {
 		return objects.get(o);
+	}
+	
+	public GraphicalCurvedConnection getObject(CurvedConnection c) {
+		return (GraphicalCurvedConnection) objects.get(c);
 	}
 
 }
