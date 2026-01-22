@@ -6,206 +6,7 @@
  *  - salvataggio
  *  - mousePressed e Mouseclicked fanno praticamente la stessa cosa
  *  
- *  
- *  
- *  
- *  Ok, adesso il quadro è completo.
-E qui devo essere molto chiaro: così com’è, il codice è logicamente sbagliato, non solo “un po’ ridondante”.
-
-Non è un’opinione: stai violando il modello di eventi di Swing.
-
-Cosa succede davvero con UN singolo click sinistro
-
-Sequenza reale degli eventi:
-
-mousePressed
-
-mouseReleased
-
-mouseClicked
-
-Ora guardiamo cosa fai.
-
-mousePressed: selezione + inizio drag
-
-In mousePressed tu fai:
-
-deselectAll() (se CTRL non è premuto)
-
-getObjectAt
-
-selectObject(o)
-
-imposti sempre:
-
-dragging = true;
-dragStart = e.getPoint();
-
-
-salvi le posizioni degli oggetti selezionati
-
-👉 Hai già fatto una selezione completa
-👉 Hai già dichiarato che stai trascinando
-
-Anche se l’utente NON trascinerà mai.
-
-mouseClicked: selezione DI NUOVO + insert
-
-Poi arriva mouseClicked e fai:
-
-se insertMode → insertObject(e)
-
-altrimenti:
-
-controller.selectObjectAtPos(...)
-
-
-👉 Seconda selezione
-👉 su uno stato che è già stato modificato
-👉 con listener già partiti
-👉 con oggetti già marcati come “dragging”
-
-Questo spiega perfettamente:
-
-doppia selezione
-
-ricalcoli
-
-reset di staffPosition
-
-bug che colpisce solo la prima nota
-
-Punto cruciale (qui sei proprio fuori strada)
-mousePressed NON è “clic”
-mouseClicked NON è “più sicuro”
-
-In Swing:
-
-mousePressed = inizio di un’azione
-
-mouseDragged = azione in corso
-
-mouseReleased = fine
-
-mouseClicked = evento sintetico, spesso inutile negli editor
-
-👉 Non devi mai fare logica di selezione in entrambi.
-
-Errore grave specifico nel tuo codice
-
-Questa riga in mousePressed:
-
-dragging = true;
-
-
-È sbagliata concettualmente.
-
-Dovrebbe essere:
-
-dragging = false; // inizialmente
-
-
-e diventare true solo in mouseDragged.
-
-Così ora:
-
-ogni click è visto come un drag
-
-listener di drag/scorrimento/normalizzazione partono
-
-il sistema pensa che la nota sia stata “spostata”
-
-e ricalcola posizione → staffPosition = 0
-
-Come va sistemato DAVVERO (non workaround)
-1️⃣ mousePressed: solo preparazione
-public void mousePressed(MouseEvent e) {
-    if (!SwingUtilities.isLeftMouseButton(e)) return;
-
-    if (!e.isControlDown()) {
-        selectionManager.deselectAll();
-    }
-
-    GraphicalObject o = getObjectAt(e.getX(), e.getY());
-    if (o == null) return;
-
-    if (!o.isSelected()) {
-        selectObject(o);
-    }
-
-    dragging = false;          // NON true
-    dragStart = e.getPoint();
-}
-
-2️⃣ mouseDragged: qui inizia il drag
-public void mouseDragged(MouseEvent e) {
-    dragging = true;
-    // spostamento oggetti
-}
-
-3️⃣ mouseClicked: SOLO click semantico
-
-Nel tuo caso:
-
-niente selezione
-
-niente drag
-
-solo:
-
-popup
-
-insertMode
-
-public void mouseClicked(MouseEvent e) {
-    requestFocusInWindow();
-
-    if (SwingUtilities.isRightMouseButton(e)) {
-        ...
-        return;
-    }
-
-    if (insertMode) {
-        insertObject(e);
-        return;
-    }
-
-    // NIENTE select qui
-}
-
-Verità scomoda (ma utile)
-
-Il tuo bug non nasce da staffPosition.
-Nasce da questo errore concettuale:
-
-“Un click è una cosa sola”
-
-In Swing non lo è.
-È una sequenza di eventi, e tu stai duplicando la semantica.
-
-Conclusione netta
-
-Il reset di staffPosition è un effetto collaterale
-
-La causa è:
-
-doppia selezione
-
-drag attivato senza drag
-
-uso scorretto di mouseClicked
-
-Se sistemi questo, il bug sparisce senza toccare Note, Staff o Score.
-
-Se vuoi, al prossimo passo possiamo:
-
-ripulire del tutto il flusso input
-
-separare “edit”, “insert”, “select”
-
-evitare che questo tipo di bug torni mai più
- */
-
+*/
 package scoreWriter;
 
 import java.awt.Point;
@@ -253,6 +54,8 @@ import ui.TimeSignatureDialog;
 
 public class Controller implements StaffActionListener {
 
+	public final static boolean TEST = true;
+	
 	public Score score = new Score();
 	private GraphicalScore graphicalScore;
 	private GUI gui;
@@ -266,7 +69,7 @@ public class Controller implements StaffActionListener {
 
 	private static final int X_SCALE = 3;
 
-	
+ 
 	private void setGraphicalPosition(MusicObject obj) {
 	    GraphicalObject gObj = graphicalScore.getObject(obj);
 	    if (gObj == null) return;

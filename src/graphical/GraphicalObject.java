@@ -2,6 +2,8 @@ package graphical;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.lang.ModuleLayer.Controller;
+
 import musicInterface.MusicObject;
 
 public abstract class GraphicalObject {
@@ -107,6 +109,8 @@ public abstract class GraphicalObject {
     }
 	
 	public void drawBounds(Graphics g) {
+		if (!scoreWriter.Controller.TEST) return;
+		
 	    if (bounds == null) {
 	        return;
 	    }

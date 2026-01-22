@@ -75,12 +75,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
-		// Test
-//		Font oldFont = g.getFont();
-//		Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
-//	    g.setFont(fontLyric);
-//		g.drawString(getStaffPosition()+"", getX(), getY()+50);
-//		g.setFont(oldFont);
+		drawBounds(g);
 	}
 
 	public int getCenterX() {

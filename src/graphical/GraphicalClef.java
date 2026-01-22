@@ -65,7 +65,7 @@ public class GraphicalClef extends GraphicalObject {
 			g.setColor(Color.BLACK);
 		}
         g.drawString(glyph, getX(), getY());
-		
+        drawBounds(g);
 	}
 	
 	public MusicalSymbol getSymbol() {
