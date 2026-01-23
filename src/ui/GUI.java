@@ -114,91 +114,34 @@ public class GUI extends JFrame implements ScoreListener {
 	}
 
 	public GUI(Controller controller, GraphicalScore gScore) {
-		this.controller = controller;
-		this.gScore = gScore;
-		ledger = new LedgerLinesRenderer();
-		initFont();
-		setTitle("Editor Musicale");
-		setSize(800, 600);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
+	    this.controller = controller;
+	    this.gScore = gScore;
+	    ledger = new LedgerLinesRenderer();
 
-		// Pannello centrale
-		mainPanel = new MainPanel();
-		mainPanel.setBackground(Color.WHITE);
-		scrollPane = new JScrollPane(mainPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, // niente scroll verticale
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED // scroll orizzontale se serve
-		);
-		add(scrollPane, BorderLayout.CENTER);
+	    initFont();
+	    setTitle("Editor Musicale");
+	    setSize(800, 600);
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setLocationRelativeTo(null);
 
-		// 🔹 Toolbar principale (già esistente)
-		JPanel topBar = new JPanel(new BorderLayout());
-		topBar.add(mainToolbar(), BorderLayout.WEST);
+	    mainPanel = new MainPanel();
+	    mainPanel.setBackground(Color.WHITE);
 
-		// 🔹 Aggiungo la nuova voce toolbar
-		topBar.add(voiceToolbar(), BorderLayout.EAST);
+	    scrollPane = new JScrollPane(
+	            mainPanel,
+	            JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+	    );
+	    add(scrollPane, BorderLayout.CENTER);
 
-		add(topBar, BorderLayout.NORTH);
+	    JPanel topBar = new JPanel(new BorderLayout());
+	    topBar.add(mainToolbar(), BorderLayout.WEST);
+	    topBar.add(voiceToolbar(), BorderLayout.EAST);
+	    add(topBar, BorderLayout.NORTH);
 
-		// Barra menu
-		JMenuBar menuBar = new JMenuBar();
-
-		JMenu fileMenu = new JMenu("File");
-		JMenuItem nuovo = new JMenuItem("Nuovo");
-		JMenuItem apri = new JMenuItem("Apri");
-		JMenuItem salva = new JMenuItem("Salva");
-		fileMenu.add(nuovo);
-		fileMenu.add(apri);
-		fileMenu.add(salva);
-
-		JMenu modificaMenu = new JMenu("Modifica");
-		JMenuItem addStaffMenu = new JMenuItem("add Staff");
-		addStaffMenu.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				controller.addStaff();
-			}
-		});
-
-		JMenuItem itemInsertNote = new JMenuItem("Insert Note");
-		itemInsertNote.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				insertMode = true;
-			}
-		});
-
-		salva.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				controller.export();
-			}
-		});
-
-		modificaMenu.add(addStaffMenu);
-		modificaMenu.add(itemInsertNote);
-
-		JMenu lyricsMenu = new JMenu("Lyrics");
-		JMenuItem addLyricsMenu = new JMenuItem("add Lyrics");
-
-		addLyricsMenu.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// 'MainFrame.this' passa il JFrame principale alla dialog
-				LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
-				led.setVisible(true); // mostra la finestra modale
-				repaintPanel();
-			}
-		});
-
-		lyricsMenu.add(addLyricsMenu);
-
-		menuBar.add(fileMenu);
-		menuBar.add(modificaMenu);
-		menuBar.add(lyricsMenu);
-
-		setJMenuBar(menuBar);
+	    setJMenuBar(buildMenuBar());
 	}
+
 
 	private JPanel mainToolbar() {
 		JPanel mainPanel = new JPanel();
@@ -226,6 +169,107 @@ public class GUI extends JFrame implements ScoreListener {
 
 		return mainPanel;
 	}
+	
+	private JMenuBar buildMenuBar() {
+	    JMenuBar menuBar = new JMenuBar();
+
+	    menuBar.add(getFileMenu());
+	    menuBar.add(getModificaMenu());
+	    menuBar.add(getTemplatesMenu());
+	    menuBar.add(getLyricsMenu());
+
+	    return menuBar;
+	}
+	
+	private JMenu getFileMenu() {
+	    JMenu fileMenu = new JMenu("File");
+
+	    JMenuItem nuovo = new JMenuItem("Nuovo");
+	    JMenuItem apri = new JMenuItem("Apri");
+	    JMenuItem salva = new JMenuItem("Salva");
+
+	    salva.addActionListener(e -> controller.export());
+
+	    fileMenu.add(nuovo);
+	    fileMenu.add(apri);
+	    fileMenu.add(salva);
+
+	    return fileMenu;
+	}
+
+	
+	private JMenu getModificaMenu() {
+	    JMenu modificaMenu = new JMenu("Modifica");
+
+	    JMenuItem addStaffMenu = new JMenuItem("Add Staff");
+	    addStaffMenu.addActionListener(e -> controller.addStaff());
+
+	    JMenuItem insertNoteMenu = new JMenuItem("Insert Note");
+	    insertNoteMenu.addActionListener(e -> insertMode = true);
+
+	    modificaMenu.add(addStaffMenu);
+	    modificaMenu.add(insertNoteMenu);
+
+	    return modificaMenu;
+	}
+
+	private JMenu getLyricsMenu() {
+	    JMenu lyricsMenu = new JMenu("Lyrics");
+
+	    JMenuItem addLyricsMenu = new JMenuItem("Add Lyrics");
+	    addLyricsMenu.addActionListener(e -> {
+	        LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
+	        led.setVisible(true);
+	        repaintPanel();
+	    });
+
+	    lyricsMenu.add(addLyricsMenu);
+	    return lyricsMenu;
+	}
+
+	private JMenu getTemplatesMenu() {
+	    JMenu templatesMenu = new JMenu("Templates");
+
+	    JMenuItem piano = new JMenuItem("Piano");
+	    piano.addActionListener(e -> pianoTemplate());
+
+	    JMenuItem organ = new JMenuItem("Organ");
+	    organ.addActionListener(e -> organTemplate());
+
+	    JMenuItem choirSATB = new JMenuItem("Choir SATB");
+	    choirSATB.addActionListener(e -> choirSATBTemplate());
+
+	    JMenuItem choirSATBOrgan = new JMenuItem("Choir SATB - Organ");
+	    choirSATBOrgan.addActionListener(e -> choirSATBOrganTemplate());
+
+	    templatesMenu.add(piano);
+	    templatesMenu.add(organ);
+	    templatesMenu.addSeparator();
+	    templatesMenu.add(choirSATB);
+	    templatesMenu.add(choirSATBOrgan);
+
+	    return templatesMenu;
+	}
+
+	private void pianoTemplate() {
+	    controller.createPianoTemplate();
+	    repaintPanel();
+	}
+
+	private void organTemplate() {
+	    controller.createOrganTemplate();
+	    repaintPanel();
+	}
+
+	private void choirSATBTemplate() {
+	    controller.createChoirSATBTemplate();
+	    repaintPanel();
+	}
+
+	private void choirSATBOrganTemplate() {
+	    controller.createChoirSATBOrganTemplate();
+	    repaintPanel();
+	}
 
 	private JPanel noteToolbar() {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
@@ -238,7 +282,7 @@ public class GUI extends JFrame implements ScoreListener {
 		groupButtonsNotes = new ButtonGroup();
 
 		for (MusicalSymbol noteSymbol : notes) {
-			JToggleButton btn = createIconToggleButton(noteSymbol.getGlyphUp(), iconFont);
+			JToggleButton btn = createIconImageToggle(noteSymbol.getIconPath());
 			btn.addActionListener(e -> {
 				removeOtherSelections(groupButtonsNotes);
 				objectToInsert = noteSymbol;
@@ -263,7 +307,7 @@ public class GUI extends JFrame implements ScoreListener {
 		groupButtonsRests = new ButtonGroup();
 
 		for (MusicalSymbol restSymbol : rests) {
-			JToggleButton btn = createIconToggleButton(restSymbol.getGlyph(), iconFont);
+			JToggleButton btn = createIconImageToggle(restSymbol.getIconPath());
 			btn.addActionListener(e -> {
 				removeOtherSelections(groupButtonsRests);
 				insertMode = true;
@@ -348,26 +392,6 @@ public class GUI extends JFrame implements ScoreListener {
 		p.add(voice2);
 
 		return p;
-	}
-
-	private JToggleButton createIconToggleButton(String textOrGlyph, Font font) {
-		JToggleButton btn = new JToggleButton(textOrGlyph);
-		btn.setFont(font);
-		btn.setFocusPainted(false);
-		btn.setContentAreaFilled(true);
-		btn.setBackground(new Color(245, 245, 245));
-		btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-
-		btn.addChangeListener(e -> {
-			if (btn.isSelected()) {
-				btn.setBackground(new Color(200, 220, 255));
-				btn.setBorder(BorderFactory.createLineBorder(new Color(100, 140, 255), 2));
-			} else {
-				btn.setBackground(new Color(245, 245, 245));
-				btn.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-			}
-		});
-		return btn;
 	}
 
 	private JToggleButton createIconImageToggle(String iconPath) {
