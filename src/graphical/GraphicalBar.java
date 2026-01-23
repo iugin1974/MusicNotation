@@ -23,14 +23,7 @@ public class GraphicalBar extends GraphicalObject {
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyph();
-		FontMetrics fm = g.getFontMetrics();
-		int width = fm.stringWidth(glyph);
-		int ascent = fm.getAscent();
-		int descent = fm.getDescent();
-		int height = ascent + descent;
-
-		Rectangle bounds = new Rectangle(getX(), getY() - ascent, width, height);
-		setBounds(bounds);
+		setBounds(g, glyph);
 		if (isSelected()) {
 			g.setColor(Color.RED);
 		} else {

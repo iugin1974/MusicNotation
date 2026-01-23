@@ -5,8 +5,11 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.io.IOException;
 import java.io.InputStream;
 import musicEvent.Note;
@@ -61,15 +64,8 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 			glyph = symbol.getGlyphUp();
 		else
 			glyph = symbol.getGlyphDown();
-		FontMetrics fm = g.getFontMetrics();
-		int width = fm.stringWidth(glyph);
-		int ascent = fm.getAscent();
-		int descent = fm.getDescent();
-		int height = ascent + descent;
-
-		Rectangle bounds = new Rectangle(getX(), getY() - ascent, width, height);
-		setBounds(bounds);
 		
+		setBounds(g, glyph);		
 		setColor(g, voice);		
 		g.drawString(glyph, getX(), getY());
 		
