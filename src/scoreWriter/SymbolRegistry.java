@@ -60,45 +60,53 @@ public class SymbolRegistry {
     // Rest symbols
     public static final MusicalSymbol WHOLE_REST = new MusicalSymbol(
         "Whole Rest",
+        "/icons/rest_1.png",
         "\uE4E3",
         MusicalSymbol.Type.REST, 0
     );
 
     public static final MusicalSymbol HALF_REST = new MusicalSymbol(
         "Half Rest",
+        "/icons/rest_2.png",
         "\uE4E4",
         MusicalSymbol.Type.REST, 1
     );
 
     public static final MusicalSymbol QUARTER_REST = new MusicalSymbol(
         "Quarter Rest",
+        "/icons/rest_4.png",
         "\uE4E5",
         MusicalSymbol.Type.REST, 2
     );
 
     public static final MusicalSymbol EIGHTH_REST = new MusicalSymbol(
         "Eighth Rest",
+        "/icons/rest_8.png",
         "\uE4E6",
         MusicalSymbol.Type.REST, 3
     );
 
     public static final MusicalSymbol SIXTEENTH_REST = new MusicalSymbol(
         "Sixteenth Rest",
+        "/icons/rest_16.png",
         "\uE4E7",
         MusicalSymbol.Type.REST, 4
     );
 
     public static final MusicalSymbol THIRTY_SECOND_REST = new MusicalSymbol(
         "Thirty-Second Rest",
+        "/icons/rest_32.png",
         "\uE4E8",
         MusicalSymbol.Type.REST, 5
     );
 
     public static final MusicalSymbol SIXTY_FOURTH_REST = new MusicalSymbol(
         "Sixty-Fourth Rest",
+        "/icons/rest_64.png",
         "\uE4E9",
         MusicalSymbol.Type.REST, 6
     );
+
 
 
  // stanghette di battuta
