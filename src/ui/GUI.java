@@ -688,6 +688,10 @@ public class GUI extends JFrame implements ScoreListener {
 		mainPanel.repaint();
 	}
 
+	public void prepareGraphicalInsertion(int x, GraphicalStaff s, int line) {
+		prepareGraphicalInsertion(x, s.getYPosOfLine(line));
+	}
+	
 	public void prepareGraphicalInsertion(int x, int y) {
 		this.pendingX = x;
 		this.pendingY = y;

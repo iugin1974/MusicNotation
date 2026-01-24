@@ -419,19 +419,21 @@ public class Controller implements StaffActionListener {
 
 	private MusicObject getLastElement() {
 		List<MusicObject> list = score.getAllObjects();
-		if (list.size() == 0) return null;
-		return list.get(list.size()-1);
+		if (list.size() == 0)
+			return null;
+		return list.get(list.size() - 1);
 	}
-	
+
 	private void resizeStavesIfNeeded() {
 		MusicObject mo = getLastElement();
-		if (mo == null) return;
+		if (mo == null)
+			return;
 		GraphicalObject go = graphicalScore.getObject(mo);
-		int x = go.getX();
+		int lastObjectX = go.getX();
 		List<GraphicalStaff> staves = graphicalScore.getStaves();
 		int w = staves.get(0).getWidth();
-		if (x < w - 100)
 			return;
+
 		for (GraphicalStaff s : staves) {
 			s.setWidth(w + 200);
 		}
@@ -534,6 +536,8 @@ public class Controller implements StaffActionListener {
 
 			if (mo instanceof Note note && obj instanceof GraphicalNote gNote) {
 				GraphicalStaff s = graphicalScore.getStaffAtPos(e.getX(), e.getY());
+				if (s == null)
+					return;
 				int snapY = gui.getSnapY(s, gNote.getY());
 				int p = s.getPosInStaff(snapY);
 				note.setStaffPosition(p);
