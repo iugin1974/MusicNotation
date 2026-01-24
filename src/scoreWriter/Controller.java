@@ -167,8 +167,8 @@ public class Controller implements StaffActionListener {
 		pointer = new Pointer(this, symbol);
 	}
 
-	public void addStaff() {
-		score.addStaff();
+	public Staff addStaff() {
+		return score.addStaff();
 	}
 
 	public void export() {
@@ -379,6 +379,15 @@ public class Controller implements StaffActionListener {
 		return list.get(list.size() - 1);
 	}
 
+	// TODO non va
+	private void resizePanelIfNeeded() {
+		int h = score.getStaffCount() * graphicalScore.getStaff(0).getHeight();
+		if (h > gui.getMainPanel().getHeight()) {
+			gui.resizePanel(gui.getWidth(), h + 200);
+			gui.repaintPanel();
+		}
+	}
+	
 	private void resizeStavesIfNeeded() {
 		MusicObject mo = getLastElement();
 		if (mo == null)
@@ -387,10 +396,6 @@ public class Controller implements StaffActionListener {
 		int lastObjectX = go.getX();
 		List<GraphicalStaff> staves = graphicalScore.getStaves();
 		int w = staves.get(0).getWidth();
-		for (GraphicalStaff ss : staves) {
-			System.out.println("    " + ss.getWidth());
-		}
-		System.out.println(lastObjectX);
 		if (lastObjectX < w - 100)
 			return;
 		System.out.println("Resize staves");
@@ -398,7 +403,7 @@ public class Controller implements StaffActionListener {
 		for (GraphicalStaff s : staves) {
 			s.setWidth(w + 200);
 		}
-		gui.resizePanel(w + 200, gui.getHeight()); // TODO l'altezza deve essere in base agli staves
+		gui.resizePanel(w + 200, gui.getHeight()); 
 		gui.repaintPanel();
 	}
 
@@ -727,7 +732,7 @@ public class Controller implements StaffActionListener {
 	}
 
 	public void createPianoTemplate() {
-		Staff[] staffs = { score.addStaff(), score.addStaff() };
+		Staff[] staffs = { addStaff(), addStaff() };
 		Clef[] clefs = { Clef.treble(), Clef.bass() };
 
 		for (int i = 0; i < 2; i++) {
@@ -735,10 +740,12 @@ public class Controller implements StaffActionListener {
 			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
+
+		resizePanelIfNeeded();
 	}
 
 	public void createOrganTemplate() {
-		Staff[] staffs = { score.addStaff(), score.addStaff(), score.addStaff() };
+		Staff[] staffs = { addStaff(), addStaff(), addStaff() };
 		Clef[] clefs = { Clef.treble(), Clef.bass(), Clef.bass() };
 
 		for (int i = 0; i < 3; i++) {
@@ -748,10 +755,11 @@ public class Controller implements StaffActionListener {
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
 
+		resizePanelIfNeeded();
 	}
 
 	public void createChoirSATBTemplate() {
-		Staff[] staffs = { score.addStaff(), score.addStaff(), score.addStaff(), score.addStaff() };
+		Staff[] staffs = { addStaff(), addStaff(), addStaff(), addStaff() };
 		Clef[] clefs = { Clef.treble(), Clef.treble(), Clef.treble8(), Clef.bass() };
 
 		for (int i = 0; i < 4; i++) {
@@ -760,6 +768,8 @@ public class Controller implements StaffActionListener {
 			clefs[i].setTick(10);
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
+
+		resizePanelIfNeeded();
 	}
 
 	public void createChoirSATBOrganTemplate() {

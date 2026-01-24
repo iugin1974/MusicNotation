@@ -65,7 +65,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	}
 
 	public int getHeight() {
-		return lineNumber * distanceBetweenLines;
+		return bounds.height;
 	}
 
 	public int getDistanceBetweenLines() {

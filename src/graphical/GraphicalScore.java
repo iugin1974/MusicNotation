@@ -190,4 +190,20 @@ public class GraphicalScore {
 		return (GraphicalCurvedConnection) objects.get(c);
 	}
 
+	public int getDistanceBetweenStaves() {
+	    return DISTANCE_BETWEEN_STAVES;
+	}
+
+	public int getTopMargin() {
+	    return TOP_MARGIN;
+	}
+
+	public int getLineNumber() {
+	    return LINE_NUMBER;
+	}
+
+	public int getDistanceBetweenLines() {
+	    return DISTANCE_BETWEEN_LINES;
+	}
+	
 }

@@ -129,7 +129,7 @@ public class GUI extends JFrame implements ScoreListener {
 
 	    scrollPane = new JScrollPane(
 	            mainPanel,
-	            JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+	            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 	            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
 	    );
 	    add(scrollPane, BorderLayout.CENTER);
