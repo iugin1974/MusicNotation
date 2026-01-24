@@ -1,6 +1,5 @@
 /*
  *  TODO
- *  - correggi i bounds delle figure
  *  - lyrics: -- e __ non vengono esportati (ha a che fare col
  *  fatto che vengono salvati nelle note?
  *  - salvataggio
@@ -46,16 +45,19 @@ import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.Score;
 import notation.Slur;
+import notation.Staff;
 import notation.Tie;
 import ui.GUI;
 import ui.KeySignatureDialog;
+import ui.KeySignatureResult;
 import ui.Pointer;
 import ui.TimeSignatureDialog;
+import ui.TimeSignatureResult;
 
 public class Controller implements StaffActionListener {
 
 	public final static boolean TEST = true;
-	
+
 	public Score score = new Score();
 	private GraphicalScore graphicalScore;
 	private GUI gui;
@@ -69,123 +71,76 @@ public class Controller implements StaffActionListener {
 
 	private static final int X_SCALE = 3;
 
- 
 	private void setGraphicalPosition(MusicObject obj) {
-	    GraphicalObject gObj = graphicalScore.getObject(obj);
-	    if (gObj == null) return;
+		GraphicalObject gObj = graphicalScore.getObject(obj);
+		if (gObj == null)
+			return;
 
-	    gObj.setX(obj.getTick() * X_SCALE);
+		gObj.setX(obj.getTick() * X_SCALE);
 
-	    if (obj instanceof NoteEvent note) {
-	        int y = 90 - note.getStaffPosition() * 10;
-	        gObj.setY(y);
-	    } else {
-	        gObj.setY(90);
-	    }
+		if (obj instanceof NoteEvent note) {
+			int y = 90 - note.getStaffPosition() * 10;
+			gObj.setY(y);
+		} else {
+			gObj.setY(90);
+		}
 	}
-	
+
 	private void test() {
-
-	    score.addStaff();
-
-	    // ===== STAFF OBJECTS (VOICE 0) =====
-	    Clef clef = Clef.treble();
-	    clef.setTick(0);
-	    score.addObject(clef, 0, 0);
-	    setGraphicalPosition(clef);
-
-	    TimeSignature ts = new TimeSignature(4, 4);
-	    ts.setTick(10);
-	    score.addObject(ts, 0, 0);
-	    setGraphicalPosition(ts);
-
-	    KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE);
-	    ks.setTick(20);
-	    score.addObject(ks, 0, 0);
-	    setGraphicalPosition(ks);
-
-	    // ===== VOICE 1 =====
-	    Note v1n1 = new Note();
-	    v1n1.setDuration(4);
-	    v1n1.setStaffPosition(2);
-	    v1n1.setTick(40);
-	    score.addObject(v1n1, 0, 1);
-	    setGraphicalPosition(v1n1);
-
-	    Note v1n2 = new Note();
-	    v1n2.setDuration(4);
-	    v1n2.setStaffPosition(2);
-	    v1n2.setTick(60);
-	    score.addObject(v1n2, 0, 1);
-	    setGraphicalPosition(v1n2);
-
-	    Note v1n3 = new Note();
-	    v1n3.setDuration(4);
-	    v1n3.setStaffPosition(2);
-	    v1n3.setTick(80);
-	    score.addObject(v1n3, 0, 1);
-	    setGraphicalPosition(v1n3);
-
-	    Note v1n4 = new Note();
-	    v1n4.setDuration(4);
-	    v1n4.setStaffPosition(2);
-	    v1n4.setTick(100);
-	    score.addObject(v1n4, 0, 1);
-	    setGraphicalPosition(v1n4);
-
-	   
-	    // ===== VOICE 2 =====
-	    Note v2n1 = new Note();
-	    v2n1.setDuration(2);
-	    v2n1.setStaffPosition(-2);
-	    v2n1.setTick(40);
-	    score.addObject(v2n1, 0, 2);
-	    setGraphicalPosition(v2n1);
-
-	    Note v2n2 = new Note();
-	    v2n2.setDuration(2);
-	    v2n2.setStaffPosition(-1);
-	    v2n2.setTick(60);
-	    score.addObject(v2n2, 0, 2);
-	    setGraphicalPosition(v2n2);
-
-	    // ===== BAR =====
-	    Bar bar = new Bar();
-	    bar.setEndBar();
-	    bar.setTick(120);
-	    score.addObject(bar, 0, 0);
-	    setGraphicalPosition(bar);
-
-	    // ===== LYRICS =====
-	    score.addLyrics(List.of("la", "_", "__", "so"), 0, 1, 0);
-	    score.addLyrics(List.of("do", "_", "_", "re"), 0, 1, 1);
-
-	    // ===== TIE CHAIN =====
-	    Tie t1 = Tie.createIfValid(score, v1n1, v1n2);
-	    if (t1 != null) {
-	        t1.setStaff(0);
-	        score.addCurvedConnection(t1);
-	    }
-
-	    Tie t2 = Tie.createIfValid(score, v1n2, v1n3);
-	    if (t2 != null) {
-	        t2.setStaff(0);
-	        score.addCurvedConnection(t2);
-	    }
-
-	    Tie t3 = Tie.createIfValid(score, v1n3, v1n4);
-	    if (t3 != null) {
-	        t3.setStaff(0);
-	        score.addCurvedConnection(t3);
-	    }
-
-	    // ===== SLUR =====
-	    Slur slur = new Slur(v1n1, v1n4);
-	    slur.setStaff(0);
-	    score.addCurvedConnection(slur);
-	     
-	    export();
+		createChoirSATBOrganTemplate();
+		/*
+		 * score.addStaff();
+		 * 
+		 * // ===== STAFF OBJECTS (VOICE 0) ===== Clef clef = Clef.treble();
+		 * clef.setTick(0); score.addObject(clef, 0, 0); setGraphicalPosition(clef);
+		 * 
+		 * TimeSignature ts = new TimeSignature(4, 4); ts.setTick(10);
+		 * score.addObject(ts, 0, 0); setGraphicalPosition(ts);
+		 * 
+		 * KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE); ks.setTick(20);
+		 * score.addObject(ks, 0, 0); setGraphicalPosition(ks);
+		 * 
+		 * // ===== VOICE 1 ===== Note v1n1 = new Note(); v1n1.setDuration(4);
+		 * v1n1.setStaffPosition(2); v1n1.setTick(40); score.addObject(v1n1, 0, 1);
+		 * setGraphicalPosition(v1n1);
+		 * 
+		 * Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
+		 * v1n2.setTick(60); score.addObject(v1n2, 0, 1); setGraphicalPosition(v1n2);
+		 * 
+		 * Note v1n3 = new Note(); v1n3.setDuration(4); v1n3.setStaffPosition(2);
+		 * v1n3.setTick(80); score.addObject(v1n3, 0, 1); setGraphicalPosition(v1n3);
+		 * 
+		 * Note v1n4 = new Note(); v1n4.setDuration(4); v1n4.setStaffPosition(2);
+		 * v1n4.setTick(100); score.addObject(v1n4, 0, 1); setGraphicalPosition(v1n4);
+		 * 
+		 * 
+		 * // ===== VOICE 2 ===== Note v2n1 = new Note(); v2n1.setDuration(2);
+		 * v2n1.setStaffPosition(-2); v2n1.setTick(40); score.addObject(v2n1, 0, 2);
+		 * setGraphicalPosition(v2n1);
+		 * 
+		 * Note v2n2 = new Note(); v2n2.setDuration(2); v2n2.setStaffPosition(-1);
+		 * v2n2.setTick(60); score.addObject(v2n2, 0, 2); setGraphicalPosition(v2n2);
+		 * 
+		 * // ===== BAR ===== Bar bar = new Bar(); bar.setEndBar(); bar.setTick(120);
+		 * score.addObject(bar, 0, 0); setGraphicalPosition(bar);
+		 * 
+		 * // ===== LYRICS ===== score.addLyrics(List.of("la", "_", "__", "so"), 0, 1,
+		 * 0); score.addLyrics(List.of("do", "_", "_", "re"), 0, 1, 1);
+		 * 
+		 * // ===== TIE CHAIN ===== Tie t1 = Tie.createIfValid(score, v1n1, v1n2); if
+		 * (t1 != null) { t1.setStaff(0); score.addCurvedConnection(t1); }
+		 * 
+		 * Tie t2 = Tie.createIfValid(score, v1n2, v1n3); if (t2 != null) {
+		 * t2.setStaff(0); score.addCurvedConnection(t2); }
+		 * 
+		 * Tie t3 = Tie.createIfValid(score, v1n3, v1n4); if (t3 != null) {
+		 * t3.setStaff(0); score.addCurvedConnection(t3); }
+		 * 
+		 * // ===== SLUR ===== Slur slur = new Slur(v1n1, v1n4); slur.setStaff(0);
+		 * score.addCurvedConnection(slur); export();
+		 */
 	}
+
 	public static void main(String[] args) {
 		new Controller().go();
 	}
@@ -258,7 +213,7 @@ public class Controller implements StaffActionListener {
 		// 2. Pulisci la selezione (opzionale ma consigliato)
 		selectionManager.clearSelection();
 	}
-	
+
 	public Pointer getPointer() {
 		return pointer;
 	}
@@ -301,7 +256,7 @@ public class Controller implements StaffActionListener {
 		Note n = createNote(duration);
 		n.setTick(x);
 		int staffPosition = s.getPosInStaff(y);
-		System.out.println("Insert note at " + staffPosition + "staff position");
+		System.out.println("Insert note at " + staffPosition + ". staff position");
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		gui.prepareGraphicalInsertion(x, y);
@@ -432,7 +387,13 @@ public class Controller implements StaffActionListener {
 		int lastObjectX = go.getX();
 		List<GraphicalStaff> staves = graphicalScore.getStaves();
 		int w = staves.get(0).getWidth();
+		for (GraphicalStaff ss : staves) {
+			System.out.println("    " + ss.getWidth());
+		}
+		System.out.println(lastObjectX);
+		if (lastObjectX < w - 100)
 			return;
+		System.out.println("Resize staves");
 
 		for (GraphicalStaff s : staves) {
 			s.setWidth(w + 200);
@@ -649,41 +610,72 @@ public class Controller implements StaffActionListener {
 
 	@Override
 	public void openKeySignatureDialog(int x, int y) {
-		IntPair pair = KeySignatureDialog.showDialog(gui);
-		if (pair == null)
+		KeySignatureResult result = KeySignatureDialog.showDialog(gui);
+		if (result == null)
 			return;
-		setKeySignature(pair.first, x, y);
+		setKeySignature(result.getAlterations(), result.getMode(), result.isAllStaves(), x, y);
 	}
 
-	private void setKeySignature(int chosenValue, int x, int y) {
-		int type = 0;
-		if (chosenValue < 0)
-			type = -1;
-		else if (chosenValue > 0)
-			type = 1;
-		int alterationsNumber = Math.abs(chosenValue);
-		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); // TODO
-		ks.setTick(x);
-		int staffIndex = gui.getPointedStaffIndex(x, y);
-		gui.prepareGraphicalInsertion(x, y);
-		score.addObject(ks, staffIndex, 0);
+	private void setKeySignature(int alterations, int mode, boolean allStaves, int x, int y) {
+	    int type = 0;
+	    if (alterations < 0)
+	        type = -1;
+	    else if (alterations > 0)
+	        type = 1;
+
+	    int alterationsNumber = Math.abs(alterations);
+	    Modus modus = Modus.MAJOR_SCALE;
+	    if (mode > 0) modus = Modus.MINOR_SCALE; // attenzione: qui controlla il tuo indice combo
+
+	    if (allStaves) {
+	    	for (Staff s : score.getAllStaves()) {
+	    		KeySignature ks = new KeySignature(alterationsNumber, type, modus);
+	    		ks.setTick(x);
+	        	int staffIndex = score.getStaffIndex(s);
+	        	GraphicalStaff gs = graphicalScore.getStaff(staffIndex);
+	            gui.prepareGraphicalInsertion(x, gs, 0);
+	            score.addObject(ks, staffIndex, 0); // clonare per avere oggetti separati
+	        }
+	    } else {
+	        KeySignature ks = new KeySignature(alterationsNumber, type, modus);
+	        ks.setTick(x);
+	        int staffIndex = gui.getPointedStaffIndex(x, y);
+	        gui.prepareGraphicalInsertion(x, y);
+	        score.addObject(ks, staffIndex, 0);
+	    }
 	}
+
 
 	@Override
 	public void openTimeSignatureDialog(int x, int y) {
-		IntPair pair = TimeSignatureDialog.showDialog(gui);
-		if (pair == null)
+		TimeSignatureResult result = TimeSignatureDialog.showDialog(gui);
+		if (result == null)
 			return;
-		setTimeSignature(pair.first, pair.second, x, y);
+		setTimeSignature(result.getNumberator(), result.getDenumerator(), result.isAllStaves(), x, y);
 	}
 
-	private void setTimeSignature(int n, int d, int x, int y) {
-		TimeSignature ts = new TimeSignature(n, d);
-		ts.setTick(x);
-		int staffIndex = gui.getPointedStaffIndex(x, y);
-		gui.prepareGraphicalInsertion(x, y);
-		score.addObject(ts, staffIndex, 0);
+	private void setTimeSignature(int n, int d, boolean allStaves, int x, int y) {
+	    if (allStaves) {
+	        // Inserisce la time signature su tutti gli staff
+	        for (Staff s : score.getAllStaves()) {
+	        	TimeSignature ts = new TimeSignature(n, d);
+	    	    ts.setTick(x);
+
+	        	int staffIndex = score.getStaffIndex(s);
+	        	GraphicalStaff gs = graphicalScore.getStaff(staffIndex);
+	            gui.prepareGraphicalInsertion(x, gs, 0);
+	            score.addObject(ts, staffIndex, 0); // clonare per avere oggetti separati
+	        }
+	    } else {
+	        // Inserisce solo sullo staff puntato
+	    	TimeSignature ts = new TimeSignature(n, d);
+    	    ts.setTick(x);
+	        int staffIndex = gui.getPointedStaffIndex(x, y);
+	        gui.prepareGraphicalInsertion(x, y);
+	        score.addObject(ts, staffIndex, 0);
+	    }
 	}
+
 
 	@Override
 	public void shitObjectsRight(int x, int y) {

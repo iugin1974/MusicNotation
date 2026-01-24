@@ -1,18 +1,11 @@
 package ui;
 
 import javax.swing.*;
-
-import scoreWriter.IntPair;
-
 import java.awt.*;
 
 public class KeySignatureDialog {
 
-    /**
-     * Mostra un dialogo modale con slider e combo per selezionare tonalità.
-     * Ritorna un IntPair con il numero di alterazioni (-7..7) se OK, null se annullato.
-     */
-    public static IntPair showDialog(Component parent) {
+    public static KeySignatureResult showDialog(Component parent) {
         JSlider slider = new JSlider(JSlider.HORIZONTAL, -7, 7, 0);
         slider.setMajorTickSpacing(1);
         slider.setPaintTicks(true);
@@ -27,14 +20,19 @@ public class KeySignatureDialog {
 
         JComboBox<String> modeCombo = new JComboBox<>(new String[]{"Major", "Minor"});
 
+        // Checkbox "All Staves", già selezionata
+        JCheckBox allStavesCheckBox = new JCheckBox("All Staves", true);
+
+        // Pannello principale
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.add(slider, BorderLayout.CENTER);
 
-        JPanel modePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        modePanel.add(new JLabel("Modalità:"));
-        modePanel.add(modeCombo);
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        southPanel.add(new JLabel("Modalità:"));
+        southPanel.add(modeCombo);
+        southPanel.add(allStavesCheckBox); // aggiunta della checkbox
 
-        panel.add(modePanel, BorderLayout.SOUTH);
+        panel.add(southPanel, BorderLayout.SOUTH);
 
         int result = JOptionPane.showConfirmDialog(parent, panel, "Scegli tonalità",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -42,7 +40,8 @@ public class KeySignatureDialog {
         if (result == JOptionPane.OK_OPTION) {
             int alterations = slider.getValue(); // -7..7
             int mode = modeCombo.getSelectedIndex();
-            return new IntPair(alterations, mode);
+            boolean allStaves = allStavesCheckBox.isSelected();
+            return new KeySignatureResult(alterations, mode, allStaves);
         }
 
         return null;
