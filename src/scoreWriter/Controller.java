@@ -281,15 +281,15 @@ public class Controller implements StaffActionListener {
 		else if (objectToInsert.getType() == Type.REST)
 			insertRest(objectToInsert.getDuration(), s, x, y);
 		else if (objectToInsert.getType() == Type.BARLINE)
-			insertBar(objectToInsert, s, x, y);
+			insertBar(objectToInsert, s, x);
 		else if (objectToInsert.getType() == Type.CLEF)
-			insertClef(objectToInsert, s, x, y);
+			insertClef(objectToInsert, s, x);
 
 		resizeStavesIfNeeded();
 
 	}
 
-	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x, int y) {
+	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x) {
 		Bar bar = getBar(objectToInsert);
 		bar.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
@@ -316,13 +316,13 @@ public class Controller implements StaffActionListener {
 		score.addObject(r, staffIndex, currentVoice);
 	}
 
-	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x, int y) {
+	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x) {
 		Clef c = createClef(clefSymbol);
 		if (c == null)
 			return;
 		c.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
-		gui.prepareGraphicalInsertion(x, y);
+		gui.prepareGraphicalInsertion(x, s.getYPosOfLine(1));
 		score.addObject(c, staffIndex, 0);
 	}
 
