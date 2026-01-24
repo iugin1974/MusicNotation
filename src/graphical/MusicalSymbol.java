@@ -28,9 +28,9 @@ public class MusicalSymbol {
 	}
 	
 	// pause
-	public MusicalSymbol(String name, String glyph, Type type, int duration) {
+	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int duration) {
 		this.name = name;
-		this.iconPath = null;
+		this.iconPath = iconPath;
 		this.glyphUp = null;
 		this.glyph = glyph;
 		this.type = type;
