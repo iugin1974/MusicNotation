@@ -733,4 +733,45 @@ public class Controller implements StaffActionListener {
 	public int getCurrentVoice() {
 		return currentVoice;
 	}
+
+	public void createPianoTemplate() {
+		Staff[] staffs = { score.addStaff(), score.addStaff() };
+		Clef[] clefs = { Clef.treble(), Clef.bass() };
+
+		for (int i = 0; i < 2; i++) {
+			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
+			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
+			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
+		}
+	}
+
+	public void createOrganTemplate() {
+		Staff[] staffs = { score.addStaff(), score.addStaff(), score.addStaff() };
+		Clef[] clefs = { Clef.treble(), Clef.bass(), Clef.bass() };
+
+		for (int i = 0; i < 3; i++) {
+			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
+			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
+			clefs[i].setTick(10);
+			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
+		}
+
+	}
+
+	public void createChoirSATBTemplate() {
+		Staff[] staffs = { score.addStaff(), score.addStaff(), score.addStaff(), score.addStaff() };
+		Clef[] clefs = { Clef.treble(), Clef.treble(), Clef.treble8(), Clef.bass() };
+
+		for (int i = 0; i < 4; i++) {
+			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
+			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
+			clefs[i].setTick(10);
+			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
+		}
+	}
+
+	public void createChoirSATBOrganTemplate() {
+		createChoirSATBTemplate();
+		createOrganTemplate();
+	}
 }
