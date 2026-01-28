@@ -3,12 +3,10 @@ package ui;
 public class TimeSignatureResult {
 	private final int num;
 	private final int den;
-	private final boolean allStaves;
 
-	public TimeSignatureResult(int num, int den, boolean allStaves) {
+	public TimeSignatureResult(int num, int den) {
 		this.num = num;
 		this.den = den;
-		this.allStaves = allStaves;
 	}
 
 	public int getNumberator() {
@@ -17,8 +15,5 @@ public class TimeSignatureResult {
 
 	public int getDenumerator() {
 		return den;
-	}
-	public boolean isAllStaves() {
-		return allStaves;
 	}
 }

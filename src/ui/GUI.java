@@ -10,6 +10,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -23,6 +25,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -131,7 +134,17 @@ public class GUI extends JFrame implements ScoreListener {
 		toolbarPanel.add(restToolbar());
 		toolbarPanel.add(barlineToolbar());
 		toolbarPanel.add(clefToolbar());
+		JCheckBox allStavesCheckBox = new JCheckBox("All Staves", true);
 		// Potrai aggiungere altre toolbar qui in futuro:
+		toolbarPanel.add(allStavesCheckBox);
+		allStavesCheckBox.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				controller.applyOnAllStaves(allStavesCheckBox.isSelected());
+				
+			}
+		});
 		// toolbarPanel.add(clefToolbar());
 		// toolbarPanel.add(keySignatureToolbar());
 		// toolbarPanel.add(timeSignatureToolbar());

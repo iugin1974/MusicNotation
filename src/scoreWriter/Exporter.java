@@ -22,17 +22,17 @@ import notation.Tie;
 public class Exporter {
 
 	private final StringBuilder sb = new StringBuilder();
-	private Clef currentClef;
 	private String[] numbers = { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
 			"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
 			"Twenty" };
 	private Score score;
-	private KeySignature ks;
+	private boolean firstNote = true;
 
 	/** Esporta tutti gli staves e voci in LilyPond */
 	public void export(Score score) {
 		this.score = score;
 		ScoreParser parser = new ScoreParser(score);
+		sb.append("\\language \"deutsch\"\n");
 		List<ParsedStaff> parsedStaves = parser.parse();
 		for (ParsedStaff parsedStaff : parsedStaves) {
 
@@ -66,7 +66,6 @@ public class Exporter {
 					exportLyrics(l, staffIndex, voiceIndex, j);
 				}
 				sb.append("\n");
-				currentClef = null;
 			}
 		}
 
@@ -75,8 +74,6 @@ public class Exporter {
 
 	/** Inizio della voce in LilyPond */
 	private void parseVoice(int currentStaff, int currentVoice, List<MusicObject> voiceObjs) {
-		ks = null;
-		currentClef = null;
 
 		sb.append(getNumber(currentStaff) + getNumber(currentVoice) + " = ");
 		sb.append("\\relative {\n");
@@ -86,13 +83,14 @@ public class Exporter {
 
 	/** Analizza tutti gli oggetti della voce */
 	private void parseObjects(List<MusicObject> objs) {
-
+		firstNote = true;
 		for (MusicObject go : objs) {
 
 			if (go instanceof Clef) {
 				parseClef((Clef) go);
 			} else if (go instanceof Note) {
 				parseNote((Note) go);
+				firstNote = false;
 			} else if (go instanceof Rest) {
 				parseRest((Rest) go);
 			} else if (go instanceof Bar) {
@@ -106,8 +104,6 @@ public class Exporter {
 	}
 
 	private void parseKeySignature(KeySignature ks) {
-
-		this.ks = ks;
 
 		String[] majorKeysSharp = { "c", "g", "d", "a", "e", "h", "fis", "cis" };
 		String[] minorKeysSharp = { "a", "e", "h", "fis", "cis", "gis", "dis", "ais" };
@@ -160,8 +156,6 @@ public class Exporter {
 
 	/** Esporta una clef LilyPond */
 	private void parseClef(Clef clef) {
-		this.currentClef = clef;
-
 		switch (clef.getType()) {
 		case TREBLE -> sb.append("\\clef treble");
 		case TREBLE_8 -> sb.append("\\clef \"treble_8\"");
@@ -175,7 +169,12 @@ public class Exporter {
 	private void parseNote(Note note) {
 
 		LilyNote ln = new LilyNote(note);
-		sb.append(ln.draw()).append(" ");
+		String n = ln.draw();
+		if (firstNote) {
+			n = n.replace("'", "");
+			n = n.replace(",", "");
+		}
+		sb.append(n).append(" ");
 
 		for (CurvedConnection c : score.getCurveList()) {
 			if (note == c.getStart() && c instanceof Tie) {
@@ -187,7 +186,7 @@ public class Exporter {
 			if (note == c.getEnd() && c instanceof Slur) {
 				sb.append(")");
 			}
-			}
+		}
 	}
 
 	private void parseRest(Rest rest) {
@@ -272,35 +271,30 @@ public class Exporter {
 
 	private String getVoiceNumber(int voiceIndex) {
 		switch (voiceIndex) {
-			case 0: return "\\voiceOne";
-			case 1: return "\\voiceTwo";
+		case 0:
+			return "\\voiceOne";
+		case 1:
+			return "\\voiceTwo";
 		}
 		return "";
 	}
 
 	private void appendLyricsToStaff(int staffIndex, int voiceIndex) {
 
-	    int stanzas = score.getStanzasNumber(staffIndex, voiceIndex + 1);
-	    if (stanzas == 0) {
+		int stanzas = score.getStanzasNumber(staffIndex, voiceIndex + 1);
+		if (stanzas == 0) {
 			return;
 		}
 
-	    String voiceName =
-	        "voice" + getNumber(staffIndex) + getNumber(voiceIndex);
+		String voiceName = "voice" + getNumber(staffIndex) + getNumber(voiceIndex);
 
-	    for (int stanza = 0; stanza < stanzas; stanza++) {
+		for (int stanza = 0; stanza < stanzas; stanza++) {
 
-	        String lyricVar =
-	            "Lyric" + getNumber(staffIndex)
-	                   + getNumber(voiceIndex)
-	                   + getNumber(stanza);
+			String lyricVar = "Lyric" + getNumber(staffIndex) + getNumber(voiceIndex) + getNumber(stanza);
 
-	        sb.append("    \\new Lyrics \\lyricsto \"")
-	          .append(voiceName)
-	          .append("\" { \\")
-	          .append(lyricVar)
-	          .append(" }\n");
-	    }
+			sb.append("    \\new Lyrics \\lyricsto \"").append(voiceName).append("\" { \\").append(lyricVar)
+					.append(" }\n");
+		}
 	}
 
 	private String getNumber(int n) {

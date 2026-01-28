@@ -71,6 +71,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 	private MidiInput midiInput;
 
+	protected boolean applyOnAllStaves = true;
+
 	private static final int X_SCALE = 3;
 
 	private void setGraphicalPosition(MusicObject obj) {
@@ -160,8 +162,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 			@Override
 			public void run() {
 				gui.setVisible(true);
-				selectMidiDevice();
-				//testMidi();
+				//selectMidiDevice();
+				// testMidi();
 				// test();
 			}
 		});
@@ -228,6 +230,12 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		Exporter x = new Exporter();
 		x.export(score);
 		x.printScore();
+		
+		save(); // TODO -> è qui solo per test
+	}
+	
+	public void save() {
+		score.save();
 	}
 
 	public void setCurrentVoice(int i) {
@@ -302,11 +310,21 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	}
 
 	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x) {
-		Bar bar = getBar(objectToInsert);
-		bar.setTick(x);
-		int staffIndex = graphicalScore.getStaffIndex(s);
-		gui.prepareGraphicalInsertion(x, s.getYPosOfLine(0));
-		score.addObject(bar, staffIndex, currentVoice);
+		if (applyOnAllStaves) {
+			for (int staffIndex = 0; staffIndex < score.getStaffCount(); staffIndex++) {
+				GraphicalStaff currentStaff = graphicalScore.getStaff(staffIndex);
+				Bar bar = getBar(objectToInsert);
+				bar.setTick(x);
+				gui.prepareGraphicalInsertion(x, currentStaff.getYPosOfLine(0));
+				score.addObject(bar, staffIndex, currentVoice);
+			}
+		} else {
+			Bar bar = getBar(objectToInsert);
+			bar.setTick(x);
+			int staffIndex = graphicalScore.getStaffIndex(s);
+			gui.prepareGraphicalInsertion(x, s.getYPosOfLine(0));
+			score.addObject(bar, staffIndex, currentVoice);
+		}
 	}
 
 	private void insertFromMidi(int duration, int pitch, int x, GraphicalStaff s) {
@@ -336,7 +354,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	private void insertNote(int duration, MidiPitch pitch, int staffPosition, int x, GraphicalStaff s) {
 		Note n = createNote(duration, pitch);
 		n.setTick(x);
-		System.out.println("Insert note at " + staffPosition + ". staff position. Midi = " + pitch.getMidiNumber() + ", alterations: " + pitch.getAlteration());
+		System.out.println("Insert note at " + staffPosition + ". staff position. Midi = " + pitch.getMidiNumber()
+				+ ", alterations: " + pitch.getAlteration());
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		int y = s.getYPos(staffPosition);
@@ -712,10 +731,10 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		if (result == null) {
 			return;
 		}
-		setKeySignature(result.getAlterations(), result.getMode(), result.isAllStaves(), x, y);
+		setKeySignature(result.getAlterations(), result.getMode(), x, y);
 	}
 
-	private void setKeySignature(int alterations, int mode, boolean allStaves, int x, int y) {
+	private void setKeySignature(int alterations, int mode, int x, int y) {
 		int type = 0;
 		if (alterations < 0) {
 			type = -1;
@@ -729,7 +748,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 			modus = Modus.MINOR_SCALE; // attenzione: qui controlla il tuo indice combo
 		}
 
-		if (allStaves) {
+		if (applyOnAllStaves) {
 			for (Staff s : score.getAllStaves()) {
 				KeySignature ks = new KeySignature(alterationsNumber, type, modus);
 				ks.setTick(x);
@@ -753,11 +772,11 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		if (result == null) {
 			return;
 		}
-		setTimeSignature(result.getNumberator(), result.getDenumerator(), result.isAllStaves(), x, y);
+		setTimeSignature(result.getNumberator(), result.getDenumerator(), x, y);
 	}
 
-	private void setTimeSignature(int n, int d, boolean allStaves, int x, int y) {
-		if (allStaves) {
+	private void setTimeSignature(int n, int d, int x, int y) {
+		if (applyOnAllStaves) {
 			// Inserisce la time signature su tutti gli staff
 			for (Staff s : score.getAllStaves()) {
 				TimeSignature ts = new TimeSignature(n, d);
@@ -871,5 +890,9 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void createChoirSATBOrganTemplate() {
 		createChoirSATBTemplate();
 		createOrganTemplate();
+	}
+
+	public void applyOnAllStaves(boolean s) {
+		applyOnAllStaves = s;
 	}
 }

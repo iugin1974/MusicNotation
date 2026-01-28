@@ -48,7 +48,7 @@ public class GraphicalBar extends GraphicalObject {
 	protected MusicalSymbol setSymbol() {
 		Type t = bar.getType();
 		switch (t) {
-		case NORMAL:
+		case SINGLE:
 			return SymbolRegistry.BARLINE_SINGLE;
 		case DOUBLE:
 			return SymbolRegistry.BARLINE_DOUBLE;

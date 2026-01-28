@@ -29,9 +29,6 @@ public class KeySignatureDialog {
 
         JComboBox<String> modeCombo = new JComboBox<>(new String[]{"Major", "Minor"});
 
-        // Checkbox "All Staves", già selezionata
-        JCheckBox allStavesCheckBox = new JCheckBox("All Staves", true);
-
         // Pannello principale
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.add(slider, BorderLayout.CENTER);
@@ -39,7 +36,6 @@ public class KeySignatureDialog {
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         southPanel.add(new JLabel("Modalità:"));
         southPanel.add(modeCombo);
-        southPanel.add(allStavesCheckBox); // aggiunta della checkbox
 
         panel.add(southPanel, BorderLayout.SOUTH);
 
@@ -49,8 +45,7 @@ public class KeySignatureDialog {
         if (result == JOptionPane.OK_OPTION) {
             int alterations = slider.getValue(); // -7..7
             int mode = modeCombo.getSelectedIndex();
-            boolean allStaves = allStavesCheckBox.isSelected();
-            return new KeySignatureResult(alterations, mode, allStaves);
+            return new KeySignatureResult(alterations, mode);
         }
 
         return null;

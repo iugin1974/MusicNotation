@@ -42,16 +42,12 @@ public class TimeSignatureDialog {
 		denomSlider.setLabelTable(labels);
 		denomSlider.setPaintLabels(true);
 
-		// Checkbox "All Staves", già selezionata
-		JCheckBox allStavesCheckBox = new JCheckBox("All Staves", true);
-
 		// Pannello contenente slider e checkbox
 		JPanel panel = new JPanel(new GridLayout(5, 1, 5, 5));
 		panel.add(new JLabel("Numeratore:"));
 		panel.add(numSlider);
 		panel.add(new JLabel("Denominatore:"));
 		panel.add(denomSlider);
-		panel.add(allStavesCheckBox);
 
 		int result = JOptionPane.showConfirmDialog(parent, panel, "Time Signature", JOptionPane.OK_CANCEL_OPTION,
 				JOptionPane.PLAIN_MESSAGE);
@@ -59,8 +55,7 @@ public class TimeSignatureDialog {
 		if (result == JOptionPane.OK_OPTION) {
 			int numerator = numSlider.getValue();
 			int denominator = DENOMS[denomSlider.getValue()];
-			boolean allStaves = allStavesCheckBox.isSelected();
-			return new TimeSignatureResult(numerator, denominator, allStaves);
+			return new TimeSignatureResult(numerator, denominator);
 		}
 
 		return null;
