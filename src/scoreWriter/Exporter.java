@@ -174,11 +174,6 @@ public class Exporter {
 	/** Esporta una nota */
 	private void parseNote(Note note) {
 
-		boolean success = MidiCalculator.setMidiNumberAndAlteration(note, currentClef, ks);
-		if (!success) {
-			return; // chiave mancante
-		}
-
 		LilyNote ln = new LilyNote(note);
 		sb.append(ln.draw()).append(" ");
 
