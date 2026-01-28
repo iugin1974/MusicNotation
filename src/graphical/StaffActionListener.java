@@ -1,7 +1,5 @@
 package graphical;
 
-import notation.Staff;
-
 public interface StaffActionListener {
 
     void openKeySignatureDialog(int x, int y);

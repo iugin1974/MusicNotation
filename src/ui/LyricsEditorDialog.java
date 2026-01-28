@@ -1,14 +1,23 @@
 package ui;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import notation.Score;
 import scoreWriter.Controller;
-import scoreWriter.ScoreWriter;
-
-import java.awt.*;
-import java.util.Arrays;
-import java.util.List;
 
 public class LyricsEditorDialog extends JDialog {
 
@@ -44,8 +53,9 @@ public class LyricsEditorDialog extends JDialog {
 		int stanzaNumber = stanzaCombo.getSelectedIndex();
 
 		List<String> syllables = controller.getLyricsFor(staffIndex, voiceNumber, stanzaNumber);
-		if (syllables == null)
+		if (syllables == null) {
 			return;
+		}
 		if (syllables == null || syllables.isEmpty()) {
 			lyricsArea.setText("");
 			return;
@@ -68,7 +78,9 @@ public class LyricsEditorDialog extends JDialog {
         // STAFF
         int numStaffs = controller.getStaffCount();
         Integer[] staffNumbers = new Integer[numStaffs];
-        for (int i = 0; i < numStaffs; i++) staffNumbers[i] = i + 1;
+        for (int i = 0; i < numStaffs; i++) {
+			staffNumbers[i] = i + 1;
+		}
         staffCombo = new JComboBox<>(staffNumbers);
 
         // VOICE (inizialmente per staff 0)
@@ -76,12 +88,16 @@ public class LyricsEditorDialog extends JDialog {
         Score score = controller.getScore();
         int numVoices = score.getNumberOfVoices(0) - 1;
         Integer[] voiceNumbers = new Integer[numVoices];
-        for (int i = 0; i < numVoices; i++) voiceNumbers[i] = i + 1;
+        for (int i = 0; i < numVoices; i++) {
+			voiceNumbers[i] = i + 1;
+		}
         voiceCombo = new JComboBox<>(voiceNumbers);
 
         // STANZA 1–10
         Integer[] stanzaNumbers = new Integer[10];
-        for (int i = 0; i < 10; i++) stanzaNumbers[i] = i + 1;
+        for (int i = 0; i < 10; i++) {
+			stanzaNumbers[i] = i + 1;
+		}
         stanzaCombo = new JComboBox<>(stanzaNumbers);
 
         // AREA TESTO
@@ -131,8 +147,9 @@ public class LyricsEditorDialog extends JDialog {
 			int numVoices = score.getNumberOfVoices(staffIndex);
 
 			voiceCombo.removeAllItems();
-			for (int i = 0; i < numVoices; i++)
+			for (int i = 0; i < numVoices; i++) {
 				voiceCombo.addItem(i + 1);
+			}
 
 			loadLyricsIfExist();
 		});

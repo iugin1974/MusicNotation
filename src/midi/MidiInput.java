@@ -32,7 +32,9 @@ public class MidiInput {
 	}
 
 	public void setTransmitter(MidiDevice device) {
-		if (listener == null) return;
+		if (listener == null) {
+			return;
+		}
 		try {
 			transmitter = device.getTransmitter();
 			Receiver receiver = new Receiver() {
@@ -59,10 +61,12 @@ public class MidiInput {
 	}
 
 	public void closeDevice() {
-		if (transmitter != null)
+		if (transmitter != null) {
 			transmitter.close();
-		if (device != null && device.isOpen())
+		}
+		if (device != null && device.isOpen()) {
 			device.close();
+		}
 	}
 
 	public List<MidiDevice.Info> findInputDevices() {

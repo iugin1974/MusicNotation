@@ -1,8 +1,13 @@
 package ui;
 
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.GridLayout;
 
-import java.awt.*;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
 
 public class TimeSignatureDialog {
 

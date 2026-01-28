@@ -16,8 +16,9 @@ public class SelectionManager {
 			selected.remove(o);
 			o.select(false);
 		} else {
-			if (!add)
+			if (!add) {
 				clearSelection(); // se non voglio aggiungere, rimuovo tutto
+			}
 			selected.add(o);
 			o.select(true);
 		}
@@ -43,5 +44,5 @@ public class SelectionManager {
 	public boolean hasSelectedObjects() {
 		return selected != null && selected.size() > 0;
 	}
-		
+
 }

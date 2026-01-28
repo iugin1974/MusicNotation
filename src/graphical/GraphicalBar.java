@@ -1,13 +1,10 @@
 package graphical;
 
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Rectangle;
 
 import Measure.Bar;
 import Measure.Bar.Type;
-import musicInterface.MusicObject;
 import scoreWriter.SymbolRegistry;
 
 public class GraphicalBar extends GraphicalObject {
@@ -30,7 +27,6 @@ public class GraphicalBar extends GraphicalObject {
 			g.setColor(Color.BLACK);
 		}
 		g.drawString(glyph, getX(), getY());
-		drawBounds(g);
 	}
 
 	@Override

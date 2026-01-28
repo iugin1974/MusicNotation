@@ -12,9 +12,11 @@ public class LedgerLinesRenderer {
     public void drawLedgerLines(Graphics g, GraphicalNote note, GraphicalStaff staff) {
     	drawLedgerLines(g, note.getX(), note.getY(), staff);
     }
-    
+
     public void drawLedgerLines(Graphics g, int x, int y, GraphicalStaff staff) {
-    	if (staff == null) return;
+    	if (staff == null) {
+			return;
+		}
         int top = staff.getYPosOfLine(5);     // posizione verticale della linea superiore
         int bottom = staff.getYPosOfLine(1);
 

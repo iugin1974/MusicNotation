@@ -1,8 +1,10 @@
 package graphical;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 
-import musicInterface.MusicObject;
 import notation.KeySignature;
 
 public class GraphicalKeySignature extends GraphicalObject {
@@ -19,7 +21,7 @@ public class GraphicalKeySignature extends GraphicalObject {
 	private int nextAlteration;
 	int pos[];
 	private final KeySignature keySignature;
-	
+
 	// -------------------------------------------------------------------
 	// COSTRUTTORE
 	// -------------------------------------------------------------------
@@ -72,25 +74,27 @@ public class GraphicalKeySignature extends GraphicalObject {
 		Graphics2D g2 = (Graphics2D) g;
 		//g2.setFont(musicFont);
 		// Se selezionato, evidenzia
-		if (isSelected())
+		if (isSelected()) {
 			g2.setColor(Color.RED);
-		else
+		} else {
 			g2.setColor(Color.BLACK);
+		}
 
 		// Disegna le alterazioni
-		for (int i = 0; i < pos.length; i++) {
-			drawGlyph(g2, pos[i]);
+		for (int element : pos) {
+			drawGlyph(g2, element);
 		}
 
 		// Calcola minY e maxY
 		int minY = Integer.MAX_VALUE;
 		int maxY = Integer.MIN_VALUE;
-
 		for (int p : pos) {
-			if (p < minY)
+			if (p < minY) {
 				minY = p;
-			if (p > maxY)
+			}
+			if (p > maxY) {
 				maxY = p;
+			}
 		}
 
 		// TODO i bounds non sono corretti
@@ -101,7 +105,6 @@ public class GraphicalKeySignature extends GraphicalObject {
 		Rectangle bounds = new Rectangle(getX(), minY, width, height);
 
 		setBounds(bounds);
-		drawBounds(g2);
 
 		// Ripristina posizione iniziale
 		nextAlteration = getX();
@@ -110,10 +113,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 	private void drawGlyph(Graphics2D g2, int y) {
 		int typeOfAlterations = keySignature.getTypeOfAlterations();
 		String symbol = null;
-		if (typeOfAlterations == -1)
+		if (typeOfAlterations == -1) {
 			symbol = FLAT;
-		else if (typeOfAlterations == 1)
+		} else if (typeOfAlterations == 1) {
 			symbol = SHARP;
+		}
 		g2.drawString(symbol, nextAlteration, y);
 		nextAlteration += 10;
 	}
@@ -125,11 +129,11 @@ public class GraphicalKeySignature extends GraphicalObject {
 		return ks;
 	}
 
-	
+
 	public MusicalSymbol getSymbol() {
 		return null;
 	}
-	
+
 	public KeySignature getKeySignature() {
 		return keySignature;
 	}

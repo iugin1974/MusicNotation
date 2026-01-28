@@ -1,9 +1,17 @@
 package ui;
 
-import javax.sound.midi.MidiDevice;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.List;
+
+import javax.sound.midi.MidiDevice;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 
 public class MidiDeviceChooser extends JDialog {
 

@@ -1,9 +1,9 @@
 package scoreWriter;
 
 import java.util.List;
+
 import Measure.Bar;
 import Measure.TimeSignature;
-import graphical.GraphicalClef;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
@@ -49,8 +49,9 @@ public class Exporter {
 				List<MusicObject> voiceObjs = staff.voices.get(voiceIndex);
 
 				// Se la voce non contiene né note né pause → non esportare
-				if (!hasNotesOrRests(voiceObjs))
+				if (!hasNotesOrRests(voiceObjs)) {
 					continue;
+				}
 
 				parseVoice(staffIndex, voiceIndex, voiceObjs);
 
@@ -174,19 +175,26 @@ public class Exporter {
 	private void parseNote(Note note) {
 
 		boolean success = MidiCalculator.setMidiNumberAndAlteration(note, currentClef, ks);
-		if (!success)
+		if (!success) {
 			return; // chiave mancante
+		}
 
 		LilyNote ln = new LilyNote(note);
 		sb.append(ln.draw()).append(" ");
 
 		for (CurvedConnection c : score.getCurveList()) {
-			if (note == c.getStart() && c instanceof Tie) sb.append("~");
-			if (note == c.getStart() && c instanceof Slur) sb.append("(");
-			if (note == c.getEnd() && c instanceof Slur) sb.append(")");
+			if (note == c.getStart() && c instanceof Tie) {
+				sb.append("~");
+			}
+			if (note == c.getStart() && c instanceof Slur) {
+				sb.append("(");
+			}
+			if (note == c.getEnd() && c instanceof Slur) {
+				sb.append(")");
+			}
 			}
 	}
-	
+
 	private void parseRest(Rest rest) {
 		LilyRest lr = new LilyRest(rest);
 		sb.append(lr.draw() + " ");
@@ -210,8 +218,9 @@ public class Exporter {
 	}
 
 	private void exportLyrics(List<String> list, int staffIndex, int voiceIndex, int stanza) {
-		if (list == null || list.isEmpty())
+		if (list == null || list.isEmpty()) {
 			return;
+		}
 
 		// Nome della variabile LilyPond basato su staff/voice/stanza
 		String name = "Lyric" + getNumber(staffIndex) + getNumber(voiceIndex) + getNumber(stanza);
@@ -265,7 +274,7 @@ public class Exporter {
 	private String beginVoice(int staffIndex, int voiceIndex) {
 		return "\\new Voice = \"voice" + getNumber(staffIndex) + getNumber(voiceIndex) + "\" {";
 	}
-	
+
 	private String getVoiceNumber(int voiceIndex) {
 		switch (voiceIndex) {
 			case 0: return "\\voiceOne";
@@ -273,11 +282,13 @@ public class Exporter {
 		}
 		return "";
 	}
-	
+
 	private void appendLyricsToStaff(int staffIndex, int voiceIndex) {
 
 	    int stanzas = score.getStanzasNumber(staffIndex, voiceIndex + 1);
-	    if (stanzas == 0) return;
+	    if (stanzas == 0) {
+			return;
+		}
 
 	    String voiceName =
 	        "voice" + getNumber(staffIndex) + getNumber(voiceIndex);
@@ -296,7 +307,7 @@ public class Exporter {
 	          .append(" }\n");
 	    }
 	}
-	
+
 	private String getNumber(int n) {
 		return numbers[n];
 	}

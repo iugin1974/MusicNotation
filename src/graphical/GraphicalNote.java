@@ -3,18 +3,13 @@ package graphical;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
 import java.io.IOException;
 import java.io.InputStream;
+
 import musicEvent.Note;
 import notation.CurvedConnection;
-import notation.Lyric;
 import scoreWriter.StaffInfo;
 import scoreWriter.SymbolRegistry;
 
@@ -23,27 +18,14 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	private MusicalSymbol symbol;
 	private final Note note;
 	private final int duration;
-	private final int pitch;
 
 	public GraphicalNote(Note n) {
 		this.note = n;
-		pitch = n.getMidiNumber();
 		duration = n.getDuration();
 		symbol = setSymbol();
 		}
 
-	private void setup() {
-		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
-		Font font = null;
-		try {
-			font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(40f);
-		} catch (FontFormatException | IOException e) {
-			e.printStackTrace();
-		}
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		ge.registerFont(font);
-	}
-
+	@Override
 	protected MusicalSymbol setSymbol() {
 	    return switch (duration) {
 	        case 0 -> SymbolRegistry.WHOLE_NOTE;
@@ -56,23 +38,23 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	        default -> SymbolRegistry.QUARTER_NOTE; // fallback
 	    };
 	}
-	
+
 	@Override
 	public void draw(Graphics g) {
 		String glyph;
 		int voice = note.getVoiceIndex();
-		if (voice == 1)
+		if (voice == 1) {
 			glyph = symbol.getGlyphUp();
-		else
+		} else {
 			glyph = symbol.getGlyphDown();
-		
-		setBounds(g, glyph);		
-		setColor(g, voice);		
+		}
+
+		setBounds(g, glyph);
+		setColor(g, voice);
 		g.drawString(glyph, getX(), getY());
-		
+
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
-		drawBounds(g);
 	}
 
 	public int getCenterX() {
@@ -82,7 +64,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	public int getCenterY() {
 	    return getY() + getHeight() / 2;
 	}
-	
+
 	private void setColor(Graphics g, int voice) {
 		if (isSelected()) {
 			g.setColor(Color.RED);
@@ -120,7 +102,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	public int getStaffPosition() {
 		return note.getStaffPosition();
 	}
-	
+
 	public Note getNote() {
 		return note;
 	}
@@ -129,7 +111,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	public Note getModelObject() {
 		return note;
 	}
-	
+
     @Override
     public void moveTo(int x, int y) {
         super.moveTo(x, y); // sposta la nota

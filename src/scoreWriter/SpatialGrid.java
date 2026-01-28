@@ -9,7 +9,7 @@ import graphical.GraphicalObject;
 public class SpatialGrid {
 
     private final int cellSize; // es: 20 px
-    private final Map<Integer, ArrayList<GraphicalObject>> grid = new HashMap<Integer, ArrayList<GraphicalObject>>();
+    private final Map<Integer, ArrayList<GraphicalObject>> grid = new HashMap<>();
 
     public SpatialGrid(int cellSize) {
         this.cellSize = cellSize;
@@ -25,7 +25,7 @@ public class SpatialGrid {
         ArrayList<GraphicalObject> list = grid.get(cell);
 
         if (list == null) {
-            list = new ArrayList<GraphicalObject>();
+            list = new ArrayList<>();
             grid.put(cell, list);
         }
 
@@ -50,8 +50,9 @@ public class SpatialGrid {
         int oldCell = getCell(oldX);
         int newCell = getCell(newX);
 
-        if (oldCell == newCell)
-            return;
+        if (oldCell == newCell) {
+			return;
+		}
 
         // Rimuovi dalla cella vecchia
         ArrayList<GraphicalObject> oldList = grid.get(oldCell);
@@ -65,7 +66,7 @@ public class SpatialGrid {
         // Aggiungi alla cella nuova
         ArrayList<GraphicalObject> newList = grid.get(newCell);
         if (newList == null) {
-            newList = new ArrayList<GraphicalObject>();
+            newList = new ArrayList<>();
             grid.put(newCell, newList);
         }
 
@@ -76,7 +77,7 @@ public class SpatialGrid {
     public List<GraphicalObject> getNearby(int x) {
         int cell = getCell(x);
 
-        ArrayList<GraphicalObject> result = new ArrayList<GraphicalObject>();
+        ArrayList<GraphicalObject> result = new ArrayList<>();
 
         for (int c = cell - 1; c <= cell + 1; c++) {
             ArrayList<GraphicalObject> list = grid.get(c);

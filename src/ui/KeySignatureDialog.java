@@ -1,12 +1,21 @@
 package ui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 
 public class KeySignatureDialog {
 
     public static KeySignatureResult showDialog(Component parent) {
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, -7, 7, 0);
+        JSlider slider = new JSlider(SwingConstants.HORIZONTAL, -7, 7, 0);
         slider.setMajorTickSpacing(1);
         slider.setPaintTicks(true);
 

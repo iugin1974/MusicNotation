@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
-import java.lang.ModuleLayer.Controller;
 
 import musicInterface.MusicObject;
 
@@ -112,12 +111,9 @@ public abstract class GraphicalObject {
 	public void setBounds(Rectangle bounds) {
 		this.bounds = bounds;
 	}
-	
-	public void drawBounds(Graphics g) {
-		if (!scoreWriter.Controller.TEST)
-			return;
 
-		if (bounds == null) {
+	public void drawBounds(Graphics g) {
+		if (!scoreWriter.Controller.TEST || (bounds == null)) {
 			return;
 		}
 		Color old = g.getColor();

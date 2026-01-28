@@ -4,37 +4,33 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import musicInterface.MusicObject;
 import notation.Staff;
-import scoreWriter.ScoreWriter;
 import ui.PopupLauncher;
 
 public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
-	
+
 	private Staff staff;
-	private int id = 0;
 	private int x, y, width, distanceBetweenLines;
 	boolean selected = false;
 	private int lineNumber = 5;
 	private final int MAX_LEDGER_LINES = 3; // i tagli addizionali
 	private StaffActionListener actionListener;
 
-	public GraphicalStaff(Staff staff, int id, int x, int y, int width, int lineNumber, int distanceBetweenLines) {
+	public GraphicalStaff(Staff staff, int x, int y, int width, int lineNumber, int distanceBetweenLines) {
 		this.staff = staff;
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.lineNumber = lineNumber;
 		this.distanceBetweenLines = distanceBetweenLines;
-		this.id = id;
 		setBounds();
 	}
-	
+
 	private void setBounds() {
 		int rectX = x;
 		int rectY = y - (distanceBetweenLines * MAX_LEDGER_LINES);
@@ -46,16 +42,17 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	public void setActionListener(StaffActionListener listener) {
 	    this.actionListener = listener;
 	}
-	
+
 	public void setWidth(int width) {
 		this.width = width;
 		setBounds();
 	}
-	
+
+	@Override
 	public int getWidth() {
 		return width;
 	}
-	
+
 	public int getX2() {
 		return x + width;
 	}
@@ -64,6 +61,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		return y + lineNumber * distanceBetweenLines;
 	}
 
+	@Override
 	public int getHeight() {
 		return bounds.height;
 	}
@@ -92,19 +90,19 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	 * - ...
 	 * - lineNumber-1 = prima linea in alto
 	 * - valori negativi = linee/linee aggiuntive sotto il pentagramma
-	 * 
+	 *
 	 * @param line indice della linea (0 = prima linea in basso)
 	 * @return coordinata Y della linea
 	 */
 	public int getYPosOfLine(int line) {
 	    // line 0 = prima linea in basso
 	    // y aumenta verso il basso
-	    int l = lineNumber - 1 - line; 
+	    int l = lineNumber - 1 - line;
 	    return y + (l * distanceBetweenLines);
 	}
 
 
-	
+
 	public int[] getYPosOfLines() {
 		int pos[] = new int[lineNumber];
 		for (int i = 1; i <= lineNumber; i++) {
@@ -122,7 +120,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		int l = lineNumber - space - 1;
 		return y + (l * distanceBetweenLines) + (distanceBetweenLines / 2);
 	}
-	
+
 	public int[] getYPosOfSpaces() {
 	    int pos[] = new int[lineNumber];
 	    for (int s = 1; s <= lineNumber; s++) {
@@ -131,7 +129,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	    }
 	    return pos;
 	}
-	
+
 	public int getYPos(int p) {
 	    int maxP = (lineNumber * 2) - 2;
 	    int invertedP = maxP - p;
@@ -157,7 +155,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 
 	    return pos;
 	}
-	
+
 	/**
 	 * Restituisce le posizioni verticali di tutte le linee e spazi del pentagramma,
 	 * inclusi eventuali spazi/linee extra sopra e sotto.
@@ -198,7 +196,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	/**
 	 * Indica la posizione della nota nel pentagramma, dove 0 è la prima linea in basso
 	 * 1 lo spazio successivo e così via
-	 * 
+	 *
 	 * @param y
 	 */
 	public int getPosInStaff(GraphicalNote n) {
@@ -214,11 +212,11 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		    return -1;
 	}
 
-	
+
 	/**
 	 * Indica la posizione di Y pentagramma, dove 0 è la prima linea in basso
 	 * 1 lo spazio successivo e così via
-	 * 
+	 *
 	 * @param y
 	 */
 	public int getPosInStaff(int y) {
@@ -252,11 +250,11 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	public MusicalSymbol getSymbol() {
 		return null;
 	}
-	
+
 	@Override
 	public JPopupMenu getMenu(int x, int y) {
 		JPopupMenu menu = new JPopupMenu();
@@ -282,7 +280,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
         		actionListener.shitObjectsRight(x, y);
         	}
         });
-        
+
         return menu;
 	}
 
@@ -294,5 +292,9 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	@Override
 	public MusicObject getModelObject() {
 		return null;
+	}
+	
+	public Staff getStaff() {
+		return staff;
 	}
 }

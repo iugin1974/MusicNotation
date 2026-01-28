@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import Measure.TimeSignature;
-import musicInterface.MusicObject;
 
 public class GraphicalTimeSignature extends GraphicalObject {
 
@@ -34,7 +33,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 
 	public GraphicalTimeSignature(TimeSignature timeSignature) {
 		this.timeSignature = timeSignature;
-		
+
 		try (InputStream is1 = getClass().getResourceAsStream("/fonts/BravuraText.otf")) {
 			numberFont = Font.createFont(Font.TRUETYPE_FONT, is1).deriveFont(50f);
 		} catch (IOException e) {
@@ -45,7 +44,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void drawDigits(Graphics2D g2, String number, int x, int y) {
 	    int cursorX = x;
 	    FontRenderContext frc = g2.getFontRenderContext();
@@ -84,7 +83,6 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	    setBounds(bounds);
 
 	    g2.setFont(oldFont);
-	    drawBounds(g2);
 	}
 
 	private String toSMUFLNumber(String s) {
@@ -95,7 +93,7 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	    }
 	    return sb.toString();
 	}
-	
+
 	@Override
 	public GraphicalObject cloneObject() {
 		GraphicalTimeSignature timeSig = new GraphicalTimeSignature(timeSignature);
@@ -104,11 +102,11 @@ public class GraphicalTimeSignature extends GraphicalObject {
 		timeSig.setBounds(getBounds());
 		return timeSig;
 	}
-	
+
 	public MusicalSymbol getSymbol() {
 		return null;
 	}
-	
+
 	public TimeSignature getTimeSignature() {
 		return timeSignature;
 	}
@@ -122,5 +120,5 @@ public class GraphicalTimeSignature extends GraphicalObject {
 	public TimeSignature getModelObject() {
 		return timeSignature;
 	}
-	
+
 }

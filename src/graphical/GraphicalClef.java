@@ -3,14 +3,11 @@ package graphical;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 
-import musicInterface.MusicObject;
 import notation.Clef;
 import scoreWriter.SymbolRegistry;
 
@@ -18,13 +15,13 @@ public class GraphicalClef extends GraphicalObject {
 
 	private MusicalSymbol symbol;
 	private Clef clef;
-	
+
 	public GraphicalClef(Clef clef) {
 		this.clef = clef;
 		symbol = setSymbol();
 		setup();
 	}
-	
+
 	private void setup() {
 		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
 		Font font = null;
@@ -36,7 +33,7 @@ public class GraphicalClef extends GraphicalObject {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		ge.registerFont(font);
 	}
-	
+
 	@Override
 	public GraphicalObject cloneObject() {
 		GraphicalClef c = new GraphicalClef(this.clef);
@@ -50,7 +47,9 @@ public class GraphicalClef extends GraphicalObject {
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyphUp();
-		if (glyph == null) glyph = symbol.getGlyph();
+		if (glyph == null) {
+			glyph = symbol.getGlyph();
+		}
         setBounds(g, glyph);
         if (isSelected()) {
 			g.setColor(Color.RED);
@@ -58,17 +57,16 @@ public class GraphicalClef extends GraphicalObject {
 			g.setColor(Color.BLACK);
 		}
         g.drawString(glyph, getX(), getY());
-        drawBounds(g);
 	}
-	
+
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
-	
-	 public int[] getSemitoneMap() { 
+
+	 public int[] getSemitoneMap() {
 		 return symbol.getSemitoneMap();
 	}
-	 
+
 	 public int getMidiOffset() {
 		 return symbol.getMidiOffset();
 	 }
@@ -91,5 +89,5 @@ public class GraphicalClef extends GraphicalObject {
 	 public Clef getModelObject() {
 		return clef;
 	 }
-	 
+
 	}

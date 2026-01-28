@@ -1,39 +1,24 @@
 package ui;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Stroke;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.CubicCurve2D;
 import java.io.InputStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
-import java.util.OptionalInt;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -46,31 +31,22 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
-import Measure.Bar;
-import graphical.GraphicalBar;
-import graphical.GraphicalClef;
-import graphical.GraphicalNote;
 import graphical.GraphicalObject;
-import graphical.GraphicalRest;
 import graphical.GraphicalScore;
 import graphical.GraphicalStaff;
 import graphical.LedgerLinesRenderer;
 import graphical.MusicalSymbol;
-import musicEvent.Note;
-import musicInterface.MusicObject;
 import notation.ScoreEvent;
 import notation.ScoreListener;
-import notation.Staff;
 import scoreWriter.Controller;
-import scoreWriter.ScoreWriter;
 import scoreWriter.SymbolRegistry;
 
 public class GUI extends JFrame implements ScoreListener {
 
-	private final int DISTANCE_BETWEEN_STAVES = 50;
-	private final int TOP_MARGIN = 50;
 	private Controller controller;
 	private Font musicFont, iconFont;
 	private int mouseX, mouseY;
@@ -83,12 +59,9 @@ public class GUI extends JFrame implements ScoreListener {
 	private JScrollPane scrollPane;
 	private ButtonGroup groupButtonsRests;
 	private LedgerLinesRenderer ledger;
-	private Font fontLyric = new Font("SansSerif", Font.PLAIN, 12);
 	protected GraphicalScore gScore;
-	private MusicObject pendingObject;
 	private int pendingX;
 	private int pendingY;
-	private int pendingVoice;
 	private JToggleButton voice1;
 	private JToggleButton voice2;
 
@@ -121,7 +94,7 @@ public class GUI extends JFrame implements ScoreListener {
 	    initFont();
 	    setTitle("Editor Musicale");
 	    setSize(800, 600);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO -> chiudi midi
+	    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); // TODO -> chiudi midi
 	    setLocationRelativeTo(null);
 
 	    mainPanel = new MainPanel();
@@ -129,8 +102,8 @@ public class GUI extends JFrame implements ScoreListener {
 
 	    scrollPane = new JScrollPane(
 	            mainPanel,
-	            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-	            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+	            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+	            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 	    );
 	    add(scrollPane, BorderLayout.CENTER);
 
@@ -169,7 +142,7 @@ public class GUI extends JFrame implements ScoreListener {
 
 		return mainPanel;
 	}
-	
+
 	private JMenuBar buildMenuBar() {
 	    JMenuBar menuBar = new JMenuBar();
 
@@ -180,7 +153,7 @@ public class GUI extends JFrame implements ScoreListener {
 
 	    return menuBar;
 	}
-	
+
 	private JMenu getFileMenu() {
 	    JMenu fileMenu = new JMenu("File");
 
@@ -197,7 +170,7 @@ public class GUI extends JFrame implements ScoreListener {
 	    return fileMenu;
 	}
 
-	
+
 	private JMenu getModificaMenu() {
 	    JMenu modificaMenu = new JMenu("Modifica");
 
@@ -445,6 +418,7 @@ public class GUI extends JFrame implements ScoreListener {
 			setFocusable(true);
 		}
 
+		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setFont(musicFont);
@@ -454,8 +428,9 @@ public class GUI extends JFrame implements ScoreListener {
 				Pointer pointer = controller.getPointer();
 				pointer.draw(g);
 				GraphicalStaff staff = getPointedStaff(mouseX, mouseY);
-				if (staff == null)
+				if (staff == null) {
 					return;
+				}
 				ledger.drawLedgerLines(g, pointer, staff);
 			}
 		}
@@ -482,18 +457,18 @@ public class GUI extends JFrame implements ScoreListener {
 		        controller.removeSelection();                        // deseleziona tutto
 		        insertObject(e);                                    // inserisce la nota/oggetto
 		        controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
-		        
+
 		    } // end insertMode
 
 		    if (!insertMode && !e.isControlDown()) {
-		    	controller.removeSelection();  
+		    	controller.removeSelection();
 		    	controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
 		    }
-		    
+
 		    // --- Modalità selezione normale ---
 		    if(!insertMode && e.isControlDown()) {               // CTRL indica selezione multipla
 		    	System.out.println("CTRL down");
-		    controller.addClickedObjectToSelection(e.getX(), e.getY()); 
+		    controller.addClickedObjectToSelection(e.getX(), e.getY());
 		    }
 		    mainPanel.repaint();                                    // evidenzia subito la selezione
 		}
@@ -532,7 +507,9 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			if (!controller.pointerExists()) return;
+			if (!controller.pointerExists()) {
+				return;
+			}
 			insertMode = true;
 			mainPanel.repaint();
 		}
@@ -568,13 +545,15 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			if (!gScore.hasStaves())
+			if (!gScore.hasStaves()) {
 				return;
+			}
 			int w = this.getWidth();
 			int h = this.getHeight();
 			for (GraphicalStaff s : gScore.getStaves()) {
-				if (s.getWidth() > w)
+				if (s.getWidth() > w) {
 					return; // setta la lunghezza solo se è inferiore a quella della finestra
+				}
 				s.setWidth(w);
 			}
 			mainPanel.setPreferredSize(new Dimension(w, h));
@@ -606,7 +585,7 @@ public class GUI extends JFrame implements ScoreListener {
 	/**
 	 * Ritorna l'indice dello staff alla posizione mouseX, mouseY oppure -1 se no vi
 	 * è nessuno staff
-	 * 
+	 *
 	 * @param mouseX
 	 * @param mouseY
 	 * @return
@@ -625,8 +604,9 @@ public class GUI extends JFrame implements ScoreListener {
 
 	public GraphicalStaff getPointedStaff(int mouseX, int mouseY) {
 		for (GraphicalStaff s : gScore.getStaves()) {
-			if (s.getBounds().contains(mouseX, mouseY))
+			if (s.getBounds().contains(mouseX, mouseY)) {
 				return s;
+			}
 		}
 		return null;
 	}
@@ -673,7 +653,7 @@ public class GUI extends JFrame implements ScoreListener {
 
 		switch (e.getType()) {
 		case STAFF_ADDED:
-			gScore.createGraphicalStaff(0, e, getWidth());
+			gScore.createGraphicalStaff(e, getWidth());
 			break;
 		case OBJECT_ADDED:
 			gScore.createGraphicalObject(e, pendingX, pendingY);
@@ -691,7 +671,7 @@ public class GUI extends JFrame implements ScoreListener {
 	public void prepareGraphicalInsertion(int x, GraphicalStaff s, int line) {
 		prepareGraphicalInsertion(x, s.getYPosOfLine(line));
 	}
-	
+
 	public void prepareGraphicalInsertion(int x, int y) {
 		this.pendingX = x;
 		this.pendingY = y;
@@ -700,7 +680,7 @@ public class GUI extends JFrame implements ScoreListener {
 	private void clearPendingInsertion() {
 		pendingX = pendingY = -1;
 	}
-	
+
 	public MusicalSymbol getObjectToInsert() {
 		return objectToInsert;
 	}

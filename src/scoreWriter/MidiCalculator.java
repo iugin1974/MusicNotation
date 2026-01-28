@@ -19,15 +19,16 @@ public class MidiCalculator {
 		int notePosMod7 = Math.floorMod(position, 7); // 0..6
 		int octaveShift = Math.floorDiv(position, 7); // può essere negativo
 
-		if (ks == null)
+		if (ks == null) {
 			ks = new KeySignature(0, 0, Modus.MAJOR_SCALE);
+		}
 		int typeOfAlterations = ks.getTypeOfAlterations();
 		int[] keySignatureIndex;
-		if (typeOfAlterations == 1)
+		if (typeOfAlterations == 1) {
 			keySignatureIndex = ks.getSharpsIndex();
-		else
+		} else {
 			keySignatureIndex = ks.getFlatsIndex();
-		int keyAlteration = 0;
+		}
 
 		boolean found = false;
 		int midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);

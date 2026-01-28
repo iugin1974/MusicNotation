@@ -1,8 +1,12 @@
 package ui;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.GridLayout;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class InfoPanel extends JPanel {
     private Map<String, JLabel> labels;
@@ -33,7 +37,7 @@ public class InfoPanel extends JPanel {
         JFrame frame = new JFrame("Info Panel Demo");
         InfoPanel panel = new InfoPanel();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().add(panel);
         frame.setSize(300, 200);
         frame.setVisible(true);

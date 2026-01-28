@@ -8,7 +8,7 @@ import musicInterface.MusicObject;
 
 public class ScoreLayout {
 	private ScoreLayout() {}
-	
+
     private static Map<MusicObject, Point> positions = new HashMap<>();
 
     public static void setPosition(MusicObject o, Point p) {

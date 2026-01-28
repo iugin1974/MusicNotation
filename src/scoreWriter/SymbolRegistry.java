@@ -172,4 +172,4 @@ public static final MusicalSymbol CLEF_TREBLE_8 = new MusicalSymbol(
         MusicalSymbol.Type.CLEF, 52,
         SemitoneMap.SEMITONE_MAP_TREBLE_8
     );
-};
+}

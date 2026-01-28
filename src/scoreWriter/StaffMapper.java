@@ -1,7 +1,6 @@
 package scoreWriter;
 
 import musicEvent.Modus;
-import musicEvent.Note;
 import notation.Clef;
 import notation.KeySignature;
 
@@ -42,12 +41,11 @@ public class StaffMapper {
 		int octaveShift = Math.floorDiv(staffPosition, 7); // può essere negativo
 		int typeOfAlterations = ks.getTypeOfAlterations();
 		int[] keySignatureIndex;
-		if (typeOfAlterations == 1)
+		if (typeOfAlterations == 1) {
 			keySignatureIndex = ks.getSharpsIndex();
-		else
+		} else {
 			keySignatureIndex = ks.getFlatsIndex();
-		int keyAlteration = 0;
-
+		}
 		int midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);
 
 		for (int i = 0; i < ks.getNumberOfAlterations(); i++) {

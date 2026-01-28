@@ -1,17 +1,8 @@
 package graphical;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.io.IOException;
-import java.io.InputStream;
-
 import musicEvent.Rest;
-import musicInterface.MusicObject;
 import scoreWriter.SymbolRegistry;
 
 public class GraphicalRest extends GraphicalObject {
@@ -24,19 +15,6 @@ public class GraphicalRest extends GraphicalObject {
 		symbol = setSymbol();
 	}
 
-	private void setup() {
-		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
-		Font font = null;
-		try {
-			font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(40f);
-		} catch (FontFormatException | IOException e) {
-			e.printStackTrace();
-		}
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		ge.registerFont(font);
-	}
-
-	
 	@Override
 	public void draw(Graphics g) {
 		String glyph = symbol.getGlyph();
@@ -47,10 +25,9 @@ public class GraphicalRest extends GraphicalObject {
 			g.setColor(Color.BLACK);
 		}
 		g.drawString(glyph, getX(), getY());
-		drawBounds(g);
 	}
 
-	
+
 	@Override
 	public GraphicalObject cloneObject() {
 		GraphicalRest n = new GraphicalRest(rest);
@@ -63,7 +40,7 @@ public class GraphicalRest extends GraphicalObject {
 	public MusicalSymbol getSymbol() {
 		return symbol;
 	}
-	
+
 	public Rest getRest() {
 		return rest;
 	}

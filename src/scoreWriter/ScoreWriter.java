@@ -1,11 +1,8 @@
 package scoreWriter;
 
 import java.awt.Point;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -25,12 +22,14 @@ import graphical.GraphicalTimeSignature;
 import graphical.MusicalSymbol;
 import graphical.StaffActionListener;
 import musicEvent.Modus;
-import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
 import notation.Clef;
+import notation.CurvedConnection;
+import notation.KeySignature;
 import notation.Staff;
+import notation.Voice;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.Pointer;
@@ -56,7 +55,7 @@ public class ScoreWriter implements StaffActionListener {
 		GraphicalClef c = new GraphicalClef(SymbolRegistry.CLEF_TREBLE);
 		c.setXY(80, 80);
 		score.addObject(c, 0, 0);
-		
+
 		GraphicalKeySignature k = new GraphicalKeySignature(120, gui.getStaff(0), new KeySignature(3, 1, Modus.MAJOR_SCALE));
 		score.addObject(k, 0, 0);
 		int[] xpos = {200,220,240,260,280,300,320};
@@ -66,7 +65,7 @@ public class ScoreWriter implements StaffActionListener {
 		n.setXY(xpos[i], ypos[i]);
 		n.setStaffPosition(-2+i);
 		score.addObject(n, 0, 1);
-		
+
 		}
 		export();*/
 	//	System.exit(0);
@@ -104,7 +103,7 @@ public class ScoreWriter implements StaffActionListener {
 
 	/**
 	 * Restituisce l'oggetto grafico su cui si è cliccato o <i>null</i>
-	 * 
+	 *
 	 * @param x
 	 * @param y
 	 * @return
@@ -113,8 +112,9 @@ public class ScoreWriter implements StaffActionListener {
 
 		// 1) Prima controlla gli oggetti normali
 		for (GraphicalObject object : score.getAllObjects()) {
-			if (object.hitTest(x, y))
+			if (object.hitTest(x, y)) {
 				return object;
+			}
 		}
 
 		// 2) Poi controlla se hai cliccato su uno staff
@@ -127,13 +127,16 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	public void selectObjectAtPos(int x, int y, boolean multipleSelection) {
-		if (score.getStaffCount() == 0)
+		if (score.getStaffCount() == 0) {
 			return;
-		if (!multipleSelection)
+		}
+		if (!multipleSelection) {
 			selectionManager.clearSelection();
+		}
 		GraphicalObject o = getObjectAt(x, y);
-		if (o == null)
+		if (o == null) {
 			return;
+		}
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		selectionManager.select(o, staffIndex);
 	}
@@ -154,8 +157,9 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	private boolean insertNote(GraphicalNote n, int staffNumber, int voiceNumber) {
-		if (voiceNumber == 0)
+		if (voiceNumber == 0) {
 			return false;
+		}
 		GraphicalNote newNote = (GraphicalNote) n.cloneObject();
 		newNote.setVoice(voiceNumber);
 		newNote.setStaffIndex(staffNumber);
@@ -167,22 +171,25 @@ public class ScoreWriter implements StaffActionListener {
 		// se necessario allunga i pentagrammi
 		GraphicalStaff g = gui.getStaff(0);
 		int x = newNote.getX();
-		if (x > g.getWidth() - 100)
+		if (x > g.getWidth() - 100) {
 			resizeStaves();
+		}
 		return true;
 	}
 
 	private boolean insertRest(GraphicalRest n, int staffNumber, int voiceNumber) {
-		if (voiceNumber == 0)
+		if (voiceNumber == 0) {
 			return false;
+		}
 		GraphicalRest newNote = (GraphicalRest) n.cloneObject();
 		score.addObject(newNote, staffNumber, voiceNumber);
 		grid.add(newNote);
 		// se necessario allunga i pentagrammi
 		GraphicalStaff g = gui.getStaff(0);
 		int x = newNote.getX();
-		if (x > g.getWidth() - 100)
+		if (x > g.getWidth() - 100) {
 			resizeStaves();
+		}
 		return true;
 	}
 
@@ -207,17 +214,20 @@ public class ScoreWriter implements StaffActionListener {
 		GraphicalClef c = (GraphicalClef) clef.cloneObject();
 		int firstLine = 0;
 		if (clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE)
-				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
+				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8)) {
 			firstLine = gui.getStaff(staffNumber).getYPosOfLine(2);
-		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
+		} else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS)) {
 			firstLine = gui.getStaff(staffNumber).getYPosOfLine(4);
+		}
 		c.setY(firstLine);
 		score.addObject(c, staffNumber, 0);
 	}
 
 	public void insertObject(MusicalSymbol symbolToInsert, int x, int y) {
 	    int staffNumber = checkInWichStaffIsPoint(x, y);
-	    if (staffNumber == -1) return;
+	    if (staffNumber == -1) {
+			return;
+		}
 
 	    selectionManager.clearSelection();
 
@@ -244,7 +254,7 @@ public class ScoreWriter implements StaffActionListener {
 	    // Aggiornamento GUI
 	    gui.repaintPanel();
 	}
-	
+
 	private KeySignature getPreviousKeySignature(GraphicalNote n) {
 
 	    int noteX = n.getX();
@@ -290,10 +300,11 @@ public class ScoreWriter implements StaffActionListener {
 	            GraphicalClef clef = new GraphicalClef(symbolToInsert);
 	            int firstLine = 0;
 	    		if (clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE)
-	    				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8))
-	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(1);
-	    		else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS))
-	    			firstLine = gui.getStaff(staffNumber).getYPosOfLine(3);
+	    				|| clef.getSymbol().equals(SymbolRegistry.CLEF_TREBLE_8)) {
+					firstLine = gui.getStaff(staffNumber).getYPosOfLine(1);
+				} else if (clef.getSymbol().equals(SymbolRegistry.CLEF_BASS)) {
+					firstLine = gui.getStaff(staffNumber).getYPosOfLine(3);
+				}
 	    		clef.setXY(x, firstLine);
 	            return clef;
 	        }
@@ -312,7 +323,7 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param x
 	 * @param y
 	 * @return il numero dello staff in cui si trova il punto passato come argomento
@@ -343,19 +354,22 @@ public class ScoreWriter implements StaffActionListener {
 		for (int i = 0; i < selectionManager.getNumberOfStaves(); i++) {
 			List<GraphicalNote> selectedGraphicalNotes = selectionManager.getSelectedNotesFromStaff(i);
 			List<Note> selectedNotes = getNotesFromGraphicalList(selectedGraphicalNotes);
-			if (selectedNotes.isEmpty())
+			if (selectedNotes.isEmpty()) {
 				continue;
+			}
 
 			if (selectedNotes.size() == 1) {
 				Note n1 = selectedNotes.get(0);
 				Note n2 = score.getNextNote(n1);
-				if (n2 == null)
+				if (n2 == null) {
 					continue;
+				}
 
-				if (n1.getY() == n2.getY())
+				if (n1.getY() == n2.getY()) {
 					tie(n1, n2, i);
-				else
+				} else {
 					slur(n1, n2, i);
+				}
 
 				continue; // passa al prossimo staff
 			}
@@ -364,10 +378,11 @@ public class ScoreWriter implements StaffActionListener {
 				GraphicalNote n1 = selectedNotes.get(j);
 				GraphicalNote n2 = selectedNotes.get(j + 1);
 
-				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2))
+				if (hasSameHeight(n1, n2) && score.areNotesConsecutive(n1, n2)) {
 					tie(n1, n2, i); // usa i invece di j
-				else
+				} else {
 					slur(n1, n2, i);
+				}
 			}
 		}
 		gui.repaintPanel();
@@ -398,8 +413,9 @@ public class ScoreWriter implements StaffActionListener {
 	// TODO cancella anche tie e slur se cancellata la nota
 	private void deleteSelectedObject() {
 		List<GraphicalObject> selectedObjects = getSelectedObjects();
-		if (selectedObjects.isEmpty())
+		if (selectedObjects.isEmpty()) {
 			return;
+		}
 
 		// prima puliamo le note se l'oggetto è curva
 		for (GraphicalObject obj : selectedObjects) {
@@ -417,8 +433,9 @@ public class ScoreWriter implements StaffActionListener {
 
 		// rimuovi dal grid solo le note
 		for (GraphicalObject obj : selectedObjects) {
-			if (obj instanceof GraphicalNote)
-				grid.remove((GraphicalNote) obj);
+			if (obj instanceof GraphicalNote) {
+				grid.remove(obj);
+			}
 		}
 
 		gui.repaintPanel();
@@ -465,8 +482,9 @@ public class ScoreWriter implements StaffActionListener {
 				GraphicalNote end = curve instanceof Tie tie ? score.getNextNote(start)
 						: curve instanceof Slur slur ? slur.getEndNote() : null;
 
-				if (end != null && x > end.getX())
+				if (end != null && x > end.getX()) {
 					x = end.getX();
+				}
 
 				start.moveTo(x, y);
 				if (curve instanceof Tie) {
@@ -474,8 +492,9 @@ public class ScoreWriter implements StaffActionListener {
 					end.moveTo(end.getX(), y);
 				}
 				curve.setXY(start.getX(), start.getY());
-				if (end != null)
+				if (end != null) {
 					curve.setX1Y1(end.getX(), end.getY());
+				}
 			}
 			// nota di arrivo della curva
 			else if (note.isCurveEnd()) {
@@ -483,16 +502,18 @@ public class ScoreWriter implements StaffActionListener {
 				GraphicalNote start = curve instanceof Tie tie ? score.getPrevNote(end)
 						: curve instanceof Slur slur ? slur.getStartNote() : null;
 
-				if (start != null && x < start.getX())
+				if (start != null && x < start.getX()) {
 					x = start.getX();
+				}
 
 				end.moveTo(x, y);
 				if (curve instanceof Tie) {
 					// muovi la prima nota solo verticalmente
 					start.moveTo(start.getX(), y);
 				}
-				if (start != null)
+				if (start != null) {
 					curve.setXY(start.getX(), start.getY());
+				}
 				curve.setX1Y1(end.getX(), end.getY());
 			} else {
 				// curva presente ma nota interna, solo movimento
@@ -531,12 +552,14 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	private void updateSlurIfNeeded(GraphicalObject o, int x, int y) {
-		if (o instanceof GraphicalNote == false)
+		if (!(o instanceof GraphicalNote)) {
 			return;
+		}
 		GraphicalNote n = (GraphicalNote) o;
 		Slur s = n.getSlur();
-		if (s == null)
+		if (s == null) {
 			return;
+		}
 
 		if (n.isSlurStart()) {
 			s.setX(x);
@@ -559,8 +582,9 @@ public class ScoreWriter implements StaffActionListener {
 	 * Sposta un oggetto da uno staff a un altro, mantenendo il layer originale.
 	 */
 	private void updateStaffIfChanged(GraphicalObject o, int oldStaff, int newStaff) {
-		if (o == null || oldStaff == newStaff || oldStaff < 0 || newStaff < 0)
+		if (o == null || oldStaff == newStaff || oldStaff < 0 || newStaff < 0) {
 			return;
+		}
 
 		List<Staff> staves = score.getAllStaves();
 
@@ -601,8 +625,7 @@ public class ScoreWriter implements StaffActionListener {
 		int staffNumber = gui.getPointedStaffIndex(mouseX, mouseY);
 		List<GraphicalObject> staff = score.getObjects(staffNumber);
 		HashMap<GraphicalObject, Integer> map = new HashMap<>();
-		for (int i = 0; i < staff.size(); i++) {
-			GraphicalObject g = staff.get(i);
+		for (GraphicalObject g : staff) {
 			if (g.getX() >= mouseX - 10) { // il 10 è una tolleranza
 				map.put(g, g.getX());
 				System.out.println("GraphicalObject in Map saved: " + g.getX());
@@ -612,8 +635,9 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	public void shiftHorizontal(int mouseX, HashMap<GraphicalObject, Integer> startPositions, int staffNumber) {
-		if (startPositions.isEmpty())
+		if (startPositions.isEmpty()) {
 			return;
+		}
 
 		// Prendi la prima nota della mappa come riferimento
 		GraphicalObject first = startPositions.keySet().iterator().next();
@@ -641,8 +665,9 @@ public class ScoreWriter implements StaffActionListener {
 	public void moveObjects(int mouseX, int mouseY) {
 
 		List<GraphicalObject> objects = getSelectedObjects();
-		if (objects.isEmpty())
+		if (objects.isEmpty()) {
 			return;
+		}
 
 		if (objects.size() == 1) {
 			moveObject(objects.get(0), mouseX, mouseY);
@@ -700,7 +725,7 @@ public class ScoreWriter implements StaffActionListener {
 	}
 
 	public void export() {
-		
+
 		Exporter x = new Exporter();
 		x.export(score);
 		x.printScore();
@@ -715,8 +740,9 @@ public class ScoreWriter implements StaffActionListener {
 	 * -1 se la nota non è presente in nessun layer.
 	 */
 	private int getLayerOf(GraphicalNote n) {
-		if (n == null)
+		if (n == null) {
 			return -1;
+		}
 
 		for (Staff staff : score.getAllStaves()) {
 			for (Voice layer : staff.getVoices()) {
@@ -756,7 +782,7 @@ public class ScoreWriter implements StaffActionListener {
 		return score.getLyricsFor(staff, voice, stanza);
 	}
 
-	
+
 
 	public void addLyrics(List<String> syllables, int staffIndex, int voiceNumber, int stanza) {
 		// --- CONTROLLI ---
@@ -773,27 +799,29 @@ public class ScoreWriter implements StaffActionListener {
 		}
 
 		score.addLyrics(syllables, staffIndex, voiceNumber, stanza);
-		
+
 	}
 
 	public void setKeySignature(int x, int y) {
 		IntPair pair = KeySignatureDialog.showDialog(gui);
-		if (pair == null)
+		if (pair == null) {
 			return;
+		}
 		setKeySignature(pair.first, x, y);
 	}
 
 	private void setKeySignature(int chosenValue, int x, int y) {
 		int type = 0;
-		if (chosenValue < 0)
+		if (chosenValue < 0) {
 			type = -1;
-		else if (chosenValue > 0)
+		} else if (chosenValue > 0) {
 			type = 1;
+		}
 		int alterationsNumber = Math.abs(chosenValue);
 		KeySignature ks = new KeySignature(alterationsNumber, type, Modus.MAJOR_SCALE); //TODO
 		int staffIndex = gui.getPointedStaffIndex(x, y);
 		GraphicalStaff staff = gui.getPointedStaff(x, y);
-		
+
 		GraphicalKeySignature gks = new GraphicalKeySignature(x, staff, ks);
 		score.addObject(gks, staffIndex, 0);
 		gui.repaintPanel();
@@ -801,8 +829,9 @@ public class ScoreWriter implements StaffActionListener {
 
 	public void setTimeSignature(int x, int y) {
 		IntPair pair = TimeSignatureDialog.showDialog(gui);
-		if (pair == null)
+		if (pair == null) {
 			return;
+		}
 		setTimeSignature(pair.first, pair.second, x, y);
 	}
 
@@ -846,7 +875,7 @@ public class ScoreWriter implements StaffActionListener {
 
 		return bar;
 	}
-	
+
 	private List<Note> getNotesFromGraphicalList(List<GraphicalNote> l) {
 		List<Note> list = new ArrayList<>();
 		for (GraphicalNote g : l) {
@@ -858,13 +887,13 @@ public class ScoreWriter implements StaffActionListener {
 	@Override
 	public void requestKeySignature(Staff staff) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void requestTimeSignature(Staff staff) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

@@ -31,14 +31,16 @@ public class GraphicalCurvedConnection extends GraphicalObject {
     }
 
     public void updateFromNotes() {
-        if (startNote == null || endNote == null) return;
+        if (startNote == null || endNote == null) {
+			return;
+		}
 
         setX(startNote.getX());
         setY(startNote.getY());
         setX1(endNote.getX());
         setY1(endNote.getY());
     }
-    
+
     public void setX1Y1(int x, int y) { x1 = x; y1 = y; }
     public int getX1() { return x1; }
     public void setX1(int x1) { this.x1 = x1; }

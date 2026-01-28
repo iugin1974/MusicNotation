@@ -13,7 +13,7 @@ public class MusicalSymbol {
 
 	public enum Type {
 		NOTE, REST, BARLINE, CLEF
-	};
+	}
 
 	// note
 	public MusicalSymbol(String name, String iconPath, String glyphUp, String glyphDown, Type type, int duration) {
@@ -24,9 +24,9 @@ public class MusicalSymbol {
 		this.glyphDown = glyphDown;
 		this.type = type;
 		this.duration = duration;
-		
+
 	}
-	
+
 	// pause
 	public MusicalSymbol(String name, String iconPath, String glyph, Type type, int duration) {
 		this.name = name;
@@ -36,7 +36,7 @@ public class MusicalSymbol {
 		this.type = type;
 		this.duration = duration;
 		this.glyphDown = null;
-		
+
 	}
 
 	// stanghette di battuta
@@ -47,7 +47,7 @@ public class MusicalSymbol {
 		this.type = type;
 		this.glyph = glyph;
 		this.glyphDown = null;
-		
+
 	}
 
 	// chiavi
@@ -60,7 +60,7 @@ public class MusicalSymbol {
 		this.midiOffset = midiOffset;
 		this.glyphDown = null;
 		this.semitoneMap = semitoneMap;
-		
+
 	}
 
 	public String getName() {
@@ -90,11 +90,11 @@ public class MusicalSymbol {
 	public int getDuration() {
 		return duration;
 	}
-	
+
 	public int getMidiOffset() {
 		return midiOffset;
 	}
-	
+
 	public int[] getSemitoneMap() {
 		return semitoneMap;
 	}

@@ -16,7 +16,7 @@ public final class MidiPitch {
     public int getAlteration() {
         return alteration;
     }
-    
+
     @Override
     public String toString() {
     	return "["+midiNumber+", "+alteration+"]";
