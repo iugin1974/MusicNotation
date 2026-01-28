@@ -22,12 +22,15 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
 	private MusicalSymbol symbol;
 	private final Note note;
+	private final int duration;
+	private final int pitch;
 
 	public GraphicalNote(Note n) {
 		this.note = n;
+		pitch = n.getMidiNumber();
+		duration = n.getDuration();
 		symbol = setSymbol();
-		System.out.println("Constructor in GraphicalNote. StaffPosition: "+ n.getStaffPosition());
-	}
+		}
 
 	private void setup() {
 		InputStream is = getClass().getResourceAsStream("/fonts/Bravura.otf");
@@ -42,9 +45,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 	}
 
 	protected MusicalSymbol setSymbol() {
-		int dur = note.getDuration(); // 0 = whole, 1 = half, 2 = quarter, ecc.
-
-	    return switch (dur) {
+	    return switch (duration) {
 	        case 0 -> SymbolRegistry.WHOLE_NOTE;
 	        case 1 -> SymbolRegistry.HALF_NOTE;
 	        case 2 -> SymbolRegistry.QUARTER_NOTE;

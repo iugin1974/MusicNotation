@@ -121,7 +121,7 @@ public class GUI extends JFrame implements ScoreListener {
 	    initFont();
 	    setTitle("Editor Musicale");
 	    setSize(800, 600);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO -> chiudi midi
 	    setLocationRelativeTo(null);
 
 	    mainPanel = new MainPanel();
@@ -699,6 +699,10 @@ public class GUI extends JFrame implements ScoreListener {
 
 	private void clearPendingInsertion() {
 		pendingX = pendingY = -1;
+	}
+	
+	public MusicalSymbol getObjectToInsert() {
+		return objectToInsert;
 	}
 
 }

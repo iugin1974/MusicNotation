@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -34,6 +37,8 @@ import graphical.GraphicalStaff;
 import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
 import graphical.StaffActionListener;
+import midi.MidiInput;
+import midi.MidiListener;
 import musicEvent.Modus;
 import musicEvent.MusicEvent;
 import musicEvent.Note;
@@ -50,11 +55,13 @@ import notation.Tie;
 import ui.GUI;
 import ui.KeySignatureDialog;
 import ui.KeySignatureResult;
+import ui.MidiDeviceChooser;
+import ui.MidiDeviceSelectionListener;
 import ui.Pointer;
 import ui.TimeSignatureDialog;
 import ui.TimeSignatureResult;
 
-public class Controller implements StaffActionListener {
+public class Controller implements StaffActionListener, MidiListener, MidiDeviceSelectionListener {
 
 	public final static boolean TEST = true;
 
@@ -68,6 +75,8 @@ public class Controller implements StaffActionListener {
 	private boolean dragging = false;
 	private Point dragStart;
 	private Map<GraphicalObject, Point> dragStartPositions;
+
+	private MidiInput midiInput;
 
 	private static final int X_SCALE = 3;
 
@@ -157,10 +166,54 @@ public class Controller implements StaffActionListener {
 			@Override
 			public void run() {
 				gui.setVisible(true);
-				test();
+				selectMidiDevice();
+				//testMidi();
+				// test();
 			}
 		});
 
+	}
+
+	private void testMidi() {
+		noteOn(60);
+	}
+
+	private void selectMidiDevice() {
+		midiInput = new MidiInput(this);
+		List<MidiDevice.Info> devices = midiInput.findInputDevices();
+
+		MidiDeviceChooser chooser = new MidiDeviceChooser(devices, this);
+
+		chooser.setVisible(true);
+	}
+
+	@Override
+	public void deviceSelected(MidiDevice.Info info) {
+		System.out.println("selected " + info.getDescription());
+		try {
+			MidiDevice device = MidiSystem.getMidiDevice(info);
+			if (device != null) {
+				device.open();
+				midiInput.setTransmitter(device);
+			}
+		} catch (MidiUnavailableException e) {
+			JOptionPane.showMessageDialog(null, "Impossibile aprire il device: " + info.getName(), "Errore MIDI",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
+	}
+
+	@Override
+	public void noteOn(int pitch) {
+		if (pointer == null) return;
+		int x = pointer.getX();
+		int y = pointer.getY();
+		MusicalSymbol symbol = gui.getObjectToInsert();
+		if (symbol == null) return;
+		int duration = symbol.getDuration();
+		GraphicalStaff staff = graphicalScore.getStaffAtPos(x, y);
+		if (staff == null) return;
+		insertFromMidi(duration, pitch, x, staff);
 	}
 
 	public void setPointer(MusicalSymbol symbol) {
@@ -232,7 +285,7 @@ public class Controller implements StaffActionListener {
 			return;
 		selectionManager.clearSelection();
 		if (objectToInsert.getType() == Type.NOTE)
-			insertNote(objectToInsert.getDuration(), s, x, y);
+			insertFromMouse(objectToInsert.getDuration(), s, x, y);
 		else if (objectToInsert.getType() == Type.REST)
 			insertRest(objectToInsert.getDuration(), s, x, y);
 		else if (objectToInsert.getType() == Type.BARLINE)
@@ -252,13 +305,37 @@ public class Controller implements StaffActionListener {
 		score.addObject(bar, staffIndex, currentVoice);
 	}
 
-	private void insertNote(int duration, GraphicalStaff s, int x, int y) {
-		Note n = createNote(duration);
-		n.setTick(x);
+	private void insertFromMidi(int duration, int pitch, int x, GraphicalStaff s) {
+		int staffIndex = graphicalScore.getStaffIndex(s);
+
+		Clef clef = score.getClef(staffIndex, x);
+		if (clef == null) {
+			return; // oppure eccezione
+		}
+		KeySignature key = score.getKeySignature(staffIndex, x);
+
+		int staffPosition = StaffMapper.midiToStaffPosition(pitch, clef);
+		MidiPitch midiPitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
+		insertNote(duration, midiPitch, staffPosition, x, s);
+	}
+
+	private void insertFromMouse(int duration, GraphicalStaff s, int x, int y) {
 		int staffPosition = s.getPosInStaff(y);
-		System.out.println("Insert note at " + staffPosition + ". staff position");
+		int staffIndex = graphicalScore.getStaffIndex(s);
+		Clef clef = score.getClef(staffIndex, x);
+		KeySignature key = score.getKeySignature(staffIndex, x);
+		MidiPitch pitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
+		// TODO pitch può essere null. Controllo
+		insertNote(duration, pitch, staffPosition, x, s);
+	}
+
+	private void insertNote(int duration, MidiPitch pitch, int staffPosition, int x, GraphicalStaff s) {
+		Note n = createNote(duration, pitch);
+		n.setTick(x);
+		System.out.println("Insert note at " + staffPosition + ". staff position. Midi = " + pitch.getMidiNumber() + ", alterations: " + pitch.getAlteration());
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
+		int y = s.getYPos(staffPosition);
 		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(n, staffIndex, currentVoice);
 	}
@@ -281,9 +358,11 @@ public class Controller implements StaffActionListener {
 		score.addObject(c, staffIndex, 0);
 	}
 
-	private Note createNote(int duration) {
+	private Note createNote(int duration, MidiPitch pitch) {
 		Note n = new Note();
 		n.setDuration(duration);
+		n.setMidiNumber(pitch.getMidiNumber());
+		n.setAlteration(pitch.getAlteration());
 		return n;
 	}
 

@@ -132,6 +132,12 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
 	    return pos;
 	}
 	
+	public int getYPos(int p) {
+	    int maxP = (lineNumber * 2) - 2;
+	    int invertedP = maxP - p;
+	    return y + (invertedP * distanceBetweenLines / 2);
+	}
+
 	/**
 	 * @return array con le posizioni verticali di linee e spazi,
 	 * alternati, partendo dalla linea più bassa.
