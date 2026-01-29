@@ -8,6 +8,9 @@ import musicInterface.MusicObject;
 import notation.Clef;
 import notation.CurvedConnection;
 import notation.KeySignature;
+import notation.Score;
+import notation.Staff;
+import scoreWriter.StaffMapper;
 
 public final class GraphicalObjectFactory {
 
@@ -17,22 +20,38 @@ public final class GraphicalObjectFactory {
             MusicObject obj,
             GraphicalScore gScore,
             GraphicalStaff gStaff,
-            int x,
-            int y
+            int x
     ) {
         GraphicalObject g;
-
         if (obj instanceof Bar) {
             g = new GraphicalBar((Bar) obj);
+            g.setY(gStaff.getYPosOfLine(0));
         }
         else if (obj instanceof Note) {
+        	Note note = (Note)obj;
+        	int pitch = note.getMidiNumber();
+        	int staffIndex = gScore.getStaffIndex(gStaff);
+        	Score score = gScore.getScore();
+        	Clef clef = score.getClef(staffIndex, note.getTick());
+        	int line = StaffMapper.midiToStaffPosition(pitch, clef);
+        	int y = gStaff.getYPos(line);
             g = new GraphicalNote((Note) obj);
+            g.setY(y);
+            
         }
         else if (obj instanceof Rest) {
-            g = new GraphicalRest((Rest) obj);
+        	Rest rest = (Rest)obj;
+            g = new GraphicalRest(rest);
+            if (rest.getDuration() == 0)
+            g.setY(gStaff.getYPosOfLine(3));
+            else
+            	g.setY(gStaff.getYPosOfLine(2));
         }
         else if (obj instanceof Clef) {
-            g = new GraphicalClef((Clef) obj);
+        	Clef clef = (Clef)obj;
+            g = new GraphicalClef(clef);
+            int line = clef.getPosInStaff();
+            g.setY(gStaff.getYPosOfLine(line));
         }
         else if (obj instanceof KeySignature) {
             g = new GraphicalKeySignature((KeySignature) obj);
@@ -55,7 +74,7 @@ public final class GraphicalObjectFactory {
         if (obj instanceof CurvedConnection) {
         	g.init(gScore, gStaff);
         } else {
-        g.init(gScore, gStaff, x, y);
+        g.init(gScore, gStaff, x, g.getY());
         }
         return g;
     }

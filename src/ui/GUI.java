@@ -63,8 +63,6 @@ public class GUI extends JFrame implements ScoreListener {
 	private ButtonGroup groupButtonsRests;
 	private LedgerLinesRenderer ledger;
 	protected GraphicalScore gScore;
-	private int pendingX;
-	private int pendingY;
 	private JToggleButton voice1;
 	private JToggleButton voice2;
 
@@ -145,10 +143,6 @@ public class GUI extends JFrame implements ScoreListener {
 				
 			}
 		});
-		// toolbarPanel.add(clefToolbar());
-		// toolbarPanel.add(keySignatureToolbar());
-		// toolbarPanel.add(timeSignatureToolbar());
-		// ecc.
 
 		// Inserisci la toolbar nella parte alta del main panel
 		mainPanel.add(toolbarPanel, BorderLayout.NORTH);
@@ -663,13 +657,12 @@ public class GUI extends JFrame implements ScoreListener {
 
 	@Override
 	public void scoreChanged(ScoreEvent e) {
-
 		switch (e.getType()) {
 		case STAFF_ADDED:
 			gScore.createGraphicalStaff(e, getWidth());
 			break;
 		case OBJECT_ADDED:
-			gScore.createGraphicalObject(e, pendingX, pendingY);
+			gScore.createGraphicalObject(e);
 			break;
 		case OBJECT_REMOVED:
 			gScore.removeObject(e.getMusicObject());
@@ -677,21 +670,7 @@ public class GUI extends JFrame implements ScoreListener {
 		default:
 			break;
 		}
-		clearPendingInsertion();
 		mainPanel.repaint();
-	}
-
-	public void prepareGraphicalInsertion(int x, GraphicalStaff s, int line) {
-		prepareGraphicalInsertion(x, s.getYPosOfLine(line));
-	}
-
-	public void prepareGraphicalInsertion(int x, int y) {
-		this.pendingX = x;
-		this.pendingY = y;
-	}
-
-	private void clearPendingInsertion() {
-		pendingX = pendingY = -1;
 	}
 
 	public MusicalSymbol getObjectToInsert() {

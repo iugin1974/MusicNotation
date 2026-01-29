@@ -154,23 +154,22 @@ public class GraphicalScore {
 		return -1;
 	}
 
-	public GraphicalObject createGraphicalObject(ScoreEvent e, int x, int y) {
+	public GraphicalObject createGraphicalObject(ScoreEvent e) {
 		  MusicObject obj = e.getMusicObject();
 		    if (obj == null) {
 				return null;
 			}
-
+		    int x = obj.getTick();
+		    int staffIndex = e.getStaffIndex();
+		    
 		    // Determina lo staff, se necessario
-		    GraphicalStaff s = null;
-		    if (obj instanceof KeySignature || obj instanceof TimeSignature) {
-		        s = getStaffAtPos(x, y);
+		    GraphicalStaff s = getStaff(staffIndex);
 		        if (s == null) {
 					return null; // non c'è staff valido, non creo
 				}
-		    }
 
 		    // Creazione tramite factory centralizzata
-		    GraphicalObject gObj = GraphicalObjectFactory.create(obj, this, s, x, y);
+		    GraphicalObject gObj = GraphicalObjectFactory.create(obj, this, s, x);
 
 		    // Salvo nella mappa per aggiornamenti futuri
 		    objects.put(obj, gObj);
@@ -202,4 +201,7 @@ public class GraphicalScore {
 	    return DISTANCE_BETWEEN_LINES;
 	}
 
+	public Score getScore() {
+		return score;
+	}
 }

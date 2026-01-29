@@ -74,75 +74,67 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	protected boolean applyOnAllStaves = true;
 
 	private static final int X_SCALE = 3;
-
-	private void setGraphicalPosition(MusicObject obj) {
-		GraphicalObject gObj = graphicalScore.getObject(obj);
-		if (gObj == null) {
-			return;
-		}
-
-		gObj.setX(obj.getTick() * X_SCALE);
-
-		if (obj instanceof NoteEvent note) {
-			int y = 90 - note.getStaffPosition() * 10;
-			gObj.setY(y);
-		} else {
-			gObj.setY(90);
-		}
-	}
-
 	private void test() {
-		createChoirSATBOrganTemplate();
-		/*
-		 * score.addStaff();
-		 *
-		 * // ===== STAFF OBJECTS (VOICE 0) ===== Clef clef = Clef.treble();
-		 * clef.setTick(0); score.addObject(clef, 0, 0); setGraphicalPosition(clef);
-		 *
-		 * TimeSignature ts = new TimeSignature(4, 4); ts.setTick(10);
-		 * score.addObject(ts, 0, 0); setGraphicalPosition(ts);
-		 *
-		 * KeySignature ks = new KeySignature(1, 1, Modus.MAJOR_SCALE); ks.setTick(20);
-		 * score.addObject(ks, 0, 0); setGraphicalPosition(ks);
-		 *
-		 * // ===== VOICE 1 ===== Note v1n1 = new Note(); v1n1.setDuration(4);
-		 * v1n1.setStaffPosition(2); v1n1.setTick(40); score.addObject(v1n1, 0, 1);
-		 * setGraphicalPosition(v1n1);
-		 *
-		 * Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
-		 * v1n2.setTick(60); score.addObject(v1n2, 0, 1); setGraphicalPosition(v1n2);
-		 *
-		 * Note v1n3 = new Note(); v1n3.setDuration(4); v1n3.setStaffPosition(2);
-		 * v1n3.setTick(80); score.addObject(v1n3, 0, 1); setGraphicalPosition(v1n3);
-		 *
-		 * Note v1n4 = new Note(); v1n4.setDuration(4); v1n4.setStaffPosition(2);
-		 * v1n4.setTick(100); score.addObject(v1n4, 0, 1); setGraphicalPosition(v1n4);
-		 *
-		 *
-		 * // ===== VOICE 2 ===== Note v2n1 = new Note(); v2n1.setDuration(2);
-		 * v2n1.setStaffPosition(-2); v2n1.setTick(40); score.addObject(v2n1, 0, 2);
-		 * setGraphicalPosition(v2n1);
-		 *
-		 * Note v2n2 = new Note(); v2n2.setDuration(2); v2n2.setStaffPosition(-1);
-		 * v2n2.setTick(60); score.addObject(v2n2, 0, 2); setGraphicalPosition(v2n2);
-		 *
-		 * // ===== BAR ===== Bar bar = new Bar(); bar.setEndBar(); bar.setTick(120);
-		 * score.addObject(bar, 0, 0); setGraphicalPosition(bar);
-		 *
-		 * // ===== LYRICS ===== score.addLyrics(List.of("la", "_", "__", "so"), 0, 1,
-		 * 0); score.addLyrics(List.of("do", "_", "_", "re"), 0, 1, 1);
-		 *
-		 * // ===== TIE CHAIN ===== Tie t1 = Tie.createIfValid(score, v1n1, v1n2); if
-		 * (t1 != null) { t1.setStaff(0); score.addCurvedConnection(t1); }
-		 *
-		 * Tie t2 = Tie.createIfValid(score, v1n2, v1n3); if (t2 != null) {
-		 * t2.setStaff(0); score.addCurvedConnection(t2); }
-		 *
-		 * Tie t3 = Tie.createIfValid(score, v1n3, v1n4); if (t3 != null) {
-		 * t3.setStaff(0); score.addCurvedConnection(t3); }
-		 *
-		 * // ===== SLUR ===== Slur slur = new Slur(v1n1, v1n4); slur.setStaff(0);
-		 * score.addCurvedConnection(slur); export();
+		
+		 score.addStaff();
+		 
+		 // ===== STAFF OBJECTS (VOICE 0) ===== 
+		 Clef clef = Clef.bass();
+		 clef.setTick(0); score.addObject(clef, 0, 0);
+		 
+		 TimeSignature ts = new TimeSignature(18, 7); ts.setTick(50);
+		 score.addObject(ts, 0, 0);
+		 
+		 KeySignature ks = new KeySignature(7, 1, Modus.MAJOR_SCALE); ks.setTick(100);
+		 score.addObject(ks, 0, 0);
+		 
+		 // ===== VOICE 1 ===== 
+		 //Note(int midi, int alteration, int duration, int dots)
+//		 Note v1n1 = new Note(60, 0, 2, 0);
+//		 v1n1.setTick(150); 
+//		 score.addObject(v1n1, 0, 1);
+		 
+		
+		 /*
+		 Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
+		 v1n2.setTick(60); score.addObject(v1n2, 0, 1); setGraphicalPosition(v1n2);
+		 
+		 Note v1n3 = new Note(); v1n3.setDuration(4); v1n3.setStaffPosition(2);
+		 v1n3.setTick(80); score.addObject(v1n3, 0, 1); setGraphicalPosition(v1n3);
+		 
+		 Note v1n4 = new Note(); v1n4.setDuration(4); v1n4.setStaffPosition(2);
+		 v1n4.setTick(100); score.addObject(v1n4, 0, 1); setGraphicalPosition(v1n4);
+		 
+		 
+		 // ===== VOICE 2 ===== 
+		 Note v2n1 = new Note(); v2n1.setDuration(2);
+		 v2n1.setStaffPosition(-2); v2n1.setTick(40); score.addObject(v2n1, 0, 2);
+		 setGraphicalPosition(v2n1);
+		 
+		 Note v2n2 = new Note(); v2n2.setDuration(2); v2n2.setStaffPosition(-1);
+		 v2n2.setTick(60); score.addObject(v2n2, 0, 2); setGraphicalPosition(v2n2);
+		 
+		 // ===== BAR ===== 
+		 Bar bar = new Bar(); bar.setEndBar(); bar.setTick(120);
+		 score.addObject(bar, 0, 0); setGraphicalPosition(bar);
+		 
+		 // ===== LYRICS ===== 
+		 score.addLyrics(List.of("la", "_", "__", "so"), 0, 1,
+		 0); score.addLyrics(List.of("do", "_", "_", "re"), 0, 1, 1);
+		 
+		 // ===== TIE CHAIN ===== 
+		 Tie t1 = Tie.createIfValid(score, v1n1, v1n2); if
+		 (t1 != null) { t1.setStaff(0); score.addCurvedConnection(t1); }
+		 
+		 Tie t2 = Tie.createIfValid(score, v1n2, v1n3); if (t2 != null) {
+		 t2.setStaff(0); score.addCurvedConnection(t2); }
+		 
+		 Tie t3 = Tie.createIfValid(score, v1n3, v1n4); if (t3 != null) {
+		 t3.setStaff(0); score.addCurvedConnection(t3); }
+		 
+		 // ===== SLUR ===== 
+		 Slur slur = new Slur(v1n1, v1n4); slur.setStaff(0);
+		 score.addCurvedConnection(slur); 
 		 */
 	}
 
@@ -164,7 +156,10 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 				gui.setVisible(true);
 				//selectMidiDevice();
 				// testMidi();
-				// test();
+				 test();
+				//load();
+				// save();
+				// System.exit(0);
 			}
 		});
 
@@ -238,6 +233,10 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		score.save();
 	}
 
+	public void load() {
+		score.load();
+	}
+	
 	public void setCurrentVoice(int i) {
 		currentVoice = i;
 
@@ -312,18 +311,15 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x) {
 		if (applyOnAllStaves) {
 			for (int staffIndex = 0; staffIndex < score.getStaffCount(); staffIndex++) {
-				GraphicalStaff currentStaff = graphicalScore.getStaff(staffIndex);
 				Bar bar = getBar(objectToInsert);
 				bar.setTick(x);
-				gui.prepareGraphicalInsertion(x, currentStaff.getYPosOfLine(0));
-				score.addObject(bar, staffIndex, currentVoice);
+				score.addObject(bar, staffIndex, 0);
 			}
 		} else {
 			Bar bar = getBar(objectToInsert);
 			bar.setTick(x);
 			int staffIndex = graphicalScore.getStaffIndex(s);
-			gui.prepareGraphicalInsertion(x, s.getYPosOfLine(0));
-			score.addObject(bar, staffIndex, currentVoice);
+			score.addObject(bar, staffIndex, 0);
 		}
 	}
 
@@ -359,7 +355,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		int y = s.getYPos(staffPosition);
-		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(n, staffIndex, currentVoice);
 	}
 
@@ -367,7 +362,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		Rest r = createRest(duration);
 		r.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
-		gui.prepareGraphicalInsertion(x, y);
 		score.addObject(r, staffIndex, currentVoice);
 	}
 
@@ -378,7 +372,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		}
 		c.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
-		gui.prepareGraphicalInsertion(x, s.getYPosOfLine(1));
 		score.addObject(c, staffIndex, 0);
 	}
 
@@ -720,7 +713,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 			// - GraphicalScore per la visualizzazione
 			// - Score per il modello e gli eventi
 //	        graphicalScore.addCurvedConnection(curve);
-			gui.prepareGraphicalInsertion(x, y);
+		//	gui.prepareGraphicalInsertion(x, y);
 			score.addCurvedConnection(curve);
 		}
 	}
@@ -754,14 +747,12 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 				ks.setTick(x);
 				int staffIndex = score.getStaffIndex(s);
 				GraphicalStaff gs = graphicalScore.getStaff(staffIndex);
-				gui.prepareGraphicalInsertion(x, gs, 0);
 				score.addObject(ks, staffIndex, 0); // clonare per avere oggetti separati
 			}
 		} else {
 			KeySignature ks = new KeySignature(alterationsNumber, type, modus);
 			ks.setTick(x);
 			int staffIndex = gui.getPointedStaffIndex(x, y);
-			gui.prepareGraphicalInsertion(x, y);
 			score.addObject(ks, staffIndex, 0);
 		}
 	}
@@ -784,7 +775,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 				int staffIndex = score.getStaffIndex(s);
 				GraphicalStaff gs = graphicalScore.getStaff(staffIndex);
-				gui.prepareGraphicalInsertion(x, gs, 0);
 				score.addObject(ts, staffIndex, 0); // clonare per avere oggetti separati
 			}
 		} else {
@@ -792,7 +782,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 			TimeSignature ts = new TimeSignature(n, d);
 			ts.setTick(x);
 			int staffIndex = gui.getPointedStaffIndex(x, y);
-			gui.prepareGraphicalInsertion(x, y);
 			score.addObject(ts, staffIndex, 0);
 		}
 	}
@@ -852,7 +841,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 		for (int i = 0; i < 2; i++) {
 			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
-			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
 
@@ -865,7 +853,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 		for (int i = 0; i < 3; i++) {
 			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
-			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
 			clefs[i].setTick(10);
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
@@ -879,7 +866,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 		for (int i = 0; i < 4; i++) {
 			GraphicalStaff gs = graphicalScore.getStaff(score.getStaffIndex(staffs[i]));
-			gui.prepareGraphicalInsertion(10, gs, clefs[i].getPosInStaff());
 			clefs[i].setTick(10);
 			score.addObject(clefs[i], score.getStaffIndex(staffs[i]), 0);
 		}
