@@ -167,7 +167,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 				// selectMidiDevice();
 				// testMidi();
 				//test();
-				 load();
+				// load();
 				// save();
 				// System.exit(0);
 			}
@@ -336,7 +336,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		return list.get(list.size() - 1);
 	}
 
-	// TODO non va
 	private void resizePanelIfNeeded() {
 		int h = score.getStaffCount() * graphicalScore.getStaff(0).getHeight();
 		if (h > gui.getMainPanel().getHeight()) {
@@ -625,8 +624,18 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void applyOnAllStaves(boolean s) {
 		applyOnAllStaves = s;
 	}
+	
+	public void exitInsertMode() {
+		gui.exitInsertMode();
+	}
 
-	public GUI getGUI() {
-		return gui;
+	public void selectDuration(int d) {
+		gui.selectDuration(d);
+		gui.enterInsertMode();
+		MusicalSymbol symbol = gui.getSelectedSymbol();
+		if (symbol != null) {
+			gui.selectSymbol(symbol);
+		setPointer(symbol);	
+		}
 	}
 }

@@ -19,9 +19,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -58,13 +62,40 @@ public class GUI extends JFrame implements ScoreListener {
 	private ButtonGroup groupButtonsNotes;
 	private ButtonGroup groupButtonsBars;
 	private ButtonGroup groupButtonsClef;
-	private MusicalSymbol objectToInsert;
-	private JScrollPane scrollPane;
+	private MusicalSymbol symbolToInsert;
 	private ButtonGroup groupButtonsRests;
+	private JScrollPane scrollPane;
 	private LedgerLinesRenderer ledger;
 	protected GraphicalScore gScore;
 	private JToggleButton voice1;
 	private JToggleButton voice2;
+	private Map<MusicalSymbol, JToggleButton> symbolButtons = new HashMap<>();
+
+	MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
+			SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
+			SymbolRegistry.SIXTY_FOURTH_NOTE };
+	MusicalSymbol[] rests = { SymbolRegistry.WHOLE_REST, SymbolRegistry.HALF_REST, SymbolRegistry.QUARTER_REST,
+			SymbolRegistry.EIGHTH_REST, SymbolRegistry.SIXTEENTH_REST, SymbolRegistry.THIRTY_SECOND_REST,
+			SymbolRegistry.SIXTY_FOURTH_REST };
+	MusicalSymbol[] clefs = { SymbolRegistry.CLEF_TREBLE, SymbolRegistry.CLEF_BASS, SymbolRegistry.CLEF_TREBLE_8 };
+	MusicalSymbol[] bars = { SymbolRegistry.BARLINE_SINGLE, SymbolRegistry.BARLINE_DOUBLE, SymbolRegistry.BARLINE_FINAL,
+			SymbolRegistry.BARLINE_REPEAT_START, SymbolRegistry.BARLINE_REPEAT_END };
+
+	public MusicalSymbol[] getNoteSymbols() {
+		return notes;
+	}
+
+	public MusicalSymbol[] getRestsSymbols() {
+		return rests;
+	}
+
+	public MusicalSymbol[] getClefsSymbols() {
+		return clefs;
+	}
+
+	public MusicalSymbol[] getBarsSymbols() {
+		return bars;
+	}
 
 	private void initFont() {
 		try {
@@ -88,34 +119,30 @@ public class GUI extends JFrame implements ScoreListener {
 	}
 
 	public GUI(Controller controller, GraphicalScore gScore) {
-	    this.controller = controller;
-	    this.gScore = gScore;
-	    ledger = new LedgerLinesRenderer();
+		this.controller = controller;
+		this.gScore = gScore;
+		ledger = new LedgerLinesRenderer();
 
-	    initFont();
-	    setTitle("Editor Musicale");
-	    setSize(800, 600);
-	    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); // TODO -> chiudi midi
-	    setLocationRelativeTo(null);
+		initFont();
+		setTitle("Score Writer");
+		setSize(800, 600);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); // TODO -> chiudi midi
+		setLocationRelativeTo(null);
 
-	    mainPanel = new MainPanel();
-	    mainPanel.setBackground(Color.WHITE);
+		mainPanel = new MainPanel();
+		mainPanel.setBackground(Color.WHITE);
 
-	    scrollPane = new JScrollPane(
-	            mainPanel,
-	            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-	            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-	    );
-	    add(scrollPane, BorderLayout.CENTER);
+		scrollPane = new JScrollPane(mainPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		add(scrollPane, BorderLayout.CENTER);
 
-	    JPanel topBar = new JPanel(new BorderLayout());
-	    topBar.add(mainToolbar(), BorderLayout.WEST);
-	    topBar.add(voiceToolbar(), BorderLayout.EAST);
-	    add(topBar, BorderLayout.NORTH);
+		JPanel topBar = new JPanel(new BorderLayout());
+		topBar.add(mainToolbar(), BorderLayout.WEST);
+		topBar.add(voiceToolbar(), BorderLayout.EAST);
+		add(topBar, BorderLayout.NORTH);
 
-	    setJMenuBar(buildMenuBar());
+		setJMenuBar(buildMenuBar());
 	}
-
 
 	private JPanel mainToolbar() {
 		JPanel mainPanel = new JPanel();
@@ -136,11 +163,11 @@ public class GUI extends JFrame implements ScoreListener {
 		// Potrai aggiungere altre toolbar qui in futuro:
 		toolbarPanel.add(allStavesCheckBox);
 		allStavesCheckBox.addItemListener(new ItemListener() {
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				controller.applyOnAllStaves(allStavesCheckBox.isSelected());
-				
+
 			}
 		});
 
@@ -151,123 +178,128 @@ public class GUI extends JFrame implements ScoreListener {
 	}
 
 	private JMenuBar buildMenuBar() {
-	    JMenuBar menuBar = new JMenuBar();
+		JMenuBar menuBar = new JMenuBar();
 
-	    menuBar.add(getFileMenu());
-	    menuBar.add(getModificaMenu());
-	    menuBar.add(getTemplatesMenu());
-	    menuBar.add(getLyricsMenu());
+		menuBar.add(getFileMenu());
+		menuBar.add(getModificaMenu());
+		menuBar.add(getTemplatesMenu());
+		menuBar.add(getLyricsMenu());
 
-	    return menuBar;
+		return menuBar;
 	}
 
 	private JMenu getFileMenu() {
-	    JMenu fileMenu = new JMenu("File");
+		JMenu fileMenu = new JMenu("File");
 
-	    JMenuItem nuovo = new JMenuItem("Nuovo");
-	    JMenuItem apri = new JMenuItem("Apri");
-	    JMenuItem salva = new JMenuItem("Salva");
+		JMenuItem nuovo = new JMenuItem("Nuovo");
+		JMenuItem load = new JMenuItem("Apri");
+		JMenuItem save = new JMenuItem("Salva");
+		JMenuItem export = new JMenuItem("Export");
 
-	    salva.addActionListener(e -> controller.export());
+		load.addActionListener(e -> controller.load());
+		save.addActionListener(e -> controller.save());
+		export.addActionListener(e -> controller.export());
 
-	    fileMenu.add(nuovo);
-	    fileMenu.add(apri);
-	    fileMenu.add(salva);
+		fileMenu.add(nuovo);
+		fileMenu.add(load);
+		fileMenu.add(save);
+		fileMenu.add(export);
 
-	    return fileMenu;
+		return fileMenu;
 	}
 
-
 	private JMenu getModificaMenu() {
-	    JMenu modificaMenu = new JMenu("Modifica");
+		JMenu modificaMenu = new JMenu("Modifica");
 
-	    JMenuItem addStaffMenu = new JMenuItem("Add Staff");
-	    addStaffMenu.addActionListener(e -> controller.addStaff());
+		JMenuItem addStaffMenu = new JMenuItem("Add Staff");
+		addStaffMenu.addActionListener(e -> controller.addStaff());
 
-	    JMenuItem insertNoteMenu = new JMenuItem("Insert Note");
-	    insertNoteMenu.addActionListener(e -> insertMode = true);
+		JMenuItem insertNoteMenu = new JMenuItem("Insert Note");
+		insertNoteMenu.addActionListener(e -> insertMode = true);
 
-	    modificaMenu.add(addStaffMenu);
-	    modificaMenu.add(insertNoteMenu);
+		modificaMenu.add(addStaffMenu);
+		modificaMenu.add(insertNoteMenu);
 
-	    return modificaMenu;
+		return modificaMenu;
 	}
 
 	private JMenu getLyricsMenu() {
-	    JMenu lyricsMenu = new JMenu("Lyrics");
+		JMenu lyricsMenu = new JMenu("Lyrics");
 
-	    JMenuItem addLyricsMenu = new JMenuItem("Add Lyrics");
-	    addLyricsMenu.addActionListener(e -> {
-	        LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
-	        led.setVisible(true);
-	        repaintPanel();
-	    });
+		JMenuItem addLyricsMenu = new JMenuItem("Add Lyrics");
+		addLyricsMenu.addActionListener(e -> {
+			LyricsEditorDialog led = new LyricsEditorDialog(GUI.this, controller);
+			led.setVisible(true);
+			repaintPanel();
+		});
 
-	    lyricsMenu.add(addLyricsMenu);
-	    return lyricsMenu;
+		lyricsMenu.add(addLyricsMenu);
+		return lyricsMenu;
 	}
 
 	private JMenu getTemplatesMenu() {
-	    JMenu templatesMenu = new JMenu("Templates");
+		JMenu templatesMenu = new JMenu("Templates");
 
-	    JMenuItem piano = new JMenuItem("Piano");
-	    piano.addActionListener(e -> pianoTemplate());
+		JMenuItem piano = new JMenuItem("Piano");
+		piano.addActionListener(e -> pianoTemplate());
 
-	    JMenuItem organ = new JMenuItem("Organ");
-	    organ.addActionListener(e -> organTemplate());
+		JMenuItem organ = new JMenuItem("Organ");
+		organ.addActionListener(e -> organTemplate());
 
-	    JMenuItem choirSATB = new JMenuItem("Choir SATB");
-	    choirSATB.addActionListener(e -> choirSATBTemplate());
+		JMenuItem choirSATB = new JMenuItem("Choir SATB");
+		choirSATB.addActionListener(e -> choirSATBTemplate());
 
-	    JMenuItem choirSATBOrgan = new JMenuItem("Choir SATB - Organ");
-	    choirSATBOrgan.addActionListener(e -> choirSATBOrganTemplate());
+		JMenuItem choirSATBOrgan = new JMenuItem("Choir SATB - Organ");
+		choirSATBOrgan.addActionListener(e -> choirSATBOrganTemplate());
 
-	    templatesMenu.add(piano);
-	    templatesMenu.add(organ);
-	    templatesMenu.addSeparator();
-	    templatesMenu.add(choirSATB);
-	    templatesMenu.add(choirSATBOrgan);
+		templatesMenu.add(piano);
+		templatesMenu.add(organ);
+		templatesMenu.addSeparator();
+		templatesMenu.add(choirSATB);
+		templatesMenu.add(choirSATBOrgan);
 
-	    return templatesMenu;
+		return templatesMenu;
 	}
 
 	private void pianoTemplate() {
-	    controller.createPianoTemplate();
-	    repaintPanel();
+		controller.createPianoTemplate();
+		repaintPanel();
 	}
 
 	private void organTemplate() {
-	    controller.createOrganTemplate();
-	    repaintPanel();
+		controller.createOrganTemplate();
+		repaintPanel();
 	}
 
 	private void choirSATBTemplate() {
-	    controller.createChoirSATBTemplate();
-	    repaintPanel();
+		controller.createChoirSATBTemplate();
+		repaintPanel();
 	}
 
 	private void choirSATBOrganTemplate() {
-	    controller.createChoirSATBOrganTemplate();
-	    repaintPanel();
+		controller.createChoirSATBOrganTemplate();
+		repaintPanel();
+	}
+	
+	public void selectSymbolForInsertion(MusicalSymbol symbol) {
+		removeOtherSelections(symbol);
+		symbolToInsert = symbol;
+		System.out.println("Insert " +symbolToInsert.getName());
+		insertMode = true;
+		controller.setPointer(symbol);
 	}
 
 	private JPanel noteToolbar() {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
 
-		MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
-				SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
-				SymbolRegistry.SIXTY_FOURTH_NOTE };
-
 		groupButtonsNotes = new ButtonGroup();
 
 		for (MusicalSymbol noteSymbol : notes) {
 			JToggleButton btn = createIconImageToggle(noteSymbol.getIconPath());
+			symbolButtons.put(noteSymbol, btn);
 			btn.addActionListener(e -> {
-				removeOtherSelections(groupButtonsNotes);
-				objectToInsert = noteSymbol;
-				insertMode = true;
-				controller.setPointer(noteSymbol);
+				selectSymbolForInsertion(noteSymbol);
 			});
 			groupButtonsNotes.add(btn);
 			p.add(btn);
@@ -280,19 +312,13 @@ public class GUI extends JFrame implements ScoreListener {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
 
-		MusicalSymbol[] rests = { SymbolRegistry.WHOLE_REST, SymbolRegistry.HALF_REST, SymbolRegistry.QUARTER_REST,
-				SymbolRegistry.EIGHTH_REST, SymbolRegistry.SIXTEENTH_REST, SymbolRegistry.THIRTY_SECOND_REST,
-				SymbolRegistry.SIXTY_FOURTH_REST };
-
 		groupButtonsRests = new ButtonGroup();
 
 		for (MusicalSymbol restSymbol : rests) {
 			JToggleButton btn = createIconImageToggle(restSymbol.getIconPath());
+			symbolButtons.put(restSymbol, btn);
 			btn.addActionListener(e -> {
-				removeOtherSelections(groupButtonsRests);
-				insertMode = true;
-				objectToInsert = restSymbol;
-				controller.setPointer(restSymbol);
+				selectSymbolForInsertion(restSymbol);
 			});
 			groupButtonsRests.add(btn);
 			p.add(btn);
@@ -305,17 +331,13 @@ public class GUI extends JFrame implements ScoreListener {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
 
-		MusicalSymbol[] clefs = { SymbolRegistry.CLEF_TREBLE, SymbolRegistry.CLEF_BASS, SymbolRegistry.CLEF_TREBLE_8 };
-
 		groupButtonsClef = new ButtonGroup();
 
 		for (MusicalSymbol clefSymbol : clefs) {
 			JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
+			symbolButtons.put(clefSymbol, btn);
 			btn.addActionListener(e -> {
-				removeOtherSelections(groupButtonsClef);
-				insertMode = true;
-				objectToInsert = clefSymbol;
-				controller.setPointer(clefSymbol);
+				selectSymbolForInsertion(clefSymbol);
 			});
 			groupButtonsClef.add(btn);
 			p.add(btn);
@@ -328,18 +350,13 @@ public class GUI extends JFrame implements ScoreListener {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
 
-		MusicalSymbol[] bars = { SymbolRegistry.BARLINE_SINGLE, SymbolRegistry.BARLINE_DOUBLE,
-				SymbolRegistry.BARLINE_FINAL, SymbolRegistry.BARLINE_REPEAT_START, SymbolRegistry.BARLINE_REPEAT_END };
-
 		groupButtonsBars = new ButtonGroup();
 
-		for (MusicalSymbol s : bars) {
-			JToggleButton btn = createIconImageToggle(s.getIconPath());
+		for (MusicalSymbol barSymbol : bars) {
+			JToggleButton btn = createIconImageToggle(barSymbol.getIconPath());
+			symbolButtons.put(barSymbol, btn);
 			btn.addActionListener(e -> {
-				removeOtherSelections(groupButtonsBars);
-				objectToInsert = s;
-				insertMode = true;
-				controller.setPointer(s);
+				selectSymbolForInsertion(barSymbol);
 			});
 			groupButtonsBars.add(btn);
 			p.add(btn);
@@ -409,8 +426,6 @@ public class GUI extends JFrame implements ScoreListener {
 
 	class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
 
-		private HashMap<GraphicalObject, Integer> startPositions;
-
 		public MainPanel() {
 			addMouseListener(this);
 			addComponentListener(this);
@@ -444,42 +459,41 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-		    // Richiede il focus al componente, utile per tastiera
-		    requestFocusInWindow();
+			// Richiede il focus al componente, utile per tastiera
+			requestFocusInWindow();
 
-		    // --- Click destro: menu contestuale ---
-		    if (SwingUtilities.isRightMouseButton(e)) {
-		        GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
-		        if (object instanceof PopupLauncher) {
-		            // Mostra il menu contestuale in posizione mouse
-		            JPopupMenu menu = ((PopupLauncher)object).getMenu(e.getX(), e.getY());
-		            menu.show(this, e.getX(), e.getY());
-		        }
-		        return; // nessun altro effetto sul modello
-		    } // end right button
+			// --- Click destro: menu contestuale ---
+			if (SwingUtilities.isRightMouseButton(e)) {
+				GraphicalObject object = controller.getObjectAt(e.getX(), e.getY());
+				if (object instanceof PopupLauncher) {
+					// Mostra il menu contestuale in posizione mouse
+					JPopupMenu menu = ((PopupLauncher) object).getMenu(e.getX(), e.getY());
+					menu.show(this, e.getX(), e.getY());
+				}
+				return; // nessun altro effetto sul modello
+			} // end right button
 
-		    // --- Modalità inserimento oggetto ---
-		    if (insertMode) {
-		    	System.out.println("Insert mode");
-		        controller.removeSelection();                        // deseleziona tutto
-		        insertObject(e);                                    // inserisce la nota/oggetto
-		        controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
+			// --- Modalità inserimento oggetto ---
+			if (insertMode) {
+				System.out.println("Insert mode");
+				controller.removeSelection(); // deseleziona tutto
+				insertObject(e); // inserisce la nota/oggetto
+				controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
 
-		    } // end insertMode
+			} // end insertMode
 
-		    if (!insertMode && !e.isControlDown()) {
-		    	controller.removeSelection();
-		    	controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
-		    }
+			if (!insertMode && !e.isControlDown()) {
+				controller.removeSelection();
+				controller.selectObjectAtPos(e.getX(), e.getY()); // seleziona la nota appena inserita
+			}
 
-		    // --- Modalità selezione normale ---
-		    if(!insertMode && e.isControlDown()) {               // CTRL indica selezione multipla
-		    	System.out.println("CTRL down");
-		    controller.addClickedObjectToSelection(e.getX(), e.getY());
-		    }
-		    mainPanel.repaint();                                    // evidenzia subito la selezione
+			// --- Modalità selezione normale ---
+			if (!insertMode && e.isControlDown()) { // CTRL indica selezione multipla
+				System.out.println("CTRL down");
+				controller.addClickedObjectToSelection(e.getX(), e.getY());
+			}
+			mainPanel.repaint(); // evidenzia subito la selezione
 		}
-
 
 		/**
 		 * Inserisce un oggetto usando il puntatore se esiste, altrimenti usa la
@@ -499,7 +513,7 @@ public class GUI extends JFrame implements ScoreListener {
 				y = e.getY();
 			}
 
-			controller.insertObject(objectToInsert, x, y);
+			controller.insertObject(symbolToInsert, x, y);
 		}
 
 		@Override
@@ -572,20 +586,14 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void componentMoved(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void componentShown(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void componentHidden(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
 		}
 	}
 
@@ -632,27 +640,33 @@ public class GUI extends JFrame implements ScoreListener {
 		return nearest;
 	}
 
-	private void removeOtherSelections(ButtonGroup clickedGroup) {
-		if (clickedGroup != groupButtonsNotes) {
-			groupButtonsNotes.clearSelection();
-			insertMode = false;
-			// TODO
-		}
-		if (clickedGroup != groupButtonsBars) {
-			groupButtonsBars.clearSelection();
-			insertMode = false;
-			// TODO
+	private void removeOtherSelections(MusicalSymbol symbol) {
+		removeButtonSelection();
 
+		// Seleziona il bottone corrispondente al simbolo
+		JToggleButton btn = symbolButtons.get(symbol);
+		if (btn != null) {
+			btn.setSelected(true);
 		}
+	}
+
+	private void removeButtonSelection() {
+		groupButtonsNotes.clearSelection();
+		groupButtonsBars.clearSelection();
+		groupButtonsClef.clearSelection();
+		groupButtonsRests.clearSelection();
 	}
 
 	public void exitInsertMode() {
 		insertMode = false;
-		groupButtonsNotes.clearSelection();
-		groupButtonsBars.clearSelection();
-		groupButtonsClef.clearSelection();
+		removeButtonSelection();
 		controller.destroyPointer();
 		repaint();
+	}
+
+	public void enterInsertMode() {
+		insertMode = true;
+		controller.setPointer(symbolToInsert);
 	}
 
 	@Override
@@ -674,7 +688,42 @@ public class GUI extends JFrame implements ScoreListener {
 	}
 
 	public MusicalSymbol getObjectToInsert() {
-		return objectToInsert;
+		return symbolToInsert;
 	}
 
+	public void selectDuration(int d) {
+		Enumeration<AbstractButton> e = groupButtonsNotes.getElements();
+		int sel = 7 - d; // inverte la numerazione. Se d = 7 -> 0, e così via
+		for (int i = 0; i < sel; i++)
+			e.nextElement();
+		e.nextElement().setSelected(true);
+	}
+	
+	private JToggleButton getSelectedButton() {
+	    Enumeration<AbstractButton> e = groupButtonsNotes.getElements();
+	    while (e.hasMoreElements()) {
+	        JToggleButton button = (JToggleButton) e.nextElement();
+	        if (button.isSelected()) {
+	            return button;
+	        }
+	    }
+	    return null;
+	}
+	
+	public MusicalSymbol getSelectedSymbol() {
+		MusicalSymbol key = null;
+		JToggleButton button = getSelectedButton();
+		if (button == null) return null;
+		for (Map.Entry<MusicalSymbol, JToggleButton> entry : symbolButtons.entrySet()) {
+		    if (entry.getValue().equals(button)) {
+		        key = entry.getKey();
+		        break;
+		    }
+		}
+		return key;
+	}
+	
+	public void selectSymbol(MusicalSymbol symbol) {
+		symbolToInsert = symbol;
+	}
 }
