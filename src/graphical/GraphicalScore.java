@@ -177,11 +177,16 @@ public class GraphicalScore {
 		    return gObj;
 	}
 
-	public GraphicalObject getObject(MusicObject o) {
+	/**
+	 * Passato un MusicObject ritorna il GraphicalObject corrispondente
+	 * @param o
+	 * @return
+	 */
+	public GraphicalObject getGraphicalObject(MusicObject o) {
 		return objects.get(o);
 	}
 
-	public GraphicalCurvedConnection getObject(CurvedConnection c) {
+	public GraphicalCurvedConnection getGraphicalObject(CurvedConnection c) {
 		return (GraphicalCurvedConnection) objects.get(c);
 	}
 

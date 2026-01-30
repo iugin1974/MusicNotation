@@ -32,7 +32,7 @@ public final class GraphicalObjectFactory {
         	int pitch = note.getMidiNumber();
         	int staffIndex = gScore.getStaffIndex(gStaff);
         	Score score = gScore.getScore();
-        	Clef clef = score.getClef(staffIndex, note.getTick());
+        	Clef clef = score.getLastClef(staffIndex, note.getTick());
         	int line = StaffMapper.midiToStaffPosition(pitch, clef);
         	int y = gStaff.getYPos(line);
             g = new GraphicalNote((Note) obj);

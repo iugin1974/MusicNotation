@@ -529,7 +529,7 @@ public class GUI extends JFrame implements ScoreListener {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			controller.moveObjects(e);
+			controller.mouseDragged(e);
 		}
 
 		@Override

@@ -53,6 +53,12 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 		setColor(g, voice);
 		g.drawString(glyph, getX(), getY());
 
+		{
+			Font oldFont = g.getFont();
+			g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+			g.drawString(note.getMidiNumber()+","+note.getAlteration(), getX(), 120);
+			g.setFont(oldFont);
+		}
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
 	}
@@ -118,7 +124,7 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 
         // notifica tutte le curve collegate
         for (CurvedConnection c : getModelObject().getCurvedConnections()) {
-            GraphicalObject gObj = super.getGraphicalScore().getObject(c);
+            GraphicalObject gObj = super.getGraphicalScore().getGraphicalObject(c);
 
             if (gObj instanceof GraphicalCurvedConnection gCurve) {
                 gCurve.updateFromNotes();

@@ -55,18 +55,13 @@ public class StaffMapper {
 				midiN += typeOfAlterations;
 				return new MidiPitch(midiN, typeOfAlterations);
 			}
-			/*
-			 * TODO Funziona solo per: note “diatoniche” senza accidentali esplicite senza
-			 * doppio diesis / bemolle Per ora va ben
-			 */
 		}
-
-		return new MidiPitch(midiN, typeOfAlterations);
+		return new MidiPitch(midiN, 0);
 	}
 
 	public static void main(String[] args) {
-		System.out.println(midiToStaffPosition(60, Clef.bass()));
-		System.out.println(staffPositionToMidi(0, Clef.bass(), new KeySignature(0, 0, Modus.MAJOR_SCALE)));
+		for (int i = -2; i < 10; i++)
+			System.out.println(staffPositionToMidi(i, Clef.treble(), new KeySignature(4, -1, Modus.MINOR_SCALE)));
 	}
 
 }

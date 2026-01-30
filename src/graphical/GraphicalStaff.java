@@ -277,7 +277,7 @@ public class GraphicalStaff extends GraphicalObject implements PopupLauncher {
         });
         i3.addActionListener(e -> {
         	if (actionListener != null) {
-        		actionListener.shitObjectsRight(x, y);
+        		actionListener.shiftObjectsRight(x, y);
         	}
         });
 

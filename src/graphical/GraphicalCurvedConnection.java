@@ -22,8 +22,8 @@ public class GraphicalCurvedConnection extends GraphicalObject {
         this.model = model;
         NoteEvent n1 = model.getStart();
         NoteEvent n2 = model.getEnd();
-        startNote = (GraphicalNote) gScore.getObject(n1);
-        endNote = (GraphicalNote) gScore.getObject(n2);
+        startNote = (GraphicalNote) gScore.getGraphicalObject(n1);
+        endNote = (GraphicalNote) gScore.getGraphicalObject(n2);
         setX(startNote.getX());
         setY(startNote.getY());
         x1 = endNote.getX();
