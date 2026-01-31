@@ -1,5 +1,10 @@
 package graphical;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import scoreWriter.SymbolRegistry;
+
 public class MusicalSymbol {
 	private final String name;
 	private final String iconPath;
@@ -98,4 +103,32 @@ public class MusicalSymbol {
 	public int[] getSemitoneMap() {
 		return semitoneMap;
 	}
+
+	/**
+	 * Ritorna il simbolo del tipo <i>type</i> e durata <i>duration</i>, oppure
+	 * <i>null</i> se non trovato.
+	 * @param type
+	 * @param duration
+	 * @return
+	 */
+	public static MusicalSymbol getByDuration(Type type, int duration) {
+		if (type != Type.NOTE && type != Type.REST) return null;
+		for (MusicalSymbol m : getByType(type)) {
+			if (m.getDuration() == duration) {
+				return m;
+			}
+		}
+		return null;
+	}
+	
+	public static List<MusicalSymbol> getByType(Type type) {
+	    List<MusicalSymbol> result = new ArrayList<>();
+	    for (MusicalSymbol m : SymbolRegistry.getAllSymbols()) {
+	        if (m.getType() == type) {
+	            result.add(m);
+	        }
+	    }
+	    return result;
+	}
+
 }

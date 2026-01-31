@@ -19,13 +19,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -60,7 +56,7 @@ public class GUI extends JFrame implements ScoreListener {
 	private boolean insertMode = false;
 	private MainPanel mainPanel;
 	private ButtonGroup groupButtonsNotes;
-	private ButtonGroup groupButtonsBars;
+	private ButtonGroup groupButtonsBarlines;
 	private ButtonGroup groupButtonsClef;
 	private MusicalSymbol symbolToInsert;
 	private ButtonGroup groupButtonsRests;
@@ -282,89 +278,51 @@ public class GUI extends JFrame implements ScoreListener {
 	}
 	
 	public void selectSymbolForInsertion(MusicalSymbol symbol) {
-		removeOtherSelections(symbol);
+		clearSelection();
+		selectSymbolToInsert(symbol);
 		symbolToInsert = symbol;
 		System.out.println("Insert " +symbolToInsert.getName());
 		insertMode = true;
+		controller.setInsertType(symbol.getType());
 		controller.setPointer(symbol);
 	}
 
-	private JPanel noteToolbar() {
-		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-		p.setBackground(new Color(230, 230, 230));
-
-		groupButtonsNotes = new ButtonGroup();
-
-		for (MusicalSymbol noteSymbol : notes) {
-			JToggleButton btn = createIconImageToggle(noteSymbol.getIconPath());
-			symbolButtons.put(noteSymbol, btn);
-			btn.addActionListener(e -> {
-				selectSymbolForInsertion(noteSymbol);
-			});
-			groupButtonsNotes.add(btn);
-			p.add(btn);
-		}
-
-		return p;
+	private JPanel noteToolbar() { 
+	    groupButtonsNotes = new ButtonGroup();
+	    return createToolbar(notes, groupButtonsNotes);
 	}
 
-	private JPanel restToolbar() {
-		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-		p.setBackground(new Color(230, 230, 230));
-
-		groupButtonsRests = new ButtonGroup();
-
-		for (MusicalSymbol restSymbol : rests) {
-			JToggleButton btn = createIconImageToggle(restSymbol.getIconPath());
-			symbolButtons.put(restSymbol, btn);
-			btn.addActionListener(e -> {
-				selectSymbolForInsertion(restSymbol);
-			});
-			groupButtonsRests.add(btn);
-			p.add(btn);
-		}
-
-		return p;
+	private JPanel restToolbar() { 
+	    groupButtonsRests = new ButtonGroup();
+	    return createToolbar(rests, groupButtonsRests);
 	}
 
-	private JPanel clefToolbar() {
-		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-		p.setBackground(new Color(230, 230, 230));
-
-		groupButtonsClef = new ButtonGroup();
-
-		for (MusicalSymbol clefSymbol : clefs) {
-			JToggleButton btn = createIconImageToggle(clefSymbol.getIconPath());
-			symbolButtons.put(clefSymbol, btn);
-			btn.addActionListener(e -> {
-				selectSymbolForInsertion(clefSymbol);
-			});
-			groupButtonsClef.add(btn);
-			p.add(btn);
-		}
-
-		return p;
+	private JPanel clefToolbar() { 
+	    groupButtonsClef = new ButtonGroup();
+	    return createToolbar(clefs, groupButtonsClef);
 	}
 
-	private JPanel barlineToolbar() {
-		JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-		p.setBackground(new Color(230, 230, 230));
-
-		groupButtonsBars = new ButtonGroup();
-
-		for (MusicalSymbol barSymbol : bars) {
-			JToggleButton btn = createIconImageToggle(barSymbol.getIconPath());
-			symbolButtons.put(barSymbol, btn);
-			btn.addActionListener(e -> {
-				selectSymbolForInsertion(barSymbol);
-			});
-			groupButtonsBars.add(btn);
-			p.add(btn);
-		}
-
-		return p;
+	private JPanel barlineToolbar() { 
+	    groupButtonsBarlines = new ButtonGroup();
+	    return createToolbar(bars, groupButtonsBarlines);
 	}
 
+
+	private JPanel createToolbar(MusicalSymbol[] symbols, ButtonGroup group) {
+	    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+	    p.setBackground(new Color(230, 230, 230));
+
+	    for (MusicalSymbol sym : symbols) {
+	        JToggleButton btn = createIconImageToggle(sym.getIconPath());
+	        symbolButtons.put(sym, btn);
+	        btn.addActionListener(e -> selectSymbolForInsertion(sym));
+	        group.add(btn);
+	        p.add(btn);
+	    }
+
+	    return p;
+	}
+	
 	private JPanel voiceToolbar() {
 		JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
 		p.setBackground(new Color(230, 230, 230));
@@ -640,26 +598,16 @@ public class GUI extends JFrame implements ScoreListener {
 		return nearest;
 	}
 
-	private void removeOtherSelections(MusicalSymbol symbol) {
-		removeButtonSelection();
-
-		// Seleziona il bottone corrispondente al simbolo
-		JToggleButton btn = symbolButtons.get(symbol);
-		if (btn != null) {
-			btn.setSelected(true);
-		}
-	}
-
-	private void removeButtonSelection() {
+	public void clearSelection() {
 		groupButtonsNotes.clearSelection();
-		groupButtonsBars.clearSelection();
+		groupButtonsBarlines.clearSelection();
 		groupButtonsClef.clearSelection();
 		groupButtonsRests.clearSelection();
 	}
 
 	public void exitInsertMode() {
 		insertMode = false;
-		removeButtonSelection();
+		clearSelection();
 		controller.destroyPointer();
 		repaint();
 	}
@@ -690,40 +638,15 @@ public class GUI extends JFrame implements ScoreListener {
 	public MusicalSymbol getObjectToInsert() {
 		return symbolToInsert;
 	}
-
-	public void selectDuration(int d) {
-		Enumeration<AbstractButton> e = groupButtonsNotes.getElements();
-		int sel = 7 - d; // inverte la numerazione. Se d = 7 -> 0, e così via
-		for (int i = 0; i < sel; i++)
-			e.nextElement();
-		e.nextElement().setSelected(true);
-	}
 	
-	private JToggleButton getSelectedButton() {
-	    Enumeration<AbstractButton> e = groupButtonsNotes.getElements();
-	    while (e.hasMoreElements()) {
-	        JToggleButton button = (JToggleButton) e.nextElement();
-	        if (button.isSelected()) {
-	            return button;
-	        }
-	    }
-	    return null;
-	}
 	
-	public MusicalSymbol getSelectedSymbol() {
-		MusicalSymbol key = null;
-		JToggleButton button = getSelectedButton();
-		if (button == null) return null;
-		for (Map.Entry<MusicalSymbol, JToggleButton> entry : symbolButtons.entrySet()) {
-		    if (entry.getValue().equals(button)) {
-		        key = entry.getKey();
-		        break;
-		    }
-		}
-		return key;
-	}
-	
-	public void selectSymbol(MusicalSymbol symbol) {
+	public void selectSymbolToInsert(MusicalSymbol symbol) {
 		symbolToInsert = symbol;
 	}
+
+	public void selectButtonForSymbol(MusicalSymbol symbol) {
+		symbolButtons.get(symbol).setSelected(true);
+	}
+
+	
 }

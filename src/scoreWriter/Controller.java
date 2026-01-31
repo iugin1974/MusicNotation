@@ -79,7 +79,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	protected boolean applyOnAllStaves = true;
 	private DragService dragService;
 	private InsertService insertService;
-
+	private MusicalSymbol.Type insertType;
 
 	private void test() {
 
@@ -99,9 +99,9 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		score.addObject(ks, 0, 0);
 
 		// ===== VOICE 1 =====
-		 Note v1n1 = new Note(60, 0, 2, 0);
-		 v1n1.setTick(150); 
-		 score.addObject(v1n1, 0, 1);
+		Note v1n1 = new Note(60, 0, 2, 0);
+		v1n1.setTick(150);
+		score.addObject(v1n1, 0, 1);
 
 		/*
 		 * Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
@@ -158,15 +158,14 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		clefChangeService = new ClefChangeService(score);
 		objectMoveService = new ObjectMoveService(score, notePitchService, clefChangeService);
 		keyboardHandler = new KeyboardHandler(this);
-		insertService =
-			    new InsertService(score, graphicalScore, clefChangeService);
+		insertService = new InsertService(score, graphicalScore, clefChangeService);
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				gui.setVisible(true);
 				// selectMidiDevice();
 				// testMidi();
-				//test();
+				test();
 				// load();
 				// save();
 				// System.exit(0);
@@ -226,12 +225,20 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void insertObject(MusicalSymbol symbol, int x, int y) {
 		selectionManager.clearSelection();
 		GraphicalStaff s = graphicalScore.getStaffAtPos(x, y);
-	    insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
-	    resizeStavesIfNeeded();
+		insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
+		resizeStavesIfNeeded();
 	}
 
 	public void setPointer(MusicalSymbol symbol) {
+		int x = 0;
+		int y = 0;
+		if (pointer != null) {
+			x = pointer.getX();
+			y = pointer.getY();
+		}
 		pointer = new Pointer(this, symbol);
+		pointer.moveTo(x, y);
+		gui.repaintPanel();
 	}
 
 	public Staff addStaff() {
@@ -368,7 +375,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void mouseDragged(MouseEvent e) {
 		dragService.moveObjects(e);
 	}
-	
+
 	public void mousePressed(MouseEvent e) {
 		dragService.mousePressed(e);
 	}
@@ -381,8 +388,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		}
 
 		for (GraphicalObject obj : moved) {
-			    objectMoveService.commitMove(obj);
-			}
+			objectMoveService.commitMove(obj);
+		}
 
 		resizeStavesIfNeeded();
 		gui.repaintPanel();
@@ -624,18 +631,44 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void applyOnAllStaves(boolean s) {
 		applyOnAllStaves = s;
 	}
-	
+
 	public void exitInsertMode() {
 		gui.exitInsertMode();
 	}
 
-	public void selectDuration(int d) {
-		gui.selectDuration(d);
-		gui.enterInsertMode();
-		MusicalSymbol symbol = gui.getSelectedSymbol();
-		if (symbol != null) {
-			gui.selectSymbol(symbol);
-		setPointer(symbol);	
-		}
+	public GUI getGUI() {
+		return gui;
 	}
+
+	public void setInsertType(MusicalSymbol.Type insertType) {
+		this.insertType = insertType;
+	}
+
+	private void selectSymbol(MusicalSymbol.Type type, int indexOrDuration) {
+		MusicalSymbol symbol = null;
+
+		if (type == MusicalSymbol.Type.NOTE || type == MusicalSymbol.Type.REST) {
+			int duration = 7 - indexOrDuration;
+			symbol = MusicalSymbol.getByDuration(type, duration);
+		} else if (indexOrDuration > 0){ // TODO necessita un controllo?
+			// scrivo -1 altrimenti l'utente dovrebbe premere 0
+			symbol = MusicalSymbol.getByType(type).get(indexOrDuration - 1);
+		}
+
+		if (symbol == null)
+			return;
+
+		gui.clearSelection();
+		gui.selectSymbolToInsert(symbol);
+		gui.selectButtonForSymbol(symbol);
+		gui.enterInsertMode();
+
+		setPointer(symbol);
+	}
+
+	public void keyPressed(int i) {
+		gui.clearSelection();
+		selectSymbol(insertType, i);
+	}
+
 }

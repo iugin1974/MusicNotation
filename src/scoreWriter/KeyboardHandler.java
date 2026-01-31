@@ -2,12 +2,13 @@ package scoreWriter;
 
 import java.awt.event.KeyEvent;
 
-import ui.GUI;
+import graphical.MusicalSymbol;
 
 public class KeyboardHandler {
 
 	private final Controller controller;
-
+	
+	
 	public KeyboardHandler(Controller controller) {
 		this.controller = controller;
 	}
@@ -20,7 +21,15 @@ public class KeyboardHandler {
 		} else if (keyEvent.getKeyChar() == 's') {
 			controller.slurOrTie();
 		} else if (keyEvent.getKeyChar() >= '1' && keyEvent.getKeyChar() <= '7') {
-			controller.selectDuration((int)keyEvent.getKeyChar() - 48);
+			controller.keyPressed((int)keyEvent.getKeyChar() - 48);
+		} else if (keyEvent.getKeyChar() == 'n') {
+			controller.setInsertType(MusicalSymbol.Type.NOTE);
+		} else if (keyEvent.getKeyChar() == 'r') {
+			controller.setInsertType(MusicalSymbol.Type.REST);
+		} else if (keyEvent.getKeyChar() == 'b') {
+			controller.setInsertType(MusicalSymbol.Type.BARLINE);
+		} else if (keyEvent.getKeyChar() == 'c') {
+			controller.setInsertType(MusicalSymbol.Type.CLEF);
 		}
 	}
 }

@@ -28,7 +28,7 @@ public class Pointer implements StaffInfo {
 	public int getY() {
 		return y;
 	}
-
+	
 	public void draw(Graphics g) {
 		int voiceNumber = controller.getCurrentVoice();
 		// se il costruttore ha solo un glifo, prende quello.
