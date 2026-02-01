@@ -146,12 +146,10 @@ public class GUI extends JFrame implements ScoreListener {
 	private JPanel mainToolbar() {
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
-		mainPanel.setBackground(Color.LIGHT_GRAY);
 
 		// Pannello orizzontale per i pulsanti
 		JPanel toolbarPanel = new JPanel();
 		toolbarPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		toolbarPanel.setBackground(Color.LIGHT_GRAY);
 
 		// Aggiungi le toolbar specifiche
 		toolbarPanel.add(noteToolbar());
@@ -461,7 +459,6 @@ public class GUI extends JFrame implements ScoreListener {
 		private void insertObject(MouseEvent e) {
 			int x;
 			int y;
-
 			// Se c'è un puntatore inserisce prende la posizione del puntatore
 			// altrimenti quella del click
 			if (controller.pointerExists()) {

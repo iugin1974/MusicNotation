@@ -1,5 +1,6 @@
 package ui;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import graphical.MusicalSymbol;
 import scoreWriter.Controller;
@@ -42,7 +43,9 @@ public class Pointer implements StaffInfo {
 		if (glyph == null) {
 			glyph = symbol.getGlyph();
 		}
+		g.setColor(Color.GRAY);
         g.drawString(glyph, x, y);
+        g.setColor(Color.BLACK);
 	}
 
 	@Override
