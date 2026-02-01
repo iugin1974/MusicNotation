@@ -7,6 +7,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -34,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -66,6 +68,7 @@ public class GUI extends JFrame implements ScoreListener {
 	private JToggleButton voice1;
 	private JToggleButton voice2;
 	private Map<MusicalSymbol, JToggleButton> symbolButtons = new HashMap<>();
+	public final int MARGIN = 100;
 
 	MusicalSymbol[] notes = { SymbolRegistry.WHOLE_NOTE, SymbolRegistry.HALF_NOTE, SymbolRegistry.QUARTER_NOTE,
 			SymbolRegistry.EIGHTH_NOTE, SymbolRegistry.SIXTEENTH_NOTE, SymbolRegistry.THIRTY_SECOND_NOTE,
@@ -277,11 +280,9 @@ public class GUI extends JFrame implements ScoreListener {
 		repaintPanel();
 	}
 	
-	public void selectSymbolForInsertion(MusicalSymbol symbol) {
-		clearSelection();
+	private void selectSymbolForInsertion(MusicalSymbol symbol) {
 		selectSymbolToInsert(symbol);
 		symbolToInsert = symbol;
-		System.out.println("Insert " +symbolToInsert.getName());
 		insertMode = true;
 		controller.setInsertType(symbol.getType());
 		controller.setPointer(symbol);
@@ -621,7 +622,7 @@ public class GUI extends JFrame implements ScoreListener {
 	public void scoreChanged(ScoreEvent e) {
 		switch (e.getType()) {
 		case STAFF_ADDED:
-			gScore.createGraphicalStaff(e, getWidth());
+			gScore.createGraphicalStaff(e, getScoreWidth());
 			break;
 		case OBJECT_ADDED:
 			gScore.createGraphicalObject(e);
@@ -648,5 +649,20 @@ public class GUI extends JFrame implements ScoreListener {
 		symbolButtons.get(symbol).setSelected(true);
 	}
 
+	public void scrollLeft(int x, int w) {
+		JViewport viewport = scrollPane.getViewport();
+	    Point pos = viewport.getViewPosition();
+	 // scrolla verso sinistra di MARGIN, senza uscire da 0
+	    int newX = Math.max(0, pos.x + w);
+	    viewport.setViewPosition(new Point(newX, pos.y));
+	}
+	
+	public int getScoreWidth() {
+		return scrollPane.getViewport().getView().getWidth();
+	}
+	
+	public int getViewWidth() {
+		return scrollPane.getViewport().getWidth();
+	}
 	
 }

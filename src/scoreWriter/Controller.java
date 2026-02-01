@@ -406,20 +406,20 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		}
 		GraphicalObject go = graphicalScore.getGraphicalObject(mo);
 		int lastObjectX = go.getX();
-		List<GraphicalStaff> staves = graphicalScore.getStaves();
-		int w = staves.get(0).getWidth();
-		if (lastObjectX < w - 100) {
-			return;
-		}
-		System.out.println("Resize staves");
-
-		for (GraphicalStaff s : staves) {
-			s.setWidth(w + 200);
-		}
-		gui.resizePanel(w + 200, gui.getHeight());
-		gui.repaintPanel();
+		resizeStavesIfNeeded(lastObjectX);
 	}
 
+	private int scrollLeftIfNeeded() {
+		int viewWidth = gui.getViewWidth(); // la parte visibile della score
+		if (viewWidth > insertResult.getLastX() + gui.MARGIN) return 0;
+		SwingUtilities.invokeLater(() -> {
+			System.out.println("scrollLeftIfNeeded: x = " + insertResult.getLastX());
+		gui.scrollLeft(insertResult.getLastX(), gui.MARGIN);
+		updatePointerAfterScroll(gui.MARGIN);
+		});
+		return gui.MARGIN;
+	}
+	
 	public void mouseDragged(MouseEvent e) {
 		dragService.moveObjects(e);
 	}

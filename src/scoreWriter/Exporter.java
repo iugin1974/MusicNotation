@@ -173,6 +173,11 @@ public class Exporter {
 		if (firstNote) {
 			n = n.replace("'", "");
 			n = n.replace(",", "");
+			String noteName = n.replaceAll("\\d", ""); // tutte le lettere
+	        String numeriStr = n.replaceAll("\\D", ""); // tutti i numeri
+	        int duration = Integer.parseInt(numeriStr);
+	        String signs = addHightSings(note.getMidiNumber());
+	        n = noteName  + signs + duration;
 		}
 		sb.append(n).append(" ");
 
@@ -188,6 +193,24 @@ public class Exporter {
 			}
 		}
 	}
+	
+	private String addHightSings(int pitch) {
+        StringBuilder result = new StringBuilder();
+
+        if (pitch < 48) {
+            int conteggio = (48 - pitch + 11) / 12; // arrotonda per eccesso
+            for (int i = 0; i < conteggio; i++) {
+                result.append(",");
+            }
+        } else if (pitch > 59) {
+            int conteggio = (pitch - 60) / 12 + 1;
+            for (int i = 0; i < conteggio; i++) {
+                result.append("'");
+            }
+        }
+
+        return result.toString();
+    }
 
 	private void parseRest(Rest rest) {
 		LilyRest lr = new LilyRest(rest);
