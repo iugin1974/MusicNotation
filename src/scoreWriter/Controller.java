@@ -47,6 +47,7 @@ import notation.Slur;
 import notation.Staff;
 import notation.Tie;
 import services.ClefChangeService;
+import services.InsertResult;
 import services.InsertService;
 import services.NotePitchService;
 import services.ObjectMoveService;
@@ -74,6 +75,7 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	private KeyboardHandler keyboardHandler;
 	private ClefChangeService clefChangeService;
 	private NotePitchService notePitchService;
+	private InsertResult insertResult;
 	private Point lastClick;
 	private MidiInput midiInput;
 	protected boolean applyOnAllStaves = true;
@@ -159,13 +161,14 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		objectMoveService = new ObjectMoveService(score, notePitchService, clefChangeService);
 		keyboardHandler = new KeyboardHandler(this);
 		insertService = new InsertService(score, graphicalScore, clefChangeService);
+		insertResult = new InsertResult(graphicalScore);
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				gui.setVisible(true);
 				// selectMidiDevice();
 				// testMidi();
-				test();
+				 test();
 				// load();
 				// save();
 				// System.exit(0);
@@ -175,6 +178,13 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	}
 
 	private void testMidi() {
+		addStaff();
+		MusicalSymbol symbol = SymbolRegistry.QUARTER_NOTE;
+		pointer = new Pointer(this, symbol);
+		Clef clef = Clef.treble();
+		score.addObject(clef, 0, 0);
+		gui.selectSymbolToInsert(symbol);
+		pointer.moveTo(700, 100);
 		noteOn(60);
 	}
 
@@ -205,11 +215,20 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 	@Override
 	public void noteOn(int pitch) {
-		if (pointer == null) {
+		if (pointer == null)  {
+			System.out.println("Cannot write: Pointer inactive");
 			return;
 		}
-		int x = pointer.getX();
-		int y = pointer.getY();
+		int x = 0;
+		int y = 0;
+		if (insertResult.isFirstMidiInsertion()) {
+		x = pointer.getX();
+		y = pointer.getY();
+		insertResult.firstMidiInsertion(false);
+		} else {
+			x = insertResult.getNextTick();
+			y = insertResult.getLastY();
+		}
 		MusicalSymbol symbol = gui.getObjectToInsert();
 		if (symbol == null) {
 			return;
@@ -220,13 +239,24 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 			return;
 		}
 		insertService.insertFromMidi(duration, pitch, x, currentVoice, staff);
+		insertResult.update(x, y, duration);
+		resizeStavesIfNeeded(insertResult.getNextTick());
 	}
 
+	public void resetMidiInsertion() {
+		insertResult.firstMidiInsertion(true);
+	}
+	
 	public void insertObject(MusicalSymbol symbol, int x, int y) {
 		selectionManager.clearSelection();
 		GraphicalStaff s = graphicalScore.getStaffAtPos(x, y);
 		insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
+		if (symbol.getType().equals(MusicalSymbol.Type.NOTE)
+				|| symbol.getType().equals(MusicalSymbol.Type.REST)) {
+		insertResult.update(x, y, symbol.getDuration());
+		}
 		resizeStavesIfNeeded();
+		scrollLeftIfNeeded();
 	}
 
 	public void setPointer(MusicalSymbol symbol) {
@@ -241,6 +271,13 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		gui.repaintPanel();
 	}
 
+	private void updatePointerAfterScroll(int scrollWidth) {
+		System.out.println("scroll width " +scrollWidth);
+		pointer.moveTo(pointer.getX() + scrollWidth/2, pointer.getY());
+		System.out.println("pointer: " + pointer.getX() + " "+pointer.getY());
+		System.out.println("Pointer updated");
+	}
+	
 	public Staff addStaff() {
 		return score.addStaff();
 	}
@@ -351,6 +388,17 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		}
 	}
 
+	private void resizeStavesIfNeeded(int x) {
+		int requiredWidth = x + gui.MARGIN;
+		int currentWidth = gui.getScoreWidth();
+		if (requiredWidth  < currentWidth) {
+			return;
+		}
+
+		 gui.resizePanel(requiredWidth, gui.getHeight());
+		gui.repaintPanel();
+	}
+	
 	public void resizeStavesIfNeeded() {
 		MusicObject mo = getLastElement();
 		if (mo == null) {
