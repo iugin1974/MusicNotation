@@ -35,6 +35,7 @@ import graphical.StaffActionListener;
 import midi.MidiInput;
 import midi.MidiListener;
 import musicEvent.Modus;
+import musicEvent.MusicEvent;
 import musicEvent.Note;
 import musicEvent.NoteEvent;
 import musicEvent.Rest;
@@ -88,22 +89,29 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		score.addStaff();
 
 		// ===== STAFF OBJECTS (VOICE 0) =====
-		Clef clef = Clef.bass();
+		Clef clef = Clef.treble();
 		clef.setTick(0);
 		score.addObject(clef, 0, 0);
-
-		TimeSignature ts = new TimeSignature(18, 7);
-		ts.setTick(50);
-		score.addObject(ts, 0, 0);
-
-		KeySignature ks = new KeySignature(0, 1, Modus.MAJOR_SCALE);
+//
+//		TimeSignature ts = new TimeSignature(18, 7);
+//		ts.setTick(50);
+//		score.addObject(ts, 0, 0);
+//
+		KeySignature ks = new KeySignature(2, 1, Modus.MAJOR_SCALE);
 		ks.setTick(100);
 		score.addObject(ks, 0, 0);
-
-		// ===== VOICE 1 =====
-		Note v1n1 = new Note(60, 0, 2, 0);
-		v1n1.setTick(150);
-		score.addObject(v1n1, 0, 1);
+		
+//		int tick = 150;
+//		for (int i = 62; i < 74; i++) {
+//			Note n = new Note(i);
+//			n.setTick(tick+=30);
+//			score.addObject(n, 0, 1);
+//		}
+//
+//		// ===== VOICE 1 =====
+//		Note v1n1 = new Note(60, 0, 2, 0);
+//		v1n1.setTick(150);
+//		score.addObject(v1n1, 0, 1);
 
 		/*
 		 * Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
@@ -247,10 +255,18 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		insertResult.firstMidiInsertion(true);
 	}
 	
+	/**
+	 * 
+	 * Inserisce un oggetto nella score.
+	 * @param symbol
+	 * @param x
+	 * @param y
+	 */
 	public void insertObject(MusicalSymbol symbol, int x, int y) {
 		selectionManager.clearSelection();
 		GraphicalStaff s = graphicalScore.getStaffAtPos(x, y);
-		insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
+		MusicObject mo = insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
+		selectionManager.select(graphicalScore.getGraphicalObject(mo), false);
 		if (symbol.getType().equals(MusicalSymbol.Type.NOTE)
 				|| symbol.getType().equals(MusicalSymbol.Type.REST)) {
 		insertResult.update(x, y, symbol.getDuration());
@@ -717,6 +733,18 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	public void keyPressed(int i) {
 		gui.clearSelection();
 		selectSymbol(insertType, i);
+	}
+
+	public void addAccidental(int i) {
+		List<GraphicalObject> selected = selectionManager.getSelected();
+		if (selected == null || selected.isEmpty()) return;
+		for (GraphicalObject go : selected) {
+			MusicObject mo = go.getModelObject();
+			if (mo instanceof NoteEvent && ((NoteEvent)mo).getAlteration() <=2) {
+				((NoteEvent)mo).addSharp();
+			}
+		}
+		
 	}
 
 }

@@ -6,6 +6,9 @@ import notation.KeySignature;
 
 public class StaffMapper {
 
+	private static final int[] SHARPS_ORDER = { 8, 5, 9, 6, 3, 7, 4 };
+    private static final int[] FLATS_ORDER  = { 4, 7, 3, 6, 2, 5, 1 };
+    
 	public static int midiToStaffPosition(int pitch, Clef clef) {
 		int delta = pitch - clef.getMidiOffset();
 		int direction = Integer.signum(delta);
@@ -42,9 +45,9 @@ public class StaffMapper {
 		int typeOfAlterations = ks.getTypeOfAlterations();
 		int[] keySignatureIndex;
 		if (typeOfAlterations == 1) {
-			keySignatureIndex = ks.getSharpsIndex();
+			keySignatureIndex = SHARPS_ORDER;
 		} else {
-			keySignatureIndex = ks.getFlatsIndex();
+			keySignatureIndex = FLATS_ORDER;
 		}
 		int midiN = clef.getMidiOffset() + scale[notePosMod7] + (octaveShift * 12);
 
@@ -56,7 +59,8 @@ public class StaffMapper {
 				return new MidiPitch(midiN, typeOfAlterations);
 			}
 		}
-		return new MidiPitch(midiN, 0);
+		int alteration = ks.getAlteration(midiN);
+		return new MidiPitch(midiN, alteration);
 	}
 
 	public static void main(String[] args) {

@@ -9,6 +9,8 @@ import notation.KeySignature;
 
 public class GraphicalKeySignature extends GraphicalObject {
 
+	private static final int[] SHARPS_ORDER = { 8, 5, 9, 6, 3, 7, 4 };
+    private static final int[] FLATS_ORDER  = { 4, 7, 3, 6, 2, 5, 1 };
 	// -------------------------------------------------------------------
 	// SMuFL glyphs
 	// -------------------------------------------------------------------
@@ -35,8 +37,6 @@ public class GraphicalKeySignature extends GraphicalObject {
 	private void computeLayout() {
 		int numberOfAlterations = keySignature.getNumberOfAlterations();
 		int typeOfAlterations = keySignature.getTypeOfAlterations();
-		int[] keySignatureSharpsIndex = { 8, 5, 9, 6, 3, 7, 4 };
-		int[] keySignatureFlatsIndex = { 4, 7, 3, 6, 2, 5, 1 };
 
 		// Array che conterrà le coordinate Y di tutte le alterazioni da disegnare
 		pos = new int[numberOfAlterations];
@@ -48,14 +48,14 @@ public class GraphicalKeySignature extends GraphicalObject {
 		if (typeOfAlterations == 1) { // Diesis
 			for (int i = 0; i < numberOfAlterations; i++) {
 				// Prende l’indice dell’array corrispondente all’i-esimo diesis nella tonalità
-				int line = keySignatureSharpsIndex[i];
+				int line = SHARPS_ORDER[i];
 				pos[i] = linePositions[line]; // assegna la coordinata Y corretta
 			}
 
 		} else if (typeOfAlterations == -1) { // Bemolli
 			for (int i = 0; i < numberOfAlterations; i++) {
 				// Prende l’indice dell’array corrispondente all’i-esimo bemolle nella tonalità
-				int line = keySignatureFlatsIndex[i];
+				int line = FLATS_ORDER[i];
 				pos[i] = linePositions[line]; // assegna la coordinata Y corretta
 			}
 		}
@@ -105,7 +105,6 @@ public class GraphicalKeySignature extends GraphicalObject {
 		Rectangle bounds = new Rectangle(getX(), minY, width, height);
 
 		setBounds(bounds);
-
 		// Ripristina posizione iniziale
 		nextAlteration = getX();
 	}
@@ -147,5 +146,14 @@ public class GraphicalKeySignature extends GraphicalObject {
 	public KeySignature getModelObject() {
 		return keySignature;
 	}
+	
+	 public int[] getSharpsIndex() {
+	        return SHARPS_ORDER;
+	    }
+
+	    public int[] getFlatsIndex() {
+	        return FLATS_ORDER;
+	    }
+
 
 }

@@ -30,6 +30,8 @@ public class KeyboardHandler {
 			controller.setInsertType(MusicalSymbol.Type.BARLINE);
 		} else if (keyEvent.getKeyChar() == 'c') {
 			controller.setInsertType(MusicalSymbol.Type.CLEF);
+		} else if (keyEvent.getKeyCode() == KeyEvent.VK_UP) {
+			controller.addAccidental(1);
 		}
 	}
 }

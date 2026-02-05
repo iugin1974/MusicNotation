@@ -8,6 +8,7 @@ import graphical.MusicalSymbol;
 import graphical.MusicalSymbol.Type;
 import musicEvent.Note;
 import musicEvent.Rest;
+import musicInterface.MusicObject;
 import notation.Clef;
 import notation.KeySignature;
 import notation.Score;
@@ -27,58 +28,57 @@ public class InsertService {
 		this.clefChangeService = clefChangeService;
 	}
 
-	private void insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x, boolean applyOnAllStaves) {
+	private Bar insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x, boolean applyOnAllStaves) {
+		Bar bar = getBar(objectToInsert);
+		bar.setTick(x);
 		if (applyOnAllStaves) {
 			for (int staffIndex = 0; staffIndex < score.getStaffCount(); staffIndex++) {
-				Bar bar = getBar(objectToInsert);
-				bar.setTick(x);
 				score.addObject(bar, staffIndex, 0);
 			}
 		} else {
-			Bar bar = getBar(objectToInsert);
-			bar.setTick(x);
 			int staffIndex = graphicalScore.getStaffIndex(s);
 			score.addObject(bar, staffIndex, 0);
 		}
+		return bar;
 	}
 
-	private void insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x) {
+	private Clef insertClef(MusicalSymbol clefSymbol, GraphicalStaff s, int x) {
 		Clef c = createClef(clefSymbol);
 		if (c == null) {
-			return;
+			return null;
 		}
 		c.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		score.addObject(c, staffIndex, 0);
 		GraphicalClef gClef = (GraphicalClef) graphicalScore.getGraphicalObject(c);
 		clefChangeService.commitClefChange(gClef);
+		return c;
 	}
 
-	public void insertFromMidi(int duration, int pitch, int x, int currentVoice, GraphicalStaff s) {
+	public Note insertFromMidi(int duration, int pitch, int x, int currentVoice, GraphicalStaff s) {
 		int staffIndex = graphicalScore.getStaffIndex(s);
 
 		Clef clef = score.getLastClef(staffIndex, x);
 		if (clef == null) {
-			return; // oppure eccezione
+			return null; // oppure eccezione
 		}
 		KeySignature key = score.getKeySignature(staffIndex, x);
 
 		int staffPosition = StaffMapper.midiToStaffPosition(pitch, clef);
 		MidiPitch midiPitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
-		insertNote(duration, midiPitch, staffPosition, x, currentVoice, s);
+		return insertNote(duration, midiPitch, staffPosition, x, currentVoice, s);
 	}
 
-	private void insertFromMouse(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
+	private Note insertFromMouse(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
 		int staffPosition = s.getPosInStaff(y);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		Clef clef = score.getLastClef(staffIndex, x);
 		KeySignature key = score.getKeySignature(staffIndex, x);
 		MidiPitch pitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
-		// TODO pitch può essere null. Controllo
-		insertNote(duration, pitch, staffPosition, x, currentVoice, s);
+		return insertNote(duration, pitch, staffPosition, x, currentVoice, s);
 	}
 
-	private void insertNote(int duration, MidiPitch pitch, int staffPosition, int x, int currentVoice,
+	private Note insertNote(int duration, MidiPitch pitch, int staffPosition, int x, int currentVoice,
 			GraphicalStaff s) {
 		Note n = createNote(duration, pitch);
 		n.setTick(x);
@@ -87,29 +87,32 @@ public class InsertService {
 		n.setStaffPosition(staffPosition);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		score.addObject(n, staffIndex, currentVoice);
+		return n;
 	}
 
-	public void insertObject
+	public MusicObject insertObject
 	(MusicalSymbol objectToInsert, GraphicalStaff s, int x, int y, int currentVoice, boolean applyOnAllStaves) {
 		if (s == null) {
-			return;
+			return null;
 		}
 		if (objectToInsert.getType() == Type.NOTE) {
-			insertFromMouse(objectToInsert.getDuration(), s, x, y, currentVoice);
+			return insertFromMouse(objectToInsert.getDuration(), s, x, y, currentVoice);
 		} else if (objectToInsert.getType() == Type.REST) {
-			insertRest(objectToInsert.getDuration(), s, x, y, currentVoice);
+			return insertRest(objectToInsert.getDuration(), s, x, y, currentVoice);
 		} else if (objectToInsert.getType() == Type.BARLINE) {
-			insertBar(objectToInsert, s, x, applyOnAllStaves);
+			return insertBar(objectToInsert, s, x, applyOnAllStaves);
 		} else if (objectToInsert.getType() == Type.CLEF) {
-			insertClef(objectToInsert, s, x);
+			return insertClef(objectToInsert, s, x);
 		}
+		return null;
 	}
 
-	private void insertRest(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
+	private Rest insertRest(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
 		Rest r = createRest(duration);
 		r.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		score.addObject(r, staffIndex, currentVoice);
+		return r;
 	}
 
 	private Clef createClef(MusicalSymbol symbol) {

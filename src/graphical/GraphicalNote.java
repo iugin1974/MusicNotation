@@ -10,6 +10,8 @@ import java.io.InputStream;
 
 import musicEvent.Note;
 import notation.CurvedConnection;
+import notation.KeySignature;
+import notation.Score;
 import scoreWriter.StaffInfo;
 import scoreWriter.SymbolRegistry;
 
@@ -59,6 +61,30 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 			g.drawString(note.getMidiNumber()+","+note.getAlteration(), getX(), 120);
 			g.setFont(oldFont);
 		}
+		
+		Score score = gScore.getScore();
+		KeySignature ks = score.getKeySignature(note.getStaffIndex(), note.getTick());
+		int midi = note.getMidiNumber();
+		int alt  = note.getAlteration();
+
+		// Se l'alterazione NON è implicita dalla chiave, va disegnata
+		if (!ks.isInKey(midi, alt)) {
+
+		    String accidentalGlyph = null;
+
+		    switch (alt) {
+		        case -2 -> accidentalGlyph = "\uE264"; // doppio bemolle
+		        case -1 -> accidentalGlyph = "\uE260"; // bemolle
+		        case  0 -> accidentalGlyph = "\uE261"; // bequadro
+		        case  1 -> accidentalGlyph = "\uE262"; // diesis
+		        case  2 -> accidentalGlyph = "\uE263"; // doppio diesis
+		    }
+
+		    if (accidentalGlyph != null) {
+		        g.drawString(accidentalGlyph, getX() - 10, getY());
+		    }
+		}
+
 		int staffIndex = note.getStaffIndex();
 		gScore.ledgerRenderer.drawLedgerLines(g, this, gScore.getStaff(staffIndex));
 	}
