@@ -9,8 +9,7 @@ import notation.Clef;
 import notation.CurvedConnection;
 import notation.KeySignature;
 import notation.Score;
-import notation.Staff;
-import scoreWriter.StaffMapper;
+import notation.StaffMapper;
 
 public final class GraphicalObjectFactory {
 
@@ -32,7 +31,7 @@ public final class GraphicalObjectFactory {
         	int pitch = note.getMidiNumber();
         	int staffIndex = gScore.getStaffIndex(gStaff);
         	Score score = gScore.getScore();
-        	Clef clef = score.getLastObjectOfType(staffIndex, note.getTick(), Clef.class);
+        	Clef clef = score.getPreviousObjectOfType(staffIndex, note.getTick(), Clef.class);
         	int line = StaffMapper.midiToStaffPosition(pitch, clef);
         	int y = gStaff.getYPos(line);
             g = new GraphicalNote((Note) obj);

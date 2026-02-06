@@ -1,7 +1,6 @@
 package services;
 
 import Measure.Bar;
-import graphical.GraphicalClef;
 import graphical.GraphicalScore;
 import graphical.GraphicalStaff;
 import graphical.MusicalSymbol;
@@ -12,20 +11,18 @@ import musicInterface.MusicObject;
 import notation.Clef;
 import notation.KeySignature;
 import notation.Score;
-import scoreWriter.MidiPitch;
-import scoreWriter.StaffMapper;
+import notation.MidiPitch;
+import notation.StaffMapper;
 import scoreWriter.SymbolRegistry;
 
 public class InsertService {
 
 	private final Score score;
 	private final GraphicalScore graphicalScore;
-	private final ClefChangeService clefChangeService;
 
-	public InsertService(Score score, GraphicalScore graphicalScore, ClefChangeService clefChangeService) {
+	public InsertService(Score score, GraphicalScore graphicalScore) {
 		this.score = score;
 		this.graphicalScore = graphicalScore;
-		this.clefChangeService = clefChangeService;
 	}
 
 	private Bar insertBar(MusicalSymbol objectToInsert, GraphicalStaff s, int x, boolean applyOnAllStaves) {
@@ -50,19 +47,17 @@ public class InsertService {
 		c.setTick(x);
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		score.addObject(c, staffIndex, 0);
-		GraphicalClef gClef = (GraphicalClef) graphicalScore.getGraphicalObject(c);
-		clefChangeService.commitClefChange(gClef);
 		return c;
 	}
 
 	public Note insertFromMidi(int duration, int pitch, int x, int currentVoice, GraphicalStaff s) {
 		int staffIndex = graphicalScore.getStaffIndex(s);
 
-		Clef clef = score.getLastObjectOfType(staffIndex, x, Clef.class);
+		Clef clef = score.getPreviousObjectOfType(staffIndex, x, Clef.class);
 		if (clef == null) {
 			return null; // oppure eccezione
 		}
-		KeySignature key = score.getLastObjectOfType(staffIndex, x, KeySignature.class);
+		KeySignature key = score.getPreviousObjectOfType(staffIndex, x, KeySignature.class);
 
 		int staffPosition = StaffMapper.midiToStaffPosition(pitch, clef);
 		MidiPitch midiPitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
@@ -72,8 +67,8 @@ public class InsertService {
 	private Note insertFromMouse(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
 		int staffPosition = s.getPosInStaff(y);
 		int staffIndex = graphicalScore.getStaffIndex(s);
-		Clef clef = score.getLastObjectOfType(staffIndex, x, Clef.class);
-		KeySignature key = score.getLastObjectOfType(staffIndex, x, KeySignature.class);
+		Clef clef = score.getPreviousObjectOfType(staffIndex, x, Clef.class);
+		KeySignature key = score.getPreviousObjectOfType(staffIndex, x, KeySignature.class);
 		MidiPitch pitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
 		return insertNote(duration, pitch, staffPosition, x, currentVoice, s);
 	}

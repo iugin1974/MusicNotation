@@ -49,10 +49,10 @@ import notation.Slur;
 import notation.Staff;
 import notation.Tie;
 import services.ClefChangeService;
-import services.InsertResult;
 import services.InsertService;
-import services.NotePitchService;
+import services.InsertResult;
 import services.ObjectMoveService;
+import services.NotePitchService;
 import services.ScoreTemplateService;
 import ui.GUI;
 import ui.KeySignatureDialog;
@@ -75,7 +75,6 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	private SelectionManager selectionManager = new SelectionManager();
 	private ObjectMoveService objectMoveService;
 	private KeyboardHandler keyboardHandler;
-	private ClefChangeService clefChangeService;
 	private NotePitchService notePitchService;
 	private InsertResult insertResult;
 	private Point lastClick;
@@ -114,9 +113,9 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 //		}
 //
 //		// ===== VOICE 1 =====
-//		Note v1n1 = new Note(60, 0, 2, 0);
-//		v1n1.setTick(150);
-//		score.addObject(v1n1, 0, 1);
+		Note v1n1 = new Note(60, 0, 2, 0);
+		v1n1.setTick(350);
+		score.addObject(v1n1, 0, 1);
 
 		/*
 		 * Note v1n2 = new Note(); v1n2.setDuration(4); v1n2.setStaffPosition(2);
@@ -170,10 +169,9 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		gui = new GUI(this, graphicalScore);
 		dragService = new DragService(this, selectionManager, graphicalScore);
 		notePitchService = new NotePitchService(score, graphicalScore);
-		clefChangeService = new ClefChangeService(score);
-		objectMoveService = new ObjectMoveService(score, notePitchService, clefChangeService);
+		objectMoveService = new ObjectMoveService(score, notePitchService);
 		keyboardHandler = new KeyboardHandler(this);
-		insertService = new InsertService(score, graphicalScore, clefChangeService);
+		insertService = new InsertService(score, graphicalScore);
 		insertResult = new InsertResult(graphicalScore);
 		accidentalContext = new AccidentalContext(score);
 		registerListeners();
