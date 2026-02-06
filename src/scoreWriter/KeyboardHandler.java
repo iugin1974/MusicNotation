@@ -32,6 +32,9 @@ public class KeyboardHandler {
 			controller.setInsertType(MusicalSymbol.Type.CLEF);
 		} else if (keyEvent.getKeyCode() == KeyEvent.VK_UP) {
 			controller.addAccidental(1);
+		} else if (keyEvent.getKeyCode() == KeyEvent.VK_DOWN) {
+			controller.addAccidental(-1);
 		}
+		
 	}
 }

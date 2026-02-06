@@ -40,6 +40,7 @@ import musicEvent.Note;
 import musicEvent.NoteEvent;
 import musicEvent.Rest;
 import musicInterface.MusicObject;
+import notation.AccidentalContext;
 import notation.Clef;
 import notation.CurvedConnection;
 import notation.KeySignature;
@@ -83,6 +84,10 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 	private DragService dragService;
 	private InsertService insertService;
 	private MusicalSymbol.Type insertType;
+
+	private AccidentalContext accidentaLContext;
+
+	private AccidentalContext accidentalContext;
 
 	private void test() {
 
@@ -157,12 +162,12 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 
 	private void registerListeners() {
 		score.addListener(gui);
+		score.addListener(accidentalContext);
 	}
 
 	private void go() {
 		graphicalScore = new GraphicalScore(score, this);
 		gui = new GUI(this, graphicalScore);
-		registerListeners();
 		dragService = new DragService(this, selectionManager, graphicalScore);
 		notePitchService = new NotePitchService(score, graphicalScore);
 		clefChangeService = new ClefChangeService(score);
@@ -170,6 +175,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		keyboardHandler = new KeyboardHandler(this);
 		insertService = new InsertService(score, graphicalScore, clefChangeService);
 		insertResult = new InsertResult(graphicalScore);
+		accidentalContext = new AccidentalContext(score);
+		registerListeners();
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -267,10 +274,10 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		GraphicalStaff s = graphicalScore.getStaffAtPos(x, y);
 		MusicObject mo = insertService.insertObject(symbol, s, x, y, currentVoice, applyOnAllStaves);
 		selectionManager.select(graphicalScore.getGraphicalObject(mo), false);
-		if (symbol.getType().equals(MusicalSymbol.Type.NOTE)
-				|| symbol.getType().equals(MusicalSymbol.Type.REST)) {
+		if (mo instanceof Note || mo instanceof Rest) {
 		insertResult.update(x, y, symbol.getDuration());
 		}
+
 		resizeStavesIfNeeded();
 		scrollLeftIfNeeded();
 	}
@@ -740,8 +747,8 @@ public class Controller implements StaffActionListener, MidiListener, MidiDevice
 		if (selected == null || selected.isEmpty()) return;
 		for (GraphicalObject go : selected) {
 			MusicObject mo = go.getModelObject();
-			if (mo instanceof NoteEvent && ((NoteEvent)mo).getAlteration() <=2) {
-				((NoteEvent)mo).addSharp();
+			if (mo instanceof NoteEvent) {
+				score.addAlteration((NoteEvent)mo, i);
 			}
 		}
 		

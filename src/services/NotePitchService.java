@@ -34,8 +34,8 @@ public class NotePitchService {
 		int staffIndex = graphicalScore.getStaffIndex(s);
 		int tick = note.getTick();
 
-		Clef clef = score.getLastClef(staffIndex, tick);
-		KeySignature ks = score.getKeySignature(staffIndex, tick);
+		Clef clef = score.getLastObjectOfType(staffIndex, tick, Clef.class);
+		KeySignature ks = score.getLastObjectOfType(staffIndex, tick, KeySignature.class);
 
 		MidiPitch midi = StaffMapper.staffPositionToMidi(gNote.getStaffPosition(), clef, ks);
 

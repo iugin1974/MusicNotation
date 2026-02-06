@@ -62,17 +62,10 @@ public class GraphicalNote extends GraphicalObject implements StaffInfo {
 			g.setFont(oldFont);
 		}
 		
-		Score score = gScore.getScore();
-		KeySignature ks = score.getKeySignature(note.getStaffIndex(), note.getTick());
-		int midi = note.getMidiNumber();
-		int alt  = note.getAlteration();
-
-		// Se l'alterazione NON è implicita dalla chiave, va disegnata
-		if (!ks.isInKey(midi, alt)) {
-
+		if (note.needsAccidental()) {
 		    String accidentalGlyph = null;
 
-		    switch (alt) {
+		    switch (note.getAlteration()) {
 		        case -2 -> accidentalGlyph = "\uE264"; // doppio bemolle
 		        case -1 -> accidentalGlyph = "\uE260"; // bemolle
 		        case  0 -> accidentalGlyph = "\uE261"; // bequadro

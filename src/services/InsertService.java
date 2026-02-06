@@ -58,11 +58,11 @@ public class InsertService {
 	public Note insertFromMidi(int duration, int pitch, int x, int currentVoice, GraphicalStaff s) {
 		int staffIndex = graphicalScore.getStaffIndex(s);
 
-		Clef clef = score.getLastClef(staffIndex, x);
+		Clef clef = score.getLastObjectOfType(staffIndex, x, Clef.class);
 		if (clef == null) {
 			return null; // oppure eccezione
 		}
-		KeySignature key = score.getKeySignature(staffIndex, x);
+		KeySignature key = score.getLastObjectOfType(staffIndex, x, KeySignature.class);
 
 		int staffPosition = StaffMapper.midiToStaffPosition(pitch, clef);
 		MidiPitch midiPitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
@@ -72,8 +72,8 @@ public class InsertService {
 	private Note insertFromMouse(int duration, GraphicalStaff s, int x, int y, int currentVoice) {
 		int staffPosition = s.getPosInStaff(y);
 		int staffIndex = graphicalScore.getStaffIndex(s);
-		Clef clef = score.getLastClef(staffIndex, x);
-		KeySignature key = score.getKeySignature(staffIndex, x);
+		Clef clef = score.getLastObjectOfType(staffIndex, x, Clef.class);
+		KeySignature key = score.getLastObjectOfType(staffIndex, x, KeySignature.class);
 		MidiPitch pitch = StaffMapper.staffPositionToMidi(staffPosition, clef, key);
 		return insertNote(duration, pitch, staffPosition, x, currentVoice, s);
 	}

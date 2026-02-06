@@ -21,14 +21,18 @@ public class ClefChangeService {
 	public void commitClefChange(GraphicalClef gClef) {
 		Clef clef = gClef.getModelObject();
 		clef.setTick(gClef.getX());
-		List<NoteEvent> list = score.getNotesAffectedByClef(clef);
+		int staffIndex = clef.getStaffIndex();
+		int tick1 = clef.getTick();
+		Clef nextClef = score.getNextObjectOfType(staffIndex, tick1, Clef.class);
+		int tick2 = nextClef.getTick();
+		List<NoteEvent> list = score.getAllNotesBetween(staffIndex, tick1, tick2);
 		recalculateMidi(list, clef);
 	}
 	
 	private void recalculateMidi(List<NoteEvent> list, Clef clef) {
 		for (NoteEvent n : list) {
 			int staffIndex = clef.getStaffIndex();
-			KeySignature ks = score.getKeySignature(staffIndex, n.getTick());
+			KeySignature ks = score.getLastObjectOfType(staffIndex, n.getTick(), KeySignature.class);
 			MidiPitch midi = StaffMapper.staffPositionToMidi(n.getStaffPosition(), clef, ks);
 			n.setMidiNumber(midi.getMidiNumber());
 			n.setAlteration(midi.getAlteration());
